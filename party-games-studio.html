@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Party Games Studio</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎈</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1d1a2b; --paper:#faf7f2; --card:#ffffff; --line:#e7e0d6;
+  --muted:#8a8398; --plum:#5b3a76; --plum-l:#f2ebf7; --coral:#e0567a;
+  --coral-l:#fdeef2; --gold:#c69749; --ok:#2f8f5b; --ok-l:#eaf6ef;
+  --warn:#c9603a; --warn-l:#fbeee7; --rs:11px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink);font-size:14px}
+h1,h2,h3,.disp{font-family:'Fraunces',Georgia,serif}
+.hdr{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--ink);color:#fff;position:sticky;top:0;z-index:40}
+.hdr .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--coral),var(--plum));display:flex;align-items:center;justify-content:center;font-size:20px}
+.hdr h1{font-size:17px;margin:0;font-weight:600}
+.hdr p{margin:0;font-size:11px;color:rgba(255,255,255,.55)}
+.hdr .sp{flex:1}
+.gear{background:rgba(255,255,255,.1);border:none;color:#fff;width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:17px}
+.gear:hover{background:rgba(255,255,255,.2)}
+.main{display:grid;grid-template-columns:430px 1fr;min-height:calc(100vh - 62px)}
+@media(max-width:920px){.main{grid-template-columns:1fr}}
+.side{background:var(--card);border-right:1px solid var(--line);padding:20px;overflow-y:auto}
+.stage{padding:26px 30px;overflow-y:auto}
+.sl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 0 7px}
+.sl:first-child{margin-top:0}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:12px;font-weight:600;margin-bottom:4px}
+.fg small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4}
+input[type=text],input[type=password],input[type=number],textarea,select{
+  width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:var(--rs);
+  font-size:13px;font-family:inherit;background:var(--paper);color:var(--ink);outline:none;transition:.15s}
+input:focus,textarea:focus,select:focus{border-color:var(--plum);box-shadow:0 0 0 3px var(--plum-l);background:#fff}
+textarea{resize:vertical;min-height:64px;line-height:1.5}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;padding:12px;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn-primary{background:var(--coral);color:#fff}
+.btn-primary:hover{background:#cf3f66}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-plum{background:var(--plum);color:#fff}
+.btn-plum:hover{background:#4b2f63}
+.btn-ghost{background:none;border:1px solid var(--line);color:var(--ink);font-weight:600}
+.btn-ghost:hover{border-color:var(--plum);color:var(--plum)}
+.btn-sm{padding:7px 12px;font-size:12px;border-radius:8px;width:auto}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.chip{padding:5px 10px;border:1px solid var(--line);border-radius:20px;font-size:11px;cursor:pointer;background:var(--paper);transition:.15s;user-select:none}
+.chip.on{background:var(--plum);color:#fff;border-color:var(--plum)}
+.chip:hover{border-color:var(--plum)}
+.pin-style{display:grid;grid-template-columns:1fr;gap:5px;margin-top:6px}
+.ps-btn{text-align:left;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--paper);cursor:pointer;font-size:12px;transition:.15s}
+.ps-btn.on{border-color:var(--coral);background:var(--coral-l);border-left-width:3px}
+.hint{background:var(--plum-l);border:1px solid #ddc9ec;border-radius:var(--rs);padding:9px 11px;font-size:11px;line-height:1.55;color:#4b2f63;margin-top:8px}
+.hint code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;font-family:ui-monospace,monospace;font-size:10px}
+.prog{margin-top:12px;display:none}
+.prog.on{display:block}
+.prog-bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--coral),var(--plum));transition:width .4s}
+.prog-lbl{font-size:12px;font-weight:600;margin-bottom:5px;color:var(--plum)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--ink);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;z-index:80;transition:.25s;pointer-events:none;max-width:80vw}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--warn)}
+.toast.ok{background:var(--ok)}
+/* settings drawer */
+.drawer-bg{position:fixed;inset:0;background:rgba(29,26,43,.45);z-index:50;opacity:0;pointer-events:none;transition:.2s}
+.drawer-bg.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(480px,92vw);background:var(--card);z-index:51;
+  transform:translateX(100%);transition:.25s;overflow-y:auto;padding:22px;box-shadow:-10px 0 40px rgba(0,0,0,.15)}
+.drawer.on{transform:translateX(0)}
+.drawer h2{font-size:19px;margin:0 0 4px}
+.site-card{border:1px solid var(--line);border-radius:var(--rs);padding:12px;margin-bottom:10px;background:var(--paper)}
+.empty{text-align:center;color:var(--muted);padding:70px 20px}
+.empty .em{font-size:46px;margin-bottom:10px}
+.empty h2{font-size:22px;margin:0 0 6px;color:var(--ink)}
+/* preview */
+.pv{max-width:760px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.pv-hero{width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--plum-l);display:block}
+.pv-body{padding:26px 30px}
+.seo-box{background:var(--plum-l);border:1px solid #ddc9ec;border-radius:12px;padding:14px 16px;margin-bottom:20px;font-size:12px}
+.seo-box .r{display:flex;gap:8px;margin-bottom:7px;align-items:flex-start}
+.seo-box .k{font-weight:700;color:var(--plum);min-width:96px;flex-shrink:0}
+.seo-box input,.seo-box textarea{font-size:12px;padding:5px 8px}
+.editable{border:1px dashed transparent;border-radius:6px;transition:.15s;outline:none}
+.editable:hover{border-color:var(--line)}
+.editable:focus{border-color:var(--plum);border-style:solid;box-shadow:0 0 0 3px var(--plum-l)}
+.pv h1.title{font-size:30px;line-height:1.15;margin:0 0 16px}
+.insights{background:#fff8f0;border:1px solid #f0dcc0;border-left:4px solid var(--gold);border-radius:0 10px 10px 0;padding:14px 18px;margin:18px 0}
+.insights strong{display:block;margin-bottom:7px;font-family:'Fraunces',serif;font-size:15px}
+.insights ul{margin:0;padding-left:18px}.insights li{margin-bottom:5px}
+.toc{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:18px 0}
+.toc strong{display:block;margin-bottom:6px}
+.toc a{display:block;color:var(--plum);text-decoration:none;font-size:13px;padding:3px 0}
+.toc a:hover{text-decoration:underline}
+.pv h2{font-size:23px;margin:34px 0 12px;padding-top:6px}
+.pv h3{font-size:18px;margin:22px 0 8px}
+.pv p{line-height:1.72;margin:0 0 14px}
+.game-card{border:1px solid var(--line);border-radius:12px;padding:0;margin:18px 0;overflow:hidden}
+.game-card .gc-body{padding:16px 18px}
+.game-card .gc-img{width:100%;display:block;background:var(--plum-l)}
+.gc-tools{display:flex;gap:7px;padding:10px 16px;border-top:1px solid var(--line);background:var(--paper);align-items:center;flex-wrap:wrap}
+.gc-tools .fn{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace}
+.faq-q{font-weight:700;margin:16px 0 4px;font-family:'Fraunces',serif}
+.pins-wrap{margin:26px auto;max-width:760px}
+.pins-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+@media(max-width:700px){.pins-grid{grid-template-columns:repeat(2,1fr)}}
+.pin{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.pin img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:var(--coral-l)}
+.pin .pin-t{padding:7px 9px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
+.pin-ph{width:100%;aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;background:var(--coral-l);text-align:center;padding:8px}
+.spin{width:20px;height:20px;border:2px solid rgba(91,58,118,.25);border-top-color:var(--plum);border-radius:50%;animation:sp .8s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pubbar{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:14px 30px;display:flex;gap:12px;align-items:center;z-index:20}
+.pubbar .sp{flex:1}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.badge.active{background:var(--ok-l);color:var(--ok)}
+.badge.print{background:var(--coral-l);color:var(--coral)}
+.badge.quiet{background:var(--plum-l);color:var(--plum)}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="logo">🎈</div>
+  <div><h1>Party Games Studio</h1><p>Holiday & party game articles → WordPress</p></div>
+  <div class="sp"></div>
+  <button class="btn btn-ghost btn-sm" style="width:auto;background:rgba(255,255,255,.1);color:#fff;border:none" onclick="openBatch()" title="Batch mode">📚 Batch</button>
+  <button class="btn btn-ghost btn-sm" style="width:auto;background:rgba(255,255,255,.1);color:#fff;border:none" onclick="newArticle()" title="Start over">✚ New Article</button>
+  <button class="gear" onclick="openSettings()" title="Settings">⚙</button>
+</div>
+
+<div class="main">
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="side">
+    <div class="sl">Article brief</div>
+    <div class="fg">
+      <label>Main keyword</label>
+      <input type="text" id="mainKW" placeholder="e.g. baby shower games for a boy">
+    </div>
+    <div class="row">
+      <div class="fg">
+        <label>Category</label>
+        <select id="category">
+          <option value="Baby Shower">Baby Shower</option>
+          <option value="Birthday Party">Birthday Party</option>
+          <option value="Girls Night">Girls Night</option>
+          <option value="Bachelorette">Bachelorette</option>
+          <option value="Kids Party">Kids Party</option>
+          <option value="Holiday Party">Holiday Party</option>
+          <option value="Bridal Shower">Bridal Shower</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Audience</label>
+        <select id="audience">
+          <option value="adult">Adults</option>
+          <option value="kids">Kids / family</option>
+          <option value="mixed">Mixed</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Number of games</label>
+      <select id="gameCount">
+        <option value="0">Auto (random 11–17)</option>
+        <option value="10">10</option><option value="12">12</option>
+        <option value="14">14</option><option value="16">16</option><option value="18">18</option>
+      </select>
+      <small>For Baby Shower a random mix is drawn from a 55-game bank, so articles don't repeat.</small>
+    </div>
+    <div class="fg">
+      <label>WordPress category <button class="btn btn-ghost btn-sm" style="float:right;margin-top:-2px" onclick="fetchWPCats(true)">🔄 Load</button></label>
+      <select id="wpCatSelect" onchange="ST.pubCat=this.value"></select>
+      <small>Where the post is filed on your site. Loaded from the active WordPress site.</small>
+    </div>
+    <div class="fg">
+      <label>Additional context</label>
+      <textarea id="context" placeholder="Angle, must-include games, theme notes, what to avoid…"></textarea>
+    </div>
+
+    <div class="sl">Research</div>
+    <button class="btn btn-ghost" onclick="researchPAA()" id="paaBtn">🔍 Research PAA</button>
+    <div id="paaList"></div>
+
+    <div class="sl">Featured image</div>
+    <div class="fg">
+      <input type="text" id="featKW" placeholder="Pexels search (blank = main keyword)">
+      <div style="display:flex;gap:8px;margin-top:7px">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="fetchPexels()">Search Pexels</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="clearFeat()">Clear</button>
+      </div>
+      <div id="featPreview" style="margin-top:8px"></div>
+    </div>
+
+    <div class="sl">Infographic style</div>
+    <div class="fg">
+      <select id="infoStyle" onchange="activeInfoStyle=this.value"></select>
+      <small>Used when no reference is attached — keeps all sheets in one look.</small>
+    </div>
+
+    <div class="sl">Infographic reference (optional)</div>
+    <div class="fg">
+      <input type="file" id="refFile" accept="image/*" onchange="loadRef(event)">
+      <small>One style reference. Claude reads it and every infographic matches its style, colors & elements.</small>
+      <div id="refPreview" style="margin-top:8px"></div>
+      <textarea id="styleBlock" placeholder="Style description (auto-written from the reference, editable)…" style="min-height:60px;margin-top:8px;display:none"></textarea>
+    </div>
+
+    <div class="sl">Pinterest pins</div>
+    <div class="fg">
+      <label>4 pin keywords (comma-separated)</label>
+      <textarea id="pinKW" placeholder="halloween baby shower games, fall baby shower, pumpkin baby shower, cozy autumn shower"></textarea>
+      <small>Enter SEO keywords. Claude turns each into a catchy listicle-style headline shown on the pin; the keyword stays behind the scenes for the file name & alt text.</small>
+    </div>
+    <div class="fg">
+      <label>Pin vibe (palette &amp; decor)</label>
+      <select id="pinVibe" onchange="activeVibe=this.value"></select>
+      <small>The 4 pins share this vibe but get 4 <b>different</b> layouts (panel-top, centered, outline-over-photo, bottom) — so Pinterest never sees them as duplicates. Text is always large &amp; high-contrast. "Auto" reads the vibe from your keyword.</small>
+    </div>
+
+    <div style="margin-top:22px">
+      <button class="btn btn-primary" id="genBtn" onclick="generateArticle()">✨ Generate Article</button>
+    </div>
+    <div class="prog" id="prog">
+      <div class="prog-lbl" id="progLbl">Working…</div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+    <div class="hint">
+      Needs <code>wp-media-proxy.php</code> + <code>wp-proxy.php</code> on your site. Set API keys &amp; sites in ⚙ Settings.
+    </div>
+  </aside>
+
+  <!-- ══════════ STAGE ══════════ -->
+  <section class="stage" id="stage">
+    <div class="empty" id="emptyState">
+      <div class="em">🎉</div>
+      <h2>Your article will appear here</h2>
+      <p>Fill in a keyword, pick a category and pin style, then hit Generate.<br>
+      You'll get an editable preview with printable game infographics and 4 pins.</p>
+    </div>
+    <div id="preview"></div>
+  </section>
+</div>
+
+<div id="pubbarHost"></div>
+
+<!-- ══════════ SETTINGS DRAWER ══════════ -->
+<div class="drawer-bg" id="drawerBg" onclick="closeSettings()"></div>
+<div class="drawer" id="drawer">
+  <div style="display:flex;align-items:center;margin-bottom:16px">
+    <h2 style="flex:1">Settings</h2>
+    <button class="gear" style="background:var(--paper);color:var(--ink)" onclick="closeSettings()">✕</button>
+  </div>
+
+  <div class="sl">API keys</div>
+  <div class="fg"><label>Claude API key</label><input type="password" id="claudeKey" placeholder="sk-ant-…"></div>
+  <div class="fg"><label>Runware API key</label><input type="password" id="runwareKey" placeholder="Runware key (GPT Image 2)"></div>
+  <div class="fg"><label>Pexels API key</label><input type="password" id="pexelsKey" placeholder="Pexels key (free stock)"><small>Get one free at pexels.com/api</small></div>
+
+  <div class="sl">Image model</div>
+  <div class="fg">
+    <select id="imgModel">
+      <option value="openai:gpt-image@2">GPT Image 2 (best text)</option>
+      <option value="bytedance:seedream@4.5">Seedream 4.5 (fallback)</option>
+    </select>
+    <small>GPT Image 2 renders in-image text; Seedream is the multilingual fallback if OpenAI's safety filter blocks a prompt.</small>
+  </div>
+
+  <div class="sl">Tone of voice</div>
+  <div class="fg">
+    <textarea id="tone" style="min-height:110px" placeholder="How the article should sound…"></textarea>
+    <small>Injected into every article. Leave blank for the friendly default.</small>
+  </div>
+
+  <div class="sl">WordPress sites</div>
+  <div id="sitesList"></div>
+  <div class="site-card">
+    <div class="row"><div class="fg"><label>Name</label><input type="text" id="nsName" placeholder="RCG"></div>
+    <div class="fg"><label>Default category ID</label><input type="number" id="nsCat" placeholder="optional"></div></div>
+    <div class="fg"><label>Site URL</label><input type="text" id="nsUrl" placeholder="https://redcheeksgirl.com"></div>
+    <div class="row"><div class="fg"><label>WP user</label><input type="text" id="nsUser"></div>
+    <div class="fg"><label>App password</label><input type="password" id="nsPass"></div></div>
+    <button class="btn btn-ghost btn-sm" onclick="addSite()">+ Add site</button>
+  </div>
+  <div class="fg" style="margin-top:12px">
+    <label>Active site</label>
+    <select id="activeSite" onchange="ST.pubCat=null;fetchWPCats(false)"></select>
+  </div>
+
+  <div class="sl">Internal links (CSV)</div>
+  <div class="fg">
+    <input type="file" id="csvFile" accept=".csv" onchange="loadCSV(event)">
+    <small id="csvInfo">Format: url,title — used for interlinking. Optional.</small>
+  </div>
+
+  <div class="sl">Related article (CTA link)</div>
+  <div class="fg"><label>Anchor</label><input type="text" id="relAnchor" placeholder="baby shower decorations"></div>
+  <div class="fg"><label>URL</label><input type="text" id="relUrl" placeholder="https://…"></div>
+
+  <button class="btn btn-plum" style="margin-top:16px" onclick="saveSettings();toast('Settings saved','ok')">💾 Save settings</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════ BATCH DRAWER ══════════ -->
+<div class="drawer-bg" id="batchBg" onclick="closeBatch()"></div>
+<div class="drawer" id="batchDrawer">
+  <div style="display:flex;align-items:center;margin-bottom:8px">
+    <h2 style="flex:1">📚 Batch mode</h2>
+    <button class="gear" style="background:var(--paper);color:var(--ink)" onclick="closeBatch()">✕</button>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin:0 0 14px">Category, audience, style, reference &amp; site are taken from the main screen. One article per line. Optionally add pin titles after <code>::</code>. Each article is generated and saved as a <b>Draft</b>.</p>
+  <div class="fg">
+    <label>Keywords (one article per line)</label>
+    <textarea id="batchInput" style="min-height:150px" placeholder="halloween baby shower games :: Halloween Bingo, Spooky Guess Game, Wishes For Baby, Fun Shower Games
+winter baby shower games
+baby shower games for a girl :: Pink Bingo, Guess The Price, Wishes, Advice Cards"></textarea>
+    <small>Format: <code>keyword</code> or <code>keyword :: pin1, pin2, pin3, pin4</code></small>
+  </div>
+  <button class="btn btn-primary" id="batchRun" onclick="runBatch()">▶️ Run batch → save drafts</button>
+  <div class="prog" id="batchProg" style="margin-top:12px"><div class="prog-lbl" id="batchProgLbl"></div><div class="prog-bar"><div class="prog-fill" id="batchProgFill"></div></div></div>
+  <div id="batchLog" style="margin-top:14px"></div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   PARTY GAMES STUDIO — single-file article generator
+   Reuses proven patterns from PCC Studio v4 + Fashion Content Studio.
+   ══════════════════════════════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+const v=id=>($(id)?.value||'').trim();
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* ---------- PIN STYLE PRESETS (from pin generator; {TITLE},{BG}) ---------- */
+/* ---------- PIN LAYOUTS: 4 distinct designs auto-assigned to the 4 pins ----------
+   Different composition per pin so Pinterest never sees them as duplicates.
+   Readability is enforced in every layout: very large, bold, high-contrast text. */
+const READ='The headline text must be VERY LARGE, bold, high-contrast and instantly readable on a phone screen, occupying a big share of the pin.';
+// Course-based style: bright high-contrast VECTOR art with an expressive character; no photorealistic people
+const STYLE_VECTOR='Overall style: MODERN FLAT EDITORIAL ILLUSTRATION (contemporary Instagram-illustrator look, like June Jewell / trendy 2020s vector art) — NOT a Disney/Pixar 3D cartoon, NOT glossy. Flat 2D shapes, matte muted colours, minimal shading, simple geometric forms, subtle grain/paper texture, decorative background patterns, stylised faces (dot eyes, rosy cheeks). Feature ONE expressive character with a strong positive emotion — surprise, joy, delight. The character can be a stylised person (e.g. a chic pregnant mom-to-be, cheerful friends) OR any modern illustrated figure; not limited to parenting scenes. Only rule: NEVER a photograph of a real person or a photorealistic face.';
+const STYLE_PHOTO='Overall style: bright, high-quality PHOTOREALISTIC flat-lay of themed props and objects with shallow depth of field — NO people, NO faces, objects only. The headline is large and bold with a thick contrasting outline (or on a solid panel) for maximum legibility over the photo.';
+// Course-based colour discipline (skipped for holidays that own a fixed palette)
+const COLOR_RULE='Use only 2-3 main colours plus one accent — no more — for a clean, high-contrast look.';
+const CTA_EL='Below the headline there MUST be a small pill-shaped button in the accent color with the short white text "{CTA}" — clearly visible.';
+const PIN_LAYOUTS=[
+  {id:'panel-top',
+   prompt:`Pinterest pin, vertical 2:3. {SCENE} {VIBE} A solid opaque banner panel across the TOP third of the pin; on it the headline "{TITLE}" in a large bold clean sans-serif. ${CTA_EL} ${READ} Sharp focus, high quality.`},
+  {id:'panel-center',
+   prompt:`Pinterest pin, vertical 2:3. {SCENE} {VIBE} A clean rounded banner panel centered; the headline "{TITLE}" fills it in a large bold display font. ${CTA_EL} ${READ} Sharp focus, high quality.`},
+  {id:'outline-overlay',
+   prompt:`Pinterest pin, vertical 2:3. {SCENE} {VIBE} NO panel — the headline "{TITLE}" is set directly over the illustration in huge bold hand-lettered type with a thick contrasting outline and soft shadow for legibility, dynamic layout with varied word sizes. ${CTA_EL} ${READ} Sharp focus, high quality.`},
+  {id:'bottom-darken',
+   prompt:`Pinterest pin, vertical 2:3. {SCENE} {VIBE} The lower third has a strong dark gradient; the headline "{TITLE}" runs across the bottom in very large bold clean sans-serif in white. ${CTA_EL} ${READ} Sharp focus, high quality.`}
+];
+
+/* ---------- VIBES: palette + decor per holiday / celebration (auto-detected, overridable) ----------
+   fixed:true = the holiday owns its palette, so the "2-3 colours" rule is NOT applied. */
+const PIN_VIBES={
+  'Auto':{block:''},
+  'Neutral':{block:'Soft, tasteful party mood with minimal props.'},
+  // Holidays (fixed palettes)
+  'Christmas':{fixed:true,block:'Cozy Christmas vibe: palette of deep pine green #1e5631, cranberry red #a4243b, warm gold #c8a24a and cream; evergreen sprigs, ornaments and soft string lights as decor.'},
+  'Halloween':{fixed:true,block:'Cute-not-scary Halloween vibe: palette of warm cream, muted pumpkin orange #d98a5c, dusty plum #8a6b8f and soft black; little pumpkins, friendly ghosts, bats and autumn leaves as decor.'},
+  'Easter':{fixed:true,block:'Fresh Easter vibe: pastel palette of soft lilac, mint, butter yellow and sky blue; painted eggs, tulips and bunnies as gentle decor.'},
+  "Valentine's Day":{fixed:true,block:"Romantic Valentine's vibe: palette of soft rose #e8a5b0, cherry red #c8354b, blush and cream; hearts, roses and ribbon as decor."},
+  'Thanksgiving':{fixed:true,block:'Warm Thanksgiving vibe: palette of burnt orange #c26b34, deep mustard #d9a441, chestnut brown and cream; pumpkins, wheat, autumn leaves and berries as decor.'},
+  "St. Patrick's Day":{fixed:true,block:"Festive St. Patrick's vibe: palette of shamrock green #2e7d4f, gold #c8a24a and cream; clovers, horseshoes and gold coins as playful decor."},
+  '4th of July':{fixed:true,block:'Patriotic 4th of July vibe: palette of navy #1f3a5f, classic red #b23a48, and cream white; stars, stripes and sparklers as decor.'},
+  'New Year':{fixed:true,block:'Sparkling New Year vibe: palette of black, champagne gold #c8a24a and silver; confetti, stars and glasses as elegant decor.'},
+  // Parties & celebrations — colours come from the Tailwind palette; only decor/motifs here
+  'Baby Showers':{block:'Sweet baby shower mood; tiny baby items, soft clouds and gentle florals as decor.'},
+  'Birthday Parties':{block:'Cheerful birthday mood; balloons, confetti and streamers as decor.'},
+  'Bridal Showers':{block:'Elegant bridal shower mood; roses, ribbon and delicate florals as refined decor.'},
+  'Gender Reveals':{block:'Playful gender reveal mood; balloons, confetti and question-mark motifs as decor.'},
+  'Graduations':{block:'Proud graduation mood; caps, stars and confetti as celebratory decor.'},
+  'Anniversaries':{block:'Romantic anniversary mood; roses, candles and delicate sparkle as elegant decor.'}
+};
+let activeVibe='Auto';
+// Tailwind "Pinteresty" palette — soft light backgrounds + one bold accent (proven high-performers).
+// Applied to non-holiday vibes; holidays keep their own fixed palette.
+const TAILWIND_PALETTE='Use the proven Pinterest palette: a soft light background (e.g. #f5f1ee #f9f5f2 #eae6f7 #efd0d7 #e2e1cd) paired with ONE bold accent (e.g. #e86a87 #488691 #99b9d0 #a97a37 #dab5f4 #ffae9d), plus dark charcoal text. Soft base + single strong accent, high contrast.';
+function vibeIsFixed(){ const name=activeVibe==='Auto'?detectVibe(v('mainKW'),v('category')):activeVibe; return !!(PIN_VIBES[name]&&PIN_VIBES[name].fixed); }
+// auto-detect vibe from the keyword text, then the category
+function detectVibe(kw,category){
+  const s=((kw||'')+' '+(category||'')).toLowerCase();
+  const map=[['christmas','Christmas'],['xmas','Christmas'],['halloween','Halloween'],['easter','Easter'],
+    ['valentine',"Valentine's Day"],['thanksgiving','Thanksgiving'],['patrick',"St. Patrick's Day"],
+    ['july','4th of July'],['fourth of july','4th of July'],['new year','New Year'],
+    ['gender reveal','Gender Reveals'],['bridal','Bridal Showers'],['baby shower','Baby Showers'],
+    ['graduation','Graduations'],['anniversary','Anniversaries'],['birthday','Birthday Parties']];
+  for(const [k,v2] of map){ if(s.includes(k)) return v2; }
+  return 'Neutral';
+}
+function currentVibeBlock(){
+  const name=activeVibe==='Auto'?detectVibe(v('mainKW'),v('category')):activeVibe;
+  return (PIN_VIBES[name]&&PIN_VIBES[name].block)||PIN_VIBES['Neutral'].block;
+}
+
+/* ---------- INFOGRAPHIC STYLE PRESETS (used when NO reference is attached) ---------- */
+const INFO_STYLES=[
+  {id:'auto',label:'Auto by theme',block:''},
+  {id:'light-modern',label:'Light modern',block:'STYLE: clean modern flat illustration, lots of white space, thin simple line icons, one soft accent color; palette of white #ffffff, warm grey #6b6b6b, and a single gentle accent; crisp sans-serif feel; minimal geometric decorative motifs.'},
+  {id:'pastel-watercolor',label:'Pastel watercolor',block:'STYLE: soft hand-painted pastel watercolor with no hard outlines and gentle paper texture; palette of blush #f4d9df, mint #cfe6d6, butter #f6ecc9, powder blue #d5e4ef, soft grey text; delicate florals, dots and tiny hearts as recurring motifs.'},
+  {id:'editorial',label:'Editorial magazine',block:'STYLE: elegant editorial magazine layout, refined and airy, cream background #f6efe1 with charcoal #2b2b2b and a muted gold #c69749 accent; classic serif feel; thin rules and small tasteful ornaments as motifs; sophisticated and minimal.'},
+  {id:'bright-playful',label:'Bright playful',block:'STYLE: bright cheerful flat illustration with bold rounded shapes and thick friendly outlines; saturated palette of hot pink #ff4d97, teal #16b7a6, sunny yellow #ffcf3f on white; confetti, stars and balloons as recurring motifs; fun and energetic.'}
+];
+let activeInfoStyle='auto';
+
+/* ---------- GAME BANKS (per category) — variety seed, no repetition ----------
+   Common non-proprietary game concepts: classic staples + fresher formats.
+   The app hands Claude a RANDOM subset each run so articles differ. */
+const GAME_BANKS={
+ "Baby Shower":[
+  {n:"Baby Bingo",t:"printable"},{n:"Baby Word Scramble",t:"printable"},{n:"Guess the Baby Food",t:"printable"},
+  {n:"Price Is Right (Baby Edition)",t:"printable"},{n:"Nursery Rhyme Finish the Line",t:"printable"},
+  {n:"Baby Animal Match",t:"printable"},{n:"Mommy or Daddy",t:"printable"},{n:"Wishes for Baby",t:"printable"},
+  {n:"Advice for the New Parents",t:"printable"},{n:"Guess Mom's Belly Size",t:"printable"},
+  {n:"Late Night Diaper Notes",t:"printable"},{n:"Baby Emoji Pictionary",t:"printable"},
+  {n:"Time Capsule Predictions Card",t:"printable"},{n:"Baby Name Acronym",t:"printable"},
+  {n:"Famous Parents Trivia",t:"printable"},{n:"What's in Your Bag?",t:"printable"},
+  {n:"Due Date Sweepstakes",t:"printable"},{n:"Baby Shower Would You Rather",t:"printable"},
+  {n:"Labor or Lie",t:"printable"},{n:"Baby's Firsts Prediction",t:"printable"},
+  {n:"Baby Sleep Myth or Fact",t:"printable"},{n:"Gender-Neutral Name Brainstorm",t:"printable"},
+  {n:"Registry Guessing Game",t:"printable"},{n:"Baby Shower Mad Libs Story",t:"printable"},
+  {n:"Milestone Predictions Bingo",t:"printable"},{n:"Guess the Baby App or Gadget",t:"printable"},
+  {n:"Don't Say Baby",t:"active"},{n:"Guess Who (Baby Photos)",t:"active"},{n:"Diaper Change Race",t:"active"},
+  {n:"Pass the Parcel — Baby Edition",t:"active"},{n:"Baby Food Taste-Off",t:"active"},
+  {n:"Bottle Chug Race",t:"active"},{n:"Measure Mom's Bump",t:"active"},{n:"Baby Charades",t:"active"},
+  {n:"Rock the Baby Relay",t:"active"},{n:"Onesie Decorating Station",t:"active"},
+  {n:"Guess the Melted Candy Bar",t:"active"},{n:"Baby Shower Trivia Showdown",t:"active"},
+  {n:"Cotton Ball Scoop",t:"active"},{n:"Pin the Pacifier on the Baby",t:"active"},
+  {n:"Nursery Rhyme Karaoke",t:"active"},{n:"Photo Scavenger Hunt",t:"active"},
+  {n:"Two Truths and a Baby",t:"active"},
+  {n:"Bring a Book Instead of a Card",t:"quiet"},{n:"Book Plate Signing",t:"quiet"},
+  {n:"Wishing Tree",t:"quiet"},{n:"Time Capsule Box",t:"quiet"},{n:"Words of Wisdom Jar",t:"quiet"},
+  {n:"Recipe for a Happy Baby",t:"quiet"},{n:"Thumbprint Guest Book",t:"quiet"},
+  {n:"Letters to Baby",t:"quiet"},{n:"Playlist for Baby",t:"quiet"},{n:"Video Wishes from Guests",t:"quiet"}
+ ]
+};
+// pick a shuffled subset of the bank for the current category, balanced across types
+function pickGames(category,count){
+  const bank=GAME_BANKS[category]; if(!bank) return null;
+  const shuffled=[...bank].sort(()=>Math.random()-0.5);
+  return shuffled.slice(0,Math.min(count,bank.length));
+}
+
+/* ---------- STATE ---------- */
+let ST={ paa:[], feat:null, csv:[], article:null, pins:[], refDataUri:null, styleBlock:'', wpCats:[], pubCat:null };
+
+/* ---------- SETTINGS PERSISTENCE ---------- */
+const SKEYS=['claudeKey','runwareKey','pexelsKey','imgModel','tone','relAnchor','relUrl'];
+function loadSettings(){
+  try{
+    const s=JSON.parse(localStorage.getItem('pgs_settings')||'{}');
+    SKEYS.forEach(k=>{ if($(k)&&s[k]!=null) $(k).value=s[k]; });
+    ST.sites=s.sites||[]; ST.activeSite=s.activeSite||0;
+    if(s.csv){ST.csv=s.csv; $('csvInfo').textContent=ST.csv.length+' internal links loaded.';}
+  }catch(e){ ST.sites=[]; }
+  renderSites();
+}
+function saveSettings(){
+  const s={sites:ST.sites,activeSite:parseInt(v('activeSite'))||0,csv:ST.csv};
+  SKEYS.forEach(k=>s[k]=v(k));
+  localStorage.setItem('pgs_settings',JSON.stringify(s));
+}
+function getSite(){ return (ST.sites||[])[parseInt(v('activeSite'))||0]||null; }
+
+function renderSites(){
+  const wrap=$('sitesList'); const sel=$('activeSite');
+  wrap.innerHTML=(ST.sites||[]).map((s,i)=>`<div class="site-card"><strong>${esc(s.name)}</strong> · cat ${s.cat||'—'}<br>
+    <small style="color:var(--muted)">${esc(s.url)}</small>
+    <button class="btn btn-ghost btn-sm" style="float:right" onclick="delSite(${i})">Remove</button></div>`).join('');
+  sel.innerHTML=(ST.sites||[]).map((s,i)=>`<option value="${i}" ${i===(ST.activeSite||0)?'selected':''}>${esc(s.name)}</option>`).join('')||'<option>No sites yet</option>';
+}
+function addSite(){
+  if(!v('nsName')||!v('nsUrl')){toast('Name and URL required','err');return;}
+  ST.sites=ST.sites||[];
+  ST.sites.push({name:v('nsName'),url:v('nsUrl').replace(/\/$/,''),username:v('nsUser'),password:v('nsPass'),cat:parseInt(v('nsCat'))||0});
+  ['nsName','nsUrl','nsUser','nsPass','nsCat'].forEach(k=>$(k).value='');
+  saveSettings();renderSites();toast('Site added','ok');
+}
+function delSite(i){ ST.sites.splice(i,1); saveSettings(); renderSites(); }
+
+/* ---------- SETTINGS DRAWER ---------- */
+function openSettings(){$('drawer').classList.add('on');$('drawerBg').classList.add('on');}
+function closeSettings(){$('drawer').classList.remove('on');$('drawerBg').classList.remove('on');saveSettings();}
+
+/* ---------- TOAST + PROGRESS ---------- */
+let tt;
+function toast(m,type=''){const t=$('toast');t.textContent=m;t.className='toast on '+type;clearTimeout(tt);tt=setTimeout(()=>t.className='toast',2600);}
+function prog(pct,lbl){const p=$('prog');p.classList.add('on');$('progFill').style.width=pct+'%';if(lbl)$('progLbl').textContent=lbl;}
+function progDone(){setTimeout(()=>$('prog').classList.remove('on'),600);}
+
+/* ---------- PIN VIBE UI ---------- */
+function renderVibes(){
+  const sel=$('pinVibe'); if(!sel)return;
+  sel.innerHTML=Object.keys(PIN_VIBES).map(k=>`<option value="${k}">${k==='Auto'?'Auto (from keyword)':k}</option>`).join('');
+  sel.value=activeVibe;
+}
+
+/* ---------- FILENAME (from PCC buildImageFilename) ---------- */
+function buildFilename(keyword,sub,idx){
+  const stop=['for','the','a','an','and','to','with','your','how','ideas','idea','games','game','party','of','best','fun'];
+  const clean=s=>(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(w=>w&&!stop.includes(w)).slice(0,4).join('-');
+  const kw=clean(keyword), sb=clean(sub);
+  let name=kw; if(sb&&sb!==kw) name=kw+'-'+sb;
+  name=name.replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'party-game';
+  return name+'-'+String(idx+1).padStart(2,'0')+'.png';
+}
+
+/* ---------- RUNWARE (from fashion runwareGenerate) ---------- */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const isTransient=m=>/server error|try again|429|500|502|503|504|overload|timeout|rate limit|too many/i.test(m||'');
+async function runwareGen(prompt,width,height,tries=3,refUri=null){
+  const key=v('runwareKey'); if(!key) throw new Error('Runware key missing in Settings');
+  const model=v('imgModel')||'openai:gpt-image@2';
+  const task={taskType:'imageInference',taskUUID:crypto.randomUUID(),model,positivePrompt:prompt,
+    width,height,numberResults:1,includeCost:true,outputType:'URL',outputFormat:'PNG'};
+  // GPT Image 2 quality: 'medium' finishes within Runware's sync window; 'high' times out (failedTaskTimeout)
+  if(model.startsWith('openai:')) task.providerSettings={openai:{quality:'medium'}};
+  if(refUri) task.referenceImages=[refUri];   // style reference (data URI)
+  for(let attempt=1;attempt<=tries;attempt++){
+    try{
+      const r=await fetch('https://api.runware.ai/v1',{method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify([task])});
+      let d; try{ d=await r.json(); }catch(e){ throw new Error('Runware '+r.status+' (bad response)'); }
+      if(d.errors?.length) throw new Error(d.errors[0].message||'Runware error');
+      if(!r.ok) throw new Error('Runware '+r.status);
+      const item=(d.data||[]).find(x=>x.imageURL);
+      if(!item) throw new Error('No image returned — check Runware key, balance & GPT Image 2 access');
+      return item.imageURL;
+    }catch(e){
+      // retry only on transient overload/rate errors, with backoff (2s, 6s)
+      if(attempt<tries && isTransient(e.message)){ await sleep(2000*attempt); continue; }
+      throw e;
+    }
+  }
+}
+// run jobs with limited concurrency so we don't trip Runware's per-provider overload limit
+async function runPool(items,worker,concurrency=2){
+  let idx=0;
+  const run=async()=>{ while(idx<items.length){ const i=idx++; await worker(items[i]); } };
+  await Promise.all(Array.from({length:Math.min(concurrency,items.length||1)},run));
+}
+// GPT Image 2 / Seedream valid portrait sizes
+const SIZE_PRINT={w:1024,h:1536}; // 2:3 portrait, safe for gpt-image & seedream
+const SIZE_PIN={w:1024,h:1536};
+
+/* ---------- CLAUDE (plain + web_search loop, from fashion) ---------- */
+function extractJSON(txt){
+  let t=(txt||'').trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
+  const a=t.indexOf('{'),b=t.lastIndexOf('}');
+  if(a>=0&&b>a) t=t.slice(a,b+1);
+  return JSON.parse(t);
+}
+async function callClaude(system,content,useSearch,onStatus){
+  const key=v('claudeKey'); if(!key) throw new Error('Claude key missing in Settings');
+  let messages=[{role:'user',content}];
+  for(let i=0;i<6;i++){
+    const body={model:'claude-sonnet-4-6',max_tokens:16000,system,messages};
+    if(useSearch) body.tools=[{type:'web_search_20250305',name:'web_search'}];
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify(body)});
+    if(!r.ok){let e;try{e=await r.json();}catch(x){}throw new Error(e?.error?.message||('Claude '+r.status));}
+    const d=await r.json();
+    messages.push({role:'assistant',content:d.content});
+    if(d.stop_reason==='tool_use'){
+      const trs=d.content.filter(b=>b.type==='tool_use').map(b=>{
+        if(onStatus&&b.input?.query)onStatus('🔍 '+b.input.query);
+        return {type:'tool_result',tool_use_id:b.id,content:''};});
+      messages.push({role:'user',content:trs});
+      continue;
+    }
+    const txt=d.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    return txt;
+  }
+  throw new Error('Claude: too many search iterations');
+}
+
+/* ---------- PAA RESEARCH ---------- */
+async function researchPAA(){
+  const kw=v('mainKW'); if(!kw){toast('Enter a keyword first','err');return;}
+  const btn=$('paaBtn'); btn.disabled=true; btn.textContent='⏳ Searching…';
+  try{
+    const txt=await callClaude(
+      'You research real user questions. Search Google People Also Ask, Reddit, Quora. Return ONLY raw JSON: {"questions":["q1","q2",...]} No preamble.',
+      'Find 10-12 real People Also Ask questions for: "'+kw+'"', true, m=>{btn.textContent=m;});
+    const d=extractJSON(txt); ST.paa=[];
+    renderPAA(d.questions||[]);
+  }catch(e){toast(e.message,'err');}
+  btn.disabled=false; btn.textContent='🔍 Research PAA';
+}
+function renderPAA(qs){
+  $('paaList').innerHTML=`<div class="chip-row">`+qs.map((q,i)=>
+    `<span class="chip on" onclick="togglePAA(this,'${esc(q).replace(/'/g,"\\'")}')">${esc(q)}</span>`).join('')+`</div>`;
+  ST.paa=qs.slice();
+}
+function togglePAA(el,q){
+  el.classList.toggle('on');
+  if(el.classList.contains('on')) ST.paa.push(q);
+  else ST.paa=ST.paa.filter(x=>x!==q);
+}
+
+/* ---------- PEXELS ---------- */
+async function fetchPexels(){
+  const key=v('pexelsKey'); if(!key){toast('Add a Pexels key in Settings','err');return;}
+  const q=v('featKW')||v('mainKW'); if(!q){toast('Enter a keyword','err');return;}
+  try{
+    const r=await fetch('https://api.pexels.com/v1/search?per_page=6&orientation=landscape&query='+encodeURIComponent(q),
+      {headers:{Authorization:key}});
+    if(!r.ok) throw new Error('Pexels '+r.status);
+    const d=await r.json();
+    if(!d.photos?.length){toast('No photos found','err');return;}
+    $('featPreview').innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">'+
+      d.photos.map(p=>`<img src="${p.src.small}" style="width:100%;height:60px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid transparent"
+        onclick="pickFeat('${p.src.large2x}','${esc(p.photographer)}',this)">`).join('')+'</div>';
+  }catch(e){toast(e.message,'err');}
+}
+function pickFeat(url,who,el){
+  ST.feat={url,credit:who};
+  [...el.parentNode.children].forEach(c=>c.style.borderColor='transparent');
+  el.style.borderColor='var(--coral)';
+  toast('Featured image set','ok');
+}
+function clearFeat(){ST.feat=null;$('featPreview').innerHTML='';}
+
+/* ---------- INFOGRAPHIC STYLE REFERENCE + CLAUDE VISION ---------- */
+function loadRef(e){
+  const f=e.target.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=async()=>{
+    ST.refDataUri=rd.result;
+    $('refPreview').innerHTML=`<div style="display:flex;gap:8px;align-items:center">
+      <img src="${rd.result}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:2px solid var(--coral)">
+      <button class="btn btn-ghost btn-sm" onclick="analyzeRef()">🔍 Re-read style</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearRef()">Clear</button></div>`;
+    $('styleBlock').style.display='block';
+    if(v('claudeKey')) await analyzeRef(); else toast('Add a Claude key to auto-describe the style','err');
+  };
+  rd.readAsDataURL(f);
+}
+// Claude Vision writes a COMPACT style block: technique + colors + motifs only
+async function analyzeRef(){
+  if(!ST.refDataUri){toast('Load a reference first','err');return;}
+  if(!v('claudeKey')){toast('Add a Claude key in Settings','err');return;}
+  const m=ST.refDataUri.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/); if(!m){toast('Unsupported image','err');return;}
+  $('styleBlock').value='Reading style…';
+  try{
+    const sys=`Look at the reference image and write ONE compact STYLE line for an AI image generator so another illustration matches its look. Cover ONLY three things: (1) technique (e.g. soft watercolor, flat vector, gouache, line art), (2) palette — name the main colors with approximate hex codes, (3) key recurring decorative motifs. One or two sentences, plain prose, begin with "STYLE:". Do NOT mention typography, text, layout, or subject matter. No preamble.`;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':v('claudeKey'),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
+        messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:m[1],data:m[2]}},{type:'text',text:'Write the compact STYLE line.'}]}]})});
+    const j=await res.json();
+    if(j.error) throw new Error(j.error.message||'Claude error');
+    const txt=(j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    $('styleBlock').value=txt||''; ST.styleBlock=txt||'';
+    toast('Style described','ok');
+  }catch(e){ $('styleBlock').value=''; toast('Vision: '+e.message,'err'); }
+}
+function clearRef(){ST.refDataUri=null;ST.styleBlock='';$('refPreview').innerHTML='';$('styleBlock').value='';$('styleBlock').style.display='none';$('refFile').value='';}
+// append the current (possibly hand-edited) style block to an image prompt
+// domain of the active site, for the on-image footer/watermark
+function siteDomain(){ const s=getSite(); if(!s)return''; try{return new URL(s.url).hostname.replace(/^www\./,'');}catch(e){return (s.url||'').replace(/^https?:\/\//,'').replace(/\/.*$/,'').replace(/^www\./,'');} }
+function siteFooter(){ const d=siteDomain(); return d?`\n\nAt the very bottom center, add a small, subtle footer text reading "${d}" in a tiny unobtrusive font.`:''; }
+// auto style derived from the article category, so a set stays consistent even with no reference
+function autoStyleBlock(){
+  const c=v('category').toLowerCase(), a=v('audience');
+  const kids=a==='kids'||/kids|birthday/.test(c);
+  return kids
+    ? 'STYLE: soft cheerful storybook watercolor, gentle rounded shapes, pastel palette of blush, mint, butter yellow and powder blue with soft grey text; friendly little mascot motif repeated across the set.'
+    : 'STYLE: elegant airy watercolor on a cream background, muted tasteful palette with one soft accent color and charcoal text; delicate recurring floral and dot motifs; refined and consistent across the set.';
+}
+// append the shared style block (reference-derived > preset > auto) + site footer to an image prompt
+function withStyle(prompt){
+  let sb=(v('styleBlock')||ST.styleBlock||'').trim();      // 1. reference-derived (Vision)
+  if(!sb){                                                 // 2. no reference → chosen preset
+    const preset=INFO_STYLES.find(s=>s.id===activeInfoStyle);
+    sb=(preset&&preset.block)?preset.block:autoStyleBlock(); // 'auto' or empty → autoStyleBlock
+  }
+  return prompt+(sb?'\n\n'+sb:'')+siteFooter();
+}
+
+/* ═══════════ ARTICLE GENERATION ═══════════ */
+const DEFAULT_TONE=`Warm, upbeat, and practical — like a friend who has hosted a dozen parties and wants yours to go great. Clear and encouraging, never salesy. Short punchy sentences mixed with a little personality. No AI clichés (no "dive in", "elevate", "game-changer", "in today's world").`;
+
+function articleSystemPrompt(){
+  const tone=v('tone')||DEFAULT_TONE;
+  return `You are an expert party-content writer creating SEO-optimized, genuinely useful articles about party and holiday games. Output is published on a WordPress blog monetized with display ads and Pinterest traffic.
+
+TONE OF VOICE:
+${tone}
+
+SEO RULES:
+- Title: BuzzFeed-style, keyword near the front, under 65 chars, curiosity + specificity (e.g. "17 Baby Shower Games That Aren't Boring").
+- slug: main keyword only, lowercase, dashes, no stop words.
+- metaDescription: under 120 chars, keyword + hook.
+- focusKeyword: the exact main keyword.
+- Use the keyword naturally 5-7 times across the article.
+
+AD-LAYOUT RULES (Mediavine) — mandatory, revenue depends on them:
+- Every game's "content" is 2-3 real paragraphs (each its own <p>). NEVER a one-liner. Prose between elements creates scroll depth and qualifying ad slots.
+- Keep HTML FLAT: only top-level <p>, <ul>/<ol>. No wrapper <div>s. (Headings and images are added by the app, not by you.)
+- Never stack images: one printable image per game max, always after its prose.
+
+GAMES — THE MOST IMPORTANT RULES:
+- Return ONE flat "games" array. If the message provides a GAME LINEUP, use EXACTLY those games (same count, you may lightly reword names to fit the theme); otherwise include the requested number of distinct games. Do NOT group games by type. Do NOT output any section headers like "Active Games" or "Printable Games" — the article must read as one flowing numbered list so the reader scrolls the whole thing.
+- EVERY GAME MUST BE A DISTINCT GAME with a distinct mechanic. NEVER include two of the same game — no two bingo variants, no two "guess" games, no repeated concept under different names. Each of the 8-16 entries is unique.
+- INTERLEAVE the three types so they alternate for a good reading rhythm (e.g. active, printable, quiet, active, printable…). Never bunch all of one type together.
+- Each game has a "type": "active" (lively group game, no sheet), "printable" (played on a printed sheet), or "quiet" (low-key keepsake e.g. Time Capsule, Wish Cards, Bring a Book Instead of a Card, Advice Cards).
+- Each game: a "name" (the H3 the app will render), "content" = 2-3 paragraphs, and an OPTIONAL "callout" for variety.
+- "callout" is a small highlighted box. Use it on SOME games (not all, ~half), and VARY the kind across the article so no two neighbours repeat. kind is one of: "You'll need", "How to play", "Host tip", "Best for", "Make it easier", "Why it works". "items" is a short array (2-5 bullet strings) for list-style kinds, OR a single-element array holding one sentence for tip-style kinds.
+- "imagePrompt": REQUIRED for type "printable" (describe a printable game sheet infographic: clean printable game page, US Letter portrait, a title, short instructions, and the actual game content as a list/grid/prompts — embed the EXACT on-sheet text, no people, perfectly spelled). For games that HAVE correct answers (emoji pictionary, word scramble, trivia, animal match, etc.), the imagePrompt MUST add a small "Answers" key printed UPSIDE-DOWN (rotated 180°) in tiny text at the very bottom of the sheet, below the site footer. For open-ended games (wishes, advice, predictions) no answer key. For "active" set imagePrompt to "". For "quiet" it is OPTIONAL (only if a simple keepsake card helps).
+- VISUAL CONSISTENCY: the app appends ONE shared style line (palette, font feel, recurring mascot) to every imagePrompt, so do NOT specify your own colors, fonts, or footer/website text inside imagePrompt — describe only the game's layout and on-sheet content. This keeps all sheets in the set matching.
+
+LINKS:
+- Internal links: if a CSV list is provided, weave 2-4 in naturally as <a href='URL'>anchor</a> (single quotes).
+- Related CTA link: use the provided related anchor/url at the very end.
+
+STRUCTURE:
+- intro: 2 short paragraphs (keyword in the first sentence).
+- games: the interleaved array above.
+- faq: use the provided PAA questions if any; else write 5-6. Direct helpful answers.
+- closing: 1 short paragraph wrap-up + CTA (print the games / pin this / try tonight), ending with the related link if provided.
+
+CRITICAL JSON RULES:
+- Output ONLY raw JSON, starting with { and ending with }. No preamble, no markdown fences.
+- All HTML inside strings uses SINGLE quotes for attributes.
+OUTPUT SHAPE:
+{
+ "title":"", "slug":"", "metaDescription":"", "focusKeyword":"",
+ "intro":"<p>…</p><p>…</p>",
+ "games":[
+   {"name":"","type":"active|printable|quiet","content":"<p>…</p><p>…</p>","callout":{"kind":"You'll need","items":["",""]},"imagePrompt":""}
+ ],
+ "faq":[{"question":"","answer":""}],
+ "closing":"<p>…</p>"
+}`;
+}
+
+async function generateArticle(){
+  const kw=v('mainKW'); if(!kw){toast('Enter a main keyword','err');return;}
+  if(!v('claudeKey')){toast('Add your Claude key in Settings','err');openSettings();return;}
+  const btn=$('genBtn'); btn.disabled=true;
+  $('emptyState').style.display='none';
+  try{
+    prog(10,'✍️ Writing article…');
+    const csvBlock=ST.csv.length?`\n\nINTERNAL LINKS CSV (weave 2-4 in):\n`+ST.csv.slice(0,20).map(r=>`${r.url} — ${r.title}`).join('\n'):'';
+    const paaBlock=ST.paa.length?`\n\nFAQ MUST INCLUDE these PAA questions:\n`+ST.paa.map((q,i)=>`${i+1}. ${q}`).join('\n'):'';
+    const rel=(v('relAnchor')&&v('relUrl'))?`\n\nRELATED CTA LINK: <a href='${v('relUrl')}'>${v('relAnchor')}</a>`:'';
+    // draw a random subset from the category bank so no two articles repeat the lineup
+    let target=parseInt(v('gameCount'))||0; if(!target) target=11+Math.floor(Math.random()*7); // 11–17
+    const picked=pickGames(v('category'),target);
+    const bankBlock=picked?`\n\nGAME LINEUP — build the article around EXACTLY these ${picked.length} games, in a good interleaved order, each with its type. Use these names (you may lightly reword a name to fit the theme, e.g. add "Halloween"): \n`+picked.map((g,i)=>`${i+1}. ${g.n} [${g.t}]`).join('\n'):`\n\nInclude exactly ${target} distinct games.`;
+    const msg=`Write a complete party-games article.\n\nMain keyword: ${kw}\nCategory: ${v('category')}\nAudience: ${v('audience')}\nContext: ${v('context')||'(none)'}${bankBlock}${csvBlock}${paaBlock}${rel}\n\nReturn the JSON only.`;
+    const txt=await callClaude(articleSystemPrompt(),msg,true,m=>prog(25,m));
+    prog(55,'📦 Parsing…');
+    const art=extractJSON(txt);
+    art.focusKeyword=art.focusKeyword||kw;
+    art.games=(art.games||[]).map(g=>({...g,type:g.type||'active'}));
+    ST.article=art; ST.pins=[];
+    renderPreview();
+    prog(70,'🖼️ Printable infographics…');
+    await generateImages();
+    prog(88,'📌 Pinterest pins…');
+    await generatePins();
+    prog(100,'✅ Done');
+    toast('Article ready','ok');
+  }catch(e){toast(e.message,'err');console.error(e);}
+  btn.disabled=false; progDone();
+}
+
+/* ---------- IMAGE GENERATION over the interleaved games array (parallel) ---------- */
+async function generateImages(){
+  const art=ST.article, kw=art.focusKeyword;
+  const jobs=[];
+  (art.games||[]).forEach((g,i)=>{ if(g.imagePrompt){ setGameImgState(i); jobs.push([g,i]); } });
+  // pool of 2 — parallel enough to be fast, low enough to avoid Runware overload 5xx
+  await runPool(jobs, async ([g,i])=>{
+    try{
+      g._img=await runwareGen(withStyle(g.imagePrompt),SIZE_PRINT.w,SIZE_PRINT.h,3,ST.refDataUri); g._err=null;
+      g._file=buildFilename(kw,g.name,i);
+    }catch(e){ g._err=e.message; }
+    rerenderGame(i);
+  }, 2);
+}
+
+/* ---------- PINS ---------- */
+function themeBG(){ return `a soft ${v('category').toLowerCase()} themed background with tasteful party props, NO people`; }
+
+// For each keyword Claude writes a catchy headline, a short CTA, and two scenes (vector + photo).
+async function writePinContent(keywords){
+  const a=ST.article;
+  const gameN=(a.games||[]).length||16;
+  const sys=`You create Pinterest pin text. Every article offers a FREE printable download. For each KEYWORD return four things:
+- "headline": a scroll-stopping BuzzFeed-style pin title. RULES (all required): (1) START with a NUMBER (e.g. "17", "21") — reuse the number of games in the article; (2) include a free/printable hook such as "Free", "Free Printable", or "Printable"; (3) carry emotion/curiosity ("You'll Obsess Over", "Guests Will Beg to Play", "Ridiculously Fun"). ~6-9 words, Title Case, no quotes/emojis/hashtags. Each DISTINCT. Examples: "17 Free Printable Baby Shower Games You'll Love", "21 Baby Shower Games Guests Will Beg to Play".
+- "cta": a very short call-to-action, 2-4 words, for a button on the pin pointing to the free printables (e.g. "Grab the Free Games", "Print These Tonight", "Get the Printables", "Free Download"). Vary them.
+- "sceneVector": a MODERN FLAT EDITORIAL ILLUSTRATION scene (contemporary vector art, matte muted colours, simple shapes, subtle grain, decorative background — NOT a Disney/Pixar cartoon), featuring ONE expressive character showing a STRONG positive emotion (surprise, big smile, delight). Pick a character that fits the theme (a stylised person, friends, or a fitting figure — not limited to parenting). A few themed props/patterns too. Clearly illustrated, never photorealistic. No text.
+- "scenePhoto": a PHOTOREALISTIC flat-lay scene — an attractive real-photo arrangement of themed props and objects for this keyword (NO people, NO faces, objects only), soft natural light. No text.
+Return ONLY raw JSON: {"pins":[{"headline":"","cta":"","sceneVector":"","scenePhoto":""}, ...]} in order, no preamble.`;
+  const msg=`Article title: ${a.title}\nThe article contains ${gameN} games — start each headline with the number ${gameN}.\nTheme: ${v('category')} (${v('audience')})\n\nKeywords (one pin each, in order):\n${keywords.map((t,i)=>`${i+1}. ${t}`).join('\n')}`;
+  try{
+    const txt=await callClaude(sys,msg,false);
+    const d=extractJSON(txt);
+    if(Array.isArray(d.pins)&&d.pins.length===keywords.length) return d.pins;
+  }catch(e){ /* fall back */ }
+  return keywords.map(k=>({headline:k,cta:'Get the Free Printables',sceneVector:themeBG(),scenePhoto:themeBG()}));
+}
+function buildPinPrompt(headline,scene,layout,vibeBlock,cta,mode){
+  let p=layout.prompt
+    .replace(/\{TITLE\}/g,headline)
+    .replace(/\{SCENE\}/g,scene||themeBG())
+    .replace(/\{VIBE\}/g,vibeBlock||'')
+    .replace(/\{CTA\}/g,cta||'Free Download');
+  p+=' '+(mode==='photo'?STYLE_PHOTO:STYLE_VECTOR);
+  if(!vibeIsFixed()) p+=' '+TAILWIND_PALETTE;   // holidays keep their own palette; others use the proven Tailwind palette
+  return p+siteFooter();
+}
+async function generatePins(){
+  const keywords=v('pinKW').split(',').map(t=>t.trim()).filter(Boolean).slice(0,4);
+  if(!keywords.length){ ST.pins=[]; renderPins(); toast('No pin keywords given','err'); return; }
+  ST.pins=keywords.map(k=>({title:k,headline:k,img:null,err:null}));
+  renderPins();
+  const content=await writePinContent(keywords);
+  const vibe=currentVibeBlock();
+  const layouts=[...PIN_LAYOUTS].sort(()=>Math.random()-0.5); // shuffle layouts
+  const modes=['vector','vector','photo','photo'].sort(()=>Math.random()-0.5); // mix: 2 vector + 2 photo
+  keywords.forEach((k,i)=>{
+    const mode=modes[i%modes.length];
+    const scene=mode==='photo'?(content[i].scenePhoto||content[i].scene):(content[i].sceneVector||content[i].scene);
+    ST.pins[i].headline=content[i].headline||k;
+    ST.pins[i].cta=content[i].cta||'';
+    ST.pins[i].mode=mode;
+    ST.pins[i].layout=layouts[i%layouts.length].id;
+    ST.pins[i].prompt=buildPinPrompt(ST.pins[i].headline,scene,layouts[i%layouts.length],vibe,ST.pins[i].cta,mode);
+  });
+  renderPins();
+  await runPool(keywords.map((k,i)=>i), async (i)=>{
+    try{
+      ST.pins[i].img=await runwareGen(ST.pins[i].prompt,SIZE_PIN.w,SIZE_PIN.h); ST.pins[i].err=null;
+      ST.pins[i].file=buildFilename(ST.article.focusKeyword,'pin-'+keywords[i],i);
+    }catch(e){ ST.pins[i].err=e.message; }
+    renderPins();
+  }, 2);
+}
+
+/* ═══════════ PREVIEW RENDER ═══════════ */
+const CALLOUT_ICONS={"You'll need":'🧺',"How to play":'▶️',"Host tip":'💡',"Best for":'👥',"Make it easier":'✅',"Why it works":'✨'};
+function calloutHTML(c){
+  if(!c||!c.kind||!c.items||!c.items.length)return'';
+  const ic=CALLOUT_ICONS[c.kind]||'📌';
+  const inner=c.items.length>1
+    ? `<ul style="margin:6px 0 0;padding-left:20px">${c.items.map(x=>`<li>${x}</li>`).join('')}</ul>`
+    : `<p style="margin:4px 0 0">${c.items[0]}</p>`;
+  return `<div style="background:#f7f2fb;border:1px solid #e6d7f2;border-radius:10px;padding:12px 16px;margin:14px 0"><strong style="color:#5b3a76">${ic} ${c.kind}</strong>${inner}</div>`;
+}
+function renderPreview(){
+  const a=ST.article; if(!a)return;
+  const feat=ST.feat?`<img class="pv-hero" src="${ST.feat.url}">`:`<div class="pv-hero" style="display:flex;align-items:center;justify-content:center;color:var(--muted)">No featured image</div>`;
+  const toc=buildTOC(a);
+  const gamesHTML=(a.games||[]).map((g,i)=>gameCard(g,i)).join('');
+  const faq=(a.faq||[]).length?`<h2 id="sec-faq">Frequently Asked Questions</h2>`+a.faq.map(q=>
+    `<div class="faq-q editable" contenteditable>${esc(q.question)}</div><p class="editable" contenteditable>${esc(q.answer)}</p>`).join(''):'';
+
+  $('preview').innerHTML=`<div class="pv">${feat}<div class="pv-body">
+    <div class="seo-box">
+      <div class="r"><span class="k">Title</span><input id="e_title" value="${esc(a.title)}"></div>
+      <div class="r"><span class="k">Slug</span><input id="e_slug" value="${esc(a.slug)}"></div>
+      <div class="r"><span class="k">Meta desc</span><textarea id="e_meta" rows="2">${esc(a.metaDescription)}</textarea></div>
+      <div class="r"><span class="k">Focus KW</span><input id="e_fkw" value="${esc(a.focusKeyword)}"></div>
+    </div>
+    <h1 class="title editable" contenteditable data-f="titleH">${esc(a.title)}</h1>
+    <div class="editable" contenteditable data-f="intro">${a.intro||''}</div>
+    ${toc}
+    ${gamesHTML}
+    ${faq}
+    <div class="editable" contenteditable data-f="closing" style="margin-top:22px">${a.closing||''}</div>
+  </div></div>
+  <div class="pins-wrap"><h2 style="font-family:'Fraunces',serif">📌 Pinterest Pins</h2>
+    <div class="pins-grid" id="pinsGrid"></div></div>`;
+  renderPins();
+  renderPubbar();
+}
+function buildTOC(a){
+  const g=(a.games||[]); if(!g.length)return'';
+  const links=g.map((x,i)=>`<a href="#game-${i}">${i+1}. ${esc(x.name)}</a>`).join('');
+  const faqLink=(a.faq||[]).length?`<a href="#sec-faq">Frequently Asked Questions</a>`:'';
+  return `<div class="toc"><strong>Table of Contents</strong>${links}${faqLink}</div>`;
+}
+function gameCard(g,i){
+  const badgeMap={active:'active',printable:'print',quiet:'quiet'};
+  const wantsImg=g.type==='printable'||!!g.imagePrompt;
+  let imgBlock='';
+  if(wantsImg){
+    if(g._img) imgBlock=`<img class="gc-img" src="${g._img}">`;
+    else if(g._err) imgBlock=`<div class="pin-ph" style="aspect-ratio:auto;min-height:80px;color:var(--warn);font-family:ui-monospace,monospace">⚠ ${esc(g._err)}</div>`;
+    else imgBlock=`<div class="pin-ph" style="aspect-ratio:auto;min-height:80px"><span class="spin"></span></div>`;
+  }
+  const tools=wantsImg?`<div class="gc-tools">
+    <button class="btn btn-ghost btn-sm" onclick="regenImg(${i})">🔄 Regenerate</button>
+    ${g._img?`<a class="btn btn-ghost btn-sm" href="${g._img}" download="${g._file||'game.png'}" target="_blank">↓ Download</a>`:''}
+    <span class="fn">${g._file||''}</span></div>`:'';
+  return `<div class="game-card" id="gc-${i}">
+    <div class="gc-body">
+      <h3 id="game-${i}" class="editable" data-ed="name" contenteditable>${i+1}. ${esc(g.name)} <span class="badge ${badgeMap[g.type]||'active'}">${g.type}</span></h3>
+      <div class="editable" data-ed="content" contenteditable>${g.content||''}</div>
+      ${calloutHTML(g.callout)}
+    </div>
+    ${imgBlock}${tools}</div>`;
+}
+function setGameImgState(i){ const g=ST.article.games[i]; g._img=null; g._err=null; rerenderGame(i); }
+function rerenderGame(i){ const card=$('gc-'+i); if(card) card.outerHTML=gameCard(ST.article.games[i],i); }
+async function regenImg(i){
+  const g=ST.article.games[i]; if(!g.imagePrompt){toast('No image prompt for this game','err');return;}
+  g._img=null; g._err=null; rerenderGame(i);
+  try{ g._img=await runwareGen(withStyle(g.imagePrompt),SIZE_PRINT.w,SIZE_PRINT.h,3,ST.refDataUri); g._file=g._file||buildFilename(ST.article.focusKeyword,g.name,i); }
+  catch(e){ g._err=e.message; }
+  rerenderGame(i);
+}
+function renderPins(){
+  const grid=$('pinsGrid'); if(!grid)return;
+  grid.innerHTML=ST.pins.map((p,i)=>`<div class="pin">
+    ${p.img?`<img src="${p.img}">`:`<div class="pin-ph">${p.err?'⚠ '+esc(p.err):'<span class=spin></span>'}</div>`}
+    <div class="pin-t"><b style="color:var(--ink)">${esc(p.headline||p.title)}</b>
+      ${p.img?`<a href="${p.img}" download="${p.file||'pin.png'}" target="_blank" style="float:right;color:var(--plum)">↓</a>
+      <button onclick="regenPin(${i})" style="float:right;background:none;border:none;cursor:pointer;color:var(--muted);margin-right:6px">🔄</button>`:''}
+      <br><span style="font-size:10px">kw: ${esc(p.title)}${p.mode?` · ${esc(p.mode)}`:''}${p.cta?` · CTA: ${esc(p.cta)}`:''}${p.layout?` · ${esc(p.layout)}`:''}</span></div>
+  </div>`).join('');
+}
+async function regenPin(i){
+  const prompt=ST.pins[i].prompt || buildPinPrompt(ST.pins[i].headline||ST.pins[i].title, themeBG(), PIN_LAYOUTS[i%PIN_LAYOUTS.length], currentVibeBlock(), ST.pins[i].cta, ST.pins[i].mode);
+  ST.pins[i].img=null;ST.pins[i].err=null;renderPins();
+  try{ST.pins[i].img=await runwareGen(prompt,SIZE_PIN.w,SIZE_PIN.h);ST.pins[i].file=buildFilename(ST.article.focusKeyword,'pin-'+ST.pins[i].title,i);}catch(e){ST.pins[i].err=e.message;}
+  renderPins();
+}
+
+/* ---------- collect edits from contenteditable back into ST.article ---------- */
+function syncEdits(){
+  const a=ST.article; if(!a)return;
+  a.title=v('e_title'); a.slug=v('e_slug'); a.metaDescription=v('e_meta'); a.focusKeyword=v('e_fkw');
+  const q=s=>document.querySelector(s);
+  a.intro=q('[data-f="intro"]')?.innerHTML||a.intro;
+  a.closing=q('[data-f="closing"]')?.innerHTML||a.closing;
+  a.title=q('[data-f="titleH"]')?.textContent||a.title;
+  (a.games||[]).forEach((g,i)=>{
+    const card=$('gc-'+i); if(!card)return;
+    const nm=card.querySelector('[data-ed="name"]'), ct=card.querySelector('[data-ed="content"]');
+    if(nm) g.name=nm.textContent.replace(/^\s*\d+\.\s*/,'').replace(/\s*(active|printable|quiet)\s*$/i,'').trim();
+    if(ct) g.content=ct.innerHTML;
+  });
+  const fqs=document.querySelectorAll('.faq-q'); const fas=[...document.querySelectorAll('.faq-q + p')];
+  if(fqs.length)a.faq=[...fqs].map((x,i)=>({question:x.textContent,answer:fas[i]?fas[i].innerHTML:''}));
+}
+
+/* ═══════════ WORDPRESS PUBLISH ═══════════ */
+function renderPubbar(){
+  const cats=ST.wpCats||[];
+  const opts=cats.length
+    ? cats.map(c=>`<option value="${c.id}" ${String(c.id)===String(ST.pubCat||getSite()?.cat)?'selected':''}>${esc(c.name)}</option>`).join('')
+    : `<option value="${getSite()?.cat||0}">${getSite()?.cat?('ID '+getSite().cat):'default'}</option>`;
+  $('pubbarHost').innerHTML=`<div class="pubbar">
+    <span class="badge print">${getSite()?esc(getSite().name):'No site'}</span>
+    <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px">Category
+      <select id="pubCat" style="width:auto;padding:5px 8px" onchange="ST.pubCat=this.value">${opts}</select></label>
+    <button class="btn btn-ghost btn-sm" style="width:auto" onclick="fetchWPCats(true)" title="Reload categories from WordPress">🔄</button>
+    <span class="sp"></span>
+    <button class="btn btn-ghost btn-sm" onclick="publish('draft')" id="btnDraft">💾 Save as Draft</button>
+    <button class="btn btn-primary btn-sm" style="width:auto" onclick="publish('publish')" id="btnPub">🚀 Publish</button>
+    <span id="pubResult"></span></div>`;
+}
+// GET request through the proxy
+async function wpGet(site,endpoint){
+  const r=await fetch(site.url+'/wp-proxy.php?endpoint='+encodeURIComponent(endpoint),
+    {method:'GET',headers:{'X-WP-User':site.username,'X-WP-Pass':site.password,'X-WP-Method':'GET'}});
+  if(!r.ok) throw new Error('WP '+r.status);
+  return r.json();
+}
+// pull categories from the active WordPress site into a dropdown
+async function fetchWPCats(notify){
+  const site=getSite(); if(!site){ if(notify)toast('Select a site first','err'); return; }
+  try{
+    const cats=await wpGet(site,'categories?per_page=100&orderby=name&order=asc');
+    if(Array.isArray(cats)) ST.wpCats=cats.map(c=>({id:c.id,name:c.name+(c.count!=null?` (${c.count})`:'')}));
+    renderWPCatSelect();
+    if(ST.article) renderPubbar();
+    if(notify)toast(ST.wpCats.length+' categories loaded','ok');
+  }catch(e){ if(notify)toast('Categories: '+e.message,'err'); }
+}
+// fill the sidebar WordPress-category dropdown
+function renderWPCatSelect(){
+  const sel=$('wpCatSelect'); if(!sel)return;
+  if(!(ST.wpCats||[]).length){ sel.innerHTML='<option value="">— load categories —</option>'; return; }
+  sel.innerHTML=ST.wpCats.map(c=>`<option value="${c.id}" ${String(c.id)===String(ST.pubCat)?'selected':''}>${esc(c.name)}</option>`).join('');
+  if(!ST.pubCat) ST.pubCat=sel.value; // default to first
+}
+async function wpSideload(site,imageUrl,filename,alt,caption){
+  const fd=new FormData();
+  fd.append('source_url',imageUrl); fd.append('filename',(filename||'image').replace(/\.png$/,''));
+  fd.append('wp_user',site.username); fd.append('wp_pass',site.password);
+  if(alt)fd.append('alt_text',alt); if(caption)fd.append('caption',caption);
+  const r=await fetch(site.url+'/wp-media-proxy.php',{method:'POST',body:fd});
+  const d=await r.json();
+  if(!r.ok||!d.id) throw new Error('Media upload: '+(d.error||r.status));
+  return {id:d.id,src:d.source_url};
+}
+async function wpPost(site,data){
+  const r=await fetch(site.url+'/wp-proxy.php?endpoint=posts',{method:'POST',
+    headers:{'Content-Type':'application/json','X-WP-User':site.username,'X-WP-Pass':site.password,'X-WP-Method':'POST'},
+    body:JSON.stringify(data)});
+  if(!r.ok) throw new Error('Post: '+r.status);
+  return r.json();
+}
+// build one flat, interleaved games body (H2 name + prose + callout + figure)
+async function gamesBodyHTML(a,site){
+  let h='';
+  for(let i=0;i<(a.games||[]).length;i++){ const g=a.games[i];
+    h+=`<h2 id="game-${i}">${i+1}. ${g.name}</h2>${g.content||''}${calloutHTML(g.callout)}`;
+    if(g._img){
+      try{
+        const up=await wpSideload(site,g._img,g._file||buildFilename(a.focusKeyword,g.name,i),g.name+' printable game sheet','');
+        h+=`<figure class="pgs-printable" style="margin:20px 0;text-align:center"><img src="${up.src}" alt="${esc(g.name)} printable" style="border-radius:8px;border:1px solid #eee"/>
+        <figcaption style="margin-top:8px"><a href="${up.src}" download="${g._file||'game.png'}" style="display:inline-block;border:1.5px solid #1a1a1a;color:#1a1a1a;padding:8px 20px;border-radius:24px;text-decoration:none;font-size:13px">↓ Download &amp; Print</a></figcaption></figure>`;
+      }catch(e){ /* keep text if image upload fails */ }
+    }
+  }
+  return h;
+}
+async function publish(status){
+  syncEdits();
+  const site=getSite(); if(!site){toast('Add & select a WP site in Settings','err');openSettings();return;}
+  const a=ST.article; if(!a){toast('Nothing to publish','err');return;}
+  const btn=status==='draft'?$('btnDraft'):$('btnPub'); btn.disabled=true;
+  $('pubResult').innerHTML='<span class="spin"></span>';
+  try{
+    let featuredId=0;
+    if(ST.feat){
+      prog(20,'📤 Featured image…');
+      const f=await wpSideload(site,ST.feat.url,a.slug+'-featured',a.title,ST.feat.credit?'Photo: '+ST.feat.credit+' (Pexels)':'');
+      featuredId=f.id;
+    }
+    prog(45,'📤 Uploading printables…');
+    let html=`${a.intro||''}${tocHTML(a)}`;
+    html+=await gamesBodyHTML(a,site);
+    if((a.faq||[]).length){html+='<h2>Frequently Asked Questions</h2>'+a.faq.map(q=>`<h3>${q.question}</h3><p>${q.answer}</p>`).join('');}
+    html+=a.closing||'';
+    prog(75,'📤 Uploading pins…');
+    let pinsHTML='';
+    for(let i=0;i<ST.pins.length;i++){ if(ST.pins[i].img){ try{
+      const pAlt=ST.pins[i].headline||ST.pins[i].title;   // headline → alt (SEO)
+      const pCap=ST.pins[i].headline||ST.pins[i].title;                    // headline → caption
+      const up=await wpSideload(site,ST.pins[i].img,ST.pins[i].file||('pin-'+(i+1)),pAlt,pCap);
+      pinsHTML+=`<figure class="pgs-pin-fig" style="display:inline-block;margin:8px;text-align:center"><img class="pgs-pin" src="${up.src}" alt="${esc(pAlt)}" style="max-width:340px;height:auto;border-radius:8px;border:1px solid #eee"/><figcaption style="font-size:13px;color:#555;margin-top:4px">${esc(pCap)}</figcaption></figure>`;
+    }catch(e){} } }
+    if(pinsHTML){ html+=`<h2 id="save-for-later">📌 Save These for Later</h2><p>Loved these? Pin your favorite image below so you can find this list again when you're planning.</p><div class="pgs-pins" style="text-align:center">${pinsHTML}</div>`; }
+    prog(90,'📝 Creating post…');
+    const post=await wpPost(site,{
+      title:a.title, content:html, slug:a.slug, excerpt:a.metaDescription,
+      status:status, categories:(ST.pubCat||site.cat)?[parseInt(ST.pubCat||site.cat)]:[], featured_media:featuredId,
+      meta:{_yoast_wpseo_focuskw:a.focusKeyword,_yoast_wpseo_metadesc:a.metaDescription}
+    });
+    prog(100,'✅ Done');
+    const link=site.url+'/wp-admin/post.php?post='+post.id+'&action=edit';
+    $('pubResult').innerHTML=`<a href="${link}" target="_blank" style="color:var(--ok);font-weight:600">✅ ${status==='draft'?'Draft saved':'Published'} — open in WP</a>`;
+    toast(status==='draft'?'Saved as draft':'Published','ok');
+    btn.disabled=false; progDone();
+    return {ok:true, link, id:post.id};
+  }catch(e){toast(e.message,'err');$('pubResult').innerHTML='<span style="color:var(--warn)">'+esc(e.message)+'</span>';
+    btn.disabled=false; progDone();
+    return {ok:false, error:e.message};
+  }
+}
+// static HTML builders
+function tocHTML(a){const g=(a.games||[]);if(!g.length)return'';const faq=(a.faq||[]).length?`<li><a href='#sec-faq'>Frequently Asked Questions</a></li>`:'';return `<div style="background:#faf7f2;border:1px solid #e7e0d6;border-radius:10px;padding:14px 18px;margin:0 0 20px"><strong>Table of Contents</strong><ol style="margin:6px 0 0;padding-left:20px">${g.map((x,i)=>`<li><a href='#game-${i}'>${x.name}</a></li>`).join('')}${faq}</ol></div>`;}
+
+/* ---------- CSV ---------- */
+function loadCSV(e){
+  const f=e.target.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const rows=rd.result.split(/\r?\n/).filter(Boolean).map(l=>{const p=l.split(',');return {url:(p[0]||'').trim(),title:(p.slice(1).join(',')||'').trim()};}).filter(r=>r.url&&/^https?:/.test(r.url));
+    ST.csv=rows; $('csvInfo').textContent=rows.length+' internal links loaded.'; saveSettings();
+  };
+  rd.readAsText(f);
+}
+
+/* ---------- BATCH MODE ---------- */
+function openBatch(){$('batchDrawer').classList.add('on');$('batchBg').classList.add('on');}
+function closeBatch(){$('batchDrawer').classList.remove('on');$('batchBg').classList.remove('on');}
+function batchProg(pct,lbl){$('batchProg').classList.add('on');$('batchProgFill').style.width=pct+'%';if(lbl)$('batchProgLbl').textContent=lbl;}
+async function runBatch(){
+  if(!getSite()){toast('Add & select a WP site in Settings','err');openSettings();return;}
+  if(!v('claudeKey')){toast('Add your Claude key in Settings','err');openSettings();return;}
+  const lines=v('batchInput').split(/\n/).map(l=>l.trim()).filter(Boolean);
+  if(!lines.length){toast('Enter at least one keyword','err');return;}
+  const btn=$('batchRun'); btn.disabled=true;
+  const log=$('batchLog'); log.innerHTML='';
+  const items=lines.map(l=>{ const [kw,pins]=l.split('::'); return {kw:(kw||'').trim(), pins:(pins||'').trim()}; });
+  items.forEach((it,i)=>log.insertAdjacentHTML('beforeend',`<div class="site-card" id="blog-${i}"><strong>${esc(it.kw)}</strong><br><span style="color:var(--muted);font-size:12px" id="blog-s-${i}">queued…</span></div>`));
+  for(let i=0;i<items.length;i++){
+    const it=items[i];
+    batchProg(Math.round(i/items.length*100),`Article ${i+1} of ${items.length}: ${it.kw}`);
+    $('blog-s-'+i).textContent='✍️ generating…';
+    try{
+      $('mainKW').value=it.kw;
+      $('pinKW').value=it.pins||'';
+      await generateArticle();                 // full pipeline: text + images + pins → preview
+      if(!ST.article) throw new Error('generation failed');
+      const res=await publish('draft');        // save as draft
+      if(res&&res.ok){ $('blog-s-'+i).innerHTML=`✅ draft saved — <a href="${res.link}" target="_blank" style="color:var(--ok)">open</a>`; }
+      else throw new Error(res&&res.error?res.error:'publish failed');
+    }catch(e){ $('blog-s-'+i).innerHTML=`<span style="color:var(--warn)">⚠ ${esc(e.message)}</span>`; }
+  }
+  batchProg(100,'Done'); setTimeout(()=>$('batchProg').classList.remove('on'),800);
+  btn.disabled=false; toast('Batch finished','ok');
+}
+
+/* ---------- NEW ARTICLE (reset) ---------- */
+function newArticle(){
+  ST.article=null; ST.pins=[]; ST.feat=null; ST.paa=[];
+  ['mainKW','context','pinKW','featKW'].forEach(id=>{if($(id))$(id).value='';});
+  $('paaList').innerHTML=''; $('featPreview').innerHTML='';
+  $('preview').innerHTML=''; $('pubbarHost').innerHTML='';
+  $('emptyState').style.display='';
+  clearRef();
+  window.scrollTo(0,0);
+  toast('Ready for a new article','ok');
+}
+
+/* ---------- INIT ---------- */
+function renderInfoStyles(){ $('infoStyle').innerHTML=INFO_STYLES.map(s=>`<option value="${s.id}">${s.label}</option>`).join(''); $('infoStyle').value=activeInfoStyle; }
+renderVibes();
+renderInfoStyles();
+renderWPCatSelect();
+loadSettings();
+if(getSite()) fetchWPCats(false);
+</script>
+</script>
+</body>
+</html>
