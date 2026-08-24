@@ -218,11 +218,23 @@ function syncEdits(){
   const stamp=document.querySelector('#preview [data-article-id]');
   const shown=stamp?stamp.getAttribute('data-article-id'):null;
   const mine=articleStamp(a);
-  if(shown && mine && shown!==mine){
+  // Редактор может показывать ДРУГУЮ статью — или не показывать ничего. Второй случай
+  // и был дырой: при публикации прямо из очереди ревью превью не отрисовано, полей
+  // e_title / e_slug / e_meta в DOM нет, v() возвращает для них пустую строку — и мы
+  // затирали заголовок, адрес и мета-описание. Статья уходила на сайт без заголовка.
+  // Забирать правки не из чего — выходим, данные оставляем как есть.
+  if(!shown){
+    console.warn('[PGS] syncEdits skipped: editor is not showing anything');
+    return;
+  }
+  if(mine && shown!==mine){
     console.warn('[PGS] syncEdits skipped: editor is showing a different article');
     return;
   }
-  a.title=v('e_title'); a.slug=v('e_slug'); a.metaDescription=v('e_meta'); a.focusKeyword=v('e_fkw');
+  // Пустое поле не должно стирать то, что уже есть: чистить заголовок или адрес
+  // намеренно незачем, а вот потерять их из-за пропавшего поля — легко.
+  a.title=v('e_title')||a.title; a.slug=v('e_slug')||a.slug;
+  a.metaDescription=v('e_meta')||a.metaDescription; a.focusKeyword=v('e_fkw')||a.focusKeyword;
   const q=s=>document.querySelector(s);
   a.intro=q('[data-f="intro"]')?.innerHTML||a.intro;
   a.closing=q('[data-f="closing"]')?.innerHTML||a.closing;

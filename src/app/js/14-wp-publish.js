@@ -338,7 +338,19 @@ async function publish(status){
   }
   const site=getSite(); if(!site){toast('Add & select a WP site in Settings','err');openSettings();return;}
   const a=ST.article; if(!a){toast('Nothing to publish','err');return;}
-  const titleAtStart=String(a.title||'');   // captured before any DOM sync can touch it
+  // Пустой заголовок — всегда ошибка, а не намерение. Одна статья так и ушла на сайт:
+  // публиковали прямо из очереди ревью, редактор был закрыт, и syncEdits() забрал
+  // из несуществующих полей пустые строки. Корень починен, это вторая линия обороны.
+  if(!String(a.title||'').trim()){
+    if(preSyncTitle){
+      a.title=preSyncTitle;
+      console.warn('[PGS] restored a title that editor sync had emptied:',a.title);
+    } else {
+      toast('Article has no title — not published','err');
+      return {ok:false,error:'article has no title'};
+    }
+  }
+  const titleAtStart=String(a.title||'');   // сверяем прямо перед отправкой, что заголовок не подменили
   const btn=status==='draft'?$('btnDraft'):$('btnPub'); if(btn) btn.disabled=true;
   const pr=$('pubResult'); if(pr) pr.innerHTML='<span class="spin"></span>';
   try{
