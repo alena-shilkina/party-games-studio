@@ -92,9 +92,13 @@ function statusPill(r){
 // re-run a single row through the full pipeline (for rows that errored or came out wrong)
 async function retryRow(id){
   if(batchRunning){ toast('Wait for the batch to finish, or Stop it first','err'); return; }
+  // Одна статья за раз: генерация идёт через общие поля формы и общий ST.article,
+  // поэтому два пересбора одновременно перепутали бы статьи между строками.
+  if(retryRunning){ toast('One article is already being regenerated — wait for it to finish','err'); return; }
   const r=ST.batch.rows.find(x=>x.id===id); if(!r)return;
   if(!r.kw.trim()){ toast('This row has no keyword','err'); return; }
   if(!getSite()){ toast('Select a WP site in Settings','err'); return; }
+  retryRunning=true;
   batchStopped=false; batchAbort=new AbortController();
   r.status='running'; r.error=''; renderBatch();
   const mode=$('bzMode')?$('bzMode').value:(ST.batch.mode||'review');
@@ -109,6 +113,7 @@ async function retryRow(id){
     else { const res=await publish(status); if(res&&res.ok){ r.status='done'; r.link=res.link; } else throw new Error(res&&res.error||'publish failed'); }
     toast('Article regenerated','ok');
   }catch(e){ r.status='error'; r.error=e.message==='__ABORT__'?'stopped':e.message; }
+  retryRunning=false;
   batchAbort=null; renderBatch(); saveBatch(); updateReviewCount();
 }
 function renderBatch(){
@@ -238,7 +243,10 @@ async function applyFeatured(kw, explicit){
   else await fetchFeaturedFor(kw, explicit);
 }
 
-let batchPaused=false, batchRunning=false, batchStopped=false;
+// retryRunning — отдельный замок для пересбора одной строки. Без него нажатие Retry
+// на нескольких строках запускало параллельные генерации, а они пишут в одни и те же
+// общие переменные (поля формы, ST.article), и статьи перемешивались между строками.
+let batchPaused=false, batchRunning=false, batchStopped=false, retryRunning=false;
 let batchAbort=null;   // AbortController so Stop cancels in-flight API calls immediately
 // detect Runware out-of-credit / balance-reserved errors
 function isBalanceError(msg){ return /balance|insufficient|credit|concurrent request limit|reserved by in-flight/i.test(msg||''); }
@@ -274,6 +282,8 @@ function bzStatusBanner(msg,kind){
 }
 async function runBatch(){
   if(batchRunning) return;
+  // тот же замок с другой стороны: пакет не должен стартовать поверх одиночного пересбора
+  if(retryRunning){ toast('An article is being regenerated — wait for it to finish','err'); return; }
   if(!getSite()){toast('Add & select a WP site in Settings','err');openSettings();return;}
   if(!keyReady('claude')){toast('Add your Claude key in Settings','err');openSettings();return;}
   const valid=ST.batch.rows.filter(r=>r.kw.trim());
