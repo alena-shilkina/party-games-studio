@@ -167,15 +167,115 @@ const runwareError = (status: number, text: string) => {
   return { errors: [{ code: 'upstream_error', status, message: message || ('Runware ' + status) }] };
 };
 
+// Отрезков два, и таймаут был на обоих.
+//
+// Браузер ↔ Worker закрыт удержанием соединения (slowSafe выше).
+//
+// Worker ↔ Anthropic — этот. Обычный запрос молчит всё время генерации, а перед
+// api.anthropic.com стоит свой край Cloudflare, который рвёт молчащее соединение
+// и отдаёт 524. Поэтому просим у Anthropic поток: он начинает слать события сразу
+// и присылает ping, соединение не простаивает. Приложению поток не нужен — оно ждёт
+// обычный JSON, — поэтому Worker собирает ответ обратно сам.
 async function proxyClaude(request: Request, env: Env): Promise<Response> {
   if (request.method !== 'POST') return notFound();
   const key = env.ANTHROPIC_API_KEY || request.headers.get('x-api-key') || '';
   if (!key) return noKey('Anthropic');
-  return slowSafe(fetch('https://api.anthropic.com/v1/messages', {
+
+  const raw = await request.text();
+  let body: Record<string, unknown> | null = null;
+  try { body = JSON.parse(raw); } catch { /* отправим как есть */ }
+  const clientWantsStream = Boolean(body && body.stream === true);
+  if (body && !clientWantsStream) body.stream = true;
+
+  const upstream = fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-    body: request.body,
-  }), anthropicError);
+    body: body ? JSON.stringify(body) : raw,
+  });
+
+  // если поток заказал сам клиент — не вмешиваемся
+  return slowSafe(clientWantsStream ? upstream : upstream.then(collectAnthropicStream), anthropicError);
+}
+
+// Собирает поток событий Anthropic обратно в тот же JSON, который пришёл бы
+// без стриминга: те же блоки content, тот же stop_reason. Приложение разницы не видит.
+async function collectAnthropicStream(res: Response): Promise<Response> {
+  if (!res.ok || !res.body) return res;   // ошибку отдаём как есть, со своим статусом
+
+  const json = (v: unknown, status: number) =>
+    new Response(JSON.stringify(v), { status, headers: { 'Content-Type': 'application/json' } });
+
+  let message: Record<string, any> | null = null;
+  const blocks: any[] = [];
+  const partialJson: Record<number, string> = {};
+  let streamError: unknown = null;
+
+  const handle = (e: any) => {
+    switch (e.type) {
+      case 'message_start':
+        message = { ...e.message };
+        break;
+      case 'content_block_start': {
+        const b = { ...e.content_block };
+        if (b.type === 'text' && b.text == null) b.text = '';
+        blocks[e.index] = b;
+        if ('input' in b) partialJson[e.index] = '';   // tool_use и server_tool_use копят JSON по кускам
+        break;
+      }
+      case 'content_block_delta': {
+        const b = blocks[e.index]; if (!b) break;
+        const d = e.delta || {};
+        if (d.type === 'text_delta') b.text = (b.text || '') + d.text;
+        else if (d.type === 'input_json_delta') partialJson[e.index] = (partialJson[e.index] || '') + d.partial_json;
+        else if (d.type === 'thinking_delta') b.thinking = (b.thinking || '') + d.thinking;
+        else if (d.type === 'signature_delta') b.signature = d.signature;
+        else if (d.type === 'citations_delta') b.citations = [...(b.citations || []), d.citation];
+        break;
+      }
+      case 'content_block_stop': {
+        const b = blocks[e.index];
+        if (b && partialJson[e.index] !== undefined) {
+          try { b.input = JSON.parse(partialJson[e.index] || '{}'); } catch { b.input = {}; }
+        }
+        break;
+      }
+      case 'message_delta':
+        if (message) {
+          Object.assign(message, e.delta || {});
+          if (e.usage) message.usage = { ...(message.usage || {}), ...e.usage };
+        }
+        break;
+      case 'error':
+        streamError = e.error;
+        break;
+    }
+  };
+
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    for (;;) {
+      const nl = buf.indexOf('\n');
+      if (nl < 0) break;
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line.startsWith('data:')) continue;      // event: и ping нам не нужны
+      const payload = line.slice(5).trim();
+      if (!payload) continue;
+      try { handle(JSON.parse(payload)); } catch { /* не наш кадр */ }
+    }
+  }
+
+  if (streamError) return json({ error: streamError }, 500);
+  if (!message) return json({ error: { message: 'Anthropic вернул пустой поток' } }, 502);
+  // приведение нужно только компилятору: он не видит присваивания внутри handle()
+  const out = message as Record<string, any>;
+  out.content = blocks.filter(Boolean);
+  return json(out, 200);
 }
 
 async function proxyRunware(request: Request, env: Env): Promise<Response> {
