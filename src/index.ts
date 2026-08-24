@@ -83,15 +83,99 @@ export default {
 const noKey = (what: string) =>
   new Response('Ключ ' + what + ' не задан ни в секретах, ни в Настройках', { status: 400 });
 
+// Cloudflare обрывает запрос, если за 100 секунд от нас не ушло ни байта. Генерация
+// длинной статьи занимает больше. Раньше это работало, потому что браузер ходил
+// в Anthropic напрямую, минуя Cloudflare; теперь запрос идёт через Worker.
+//
+// Поэтому: ждём ответ 20 секунд. Успел — отдаём как есть, с настоящим кодом ответа.
+// Не успел — начинаем отдавать тело прямо сейчас и подсыпаем по пробелу каждые
+// 10 секунд, пока ответ не придёт. Пробелы перед JSON допустимы, JSON.parse их
+// не замечает, а соединение остаётся живым сколько угодно долго.
+//
+// Плата: на медленном пути код 200 уже обещан и поменять его нельзя, поэтому ошибку
+// приходится класть в тело ответа. Приложение это понимает и разбирает.
+const HOLD_AFTER_MS = 20_000;
+const HOLD_TICK_MS = 10_000;
+
+async function slowSafe(
+  upstream: Promise<Response>,
+  errorBody: (status: number, text: string) => unknown,
+): Promise<Response> {
+  const raced = await Promise.race([
+    upstream.then(r => ({ r } as { r: Response | null })),
+    new Promise<{ r: Response | null }>(res => setTimeout(() => res({ r: null }), HOLD_AFTER_MS)),
+  ]);
+  if (raced.r) return raced.r;   // уложились — обычный ответ со своим статусом
+
+  const { readable, writable } = new TransformStream();
+  const writer = writable.getWriter();
+  const enc = new TextEncoder();
+  let finished = false;
+
+  const keepalive = (async () => {
+    while (!finished) {
+      await new Promise(res => setTimeout(res, HOLD_TICK_MS));
+      if (finished) break;
+      try { await writer.write(enc.encode(' ')); } catch { break; }
+    }
+  })();
+
+  (async () => {
+    try {
+      const res = await upstream;
+      finished = true;
+      await keepalive;
+      if (res.ok && res.body) {
+        const reader = res.body.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          await writer.write(value);
+        }
+      } else {
+        const text = await res.text().catch(() => '');
+        await writer.write(enc.encode(JSON.stringify(errorBody(res.status, text))));
+      }
+    } catch (e) {
+      finished = true;
+      await keepalive;
+      const msg = e instanceof Error ? e.message : String(e);
+      try { await writer.write(enc.encode(JSON.stringify(errorBody(0, msg)))); } catch { /* уже закрыто */ }
+    } finally {
+      try { await writer.close(); } catch { /* уже закрыто */ }
+    }
+  })();
+
+  return new Response(readable, {
+    status: 200,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+  });
+}
+
+// Ошибку от Anthropic приложение ищет в поле error — кладём туда же настоящий статус,
+// чтобы повторы при 429 и 529 продолжали работать.
+const anthropicError = (status: number, text: string) => {
+  let message = text;
+  try { message = JSON.parse(text)?.error?.message || text; } catch { /* не JSON */ }
+  return { error: { type: 'upstream_error', status, message: message || ('Claude ' + status) } };
+};
+
+// Runware приложение проверяет по полю errors — повторяем его форму.
+const runwareError = (status: number, text: string) => {
+  let message = text;
+  try { message = JSON.parse(text)?.errors?.[0]?.message || text; } catch { /* не JSON */ }
+  return { errors: [{ code: 'upstream_error', status, message: message || ('Runware ' + status) }] };
+};
+
 async function proxyClaude(request: Request, env: Env): Promise<Response> {
   if (request.method !== 'POST') return notFound();
   const key = env.ANTHROPIC_API_KEY || request.headers.get('x-api-key') || '';
   if (!key) return noKey('Anthropic');
-  return fetch('https://api.anthropic.com/v1/messages', {
+  return slowSafe(fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
     body: request.body,
-  });
+  }), anthropicError);
 }
 
 async function proxyRunware(request: Request, env: Env): Promise<Response> {
@@ -99,11 +183,11 @@ async function proxyRunware(request: Request, env: Env): Promise<Response> {
   const fromClient = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
   const key = env.RUNWARE_API_KEY || fromClient;
   if (!key) return noKey('Runware');
-  return fetch('https://api.runware.ai/v1', {
+  return slowSafe(fetch('https://api.runware.ai/v1', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
     body: request.body,
-  });
+  }), runwareError);
 }
 
 async function proxyPexels(url: URL, request: Request, env: Env): Promise<Response> {

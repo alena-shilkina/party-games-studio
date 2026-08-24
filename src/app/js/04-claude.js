@@ -55,19 +55,29 @@ async function callClaude(system,content,useSearch,onStatus,maxTokens){
       }
       throw new Error('Network error — check your connection (the computer may have gone to sleep during the batch).');
     }
-    if(!r.ok){let e;try{e=await r.json();}catch(x){}
-      const m=e?.error?.message||'';
-      if(r.status===400 && /content filtering|blocked|policy/i.test(m)) throw new Error('Blocked by content filter — rephrase the keyword/audience (e.g. avoid "teen"+Adults)');
+    // Тело читаем один раз: и успешный ответ, и ошибка приходят одинаково — в JSON.
+    // Долгий запрос Worker отдаёт кодом 200, а ошибку кладёт внутрь тела: держать
+    // соединение открытым дольше 100 секунд иначе нельзя, а код ответа к тому моменту
+    // уже отправлен. Поэтому настоящий статус ищем и в теле тоже.
+    let d=null, err=null, status=r.status;
+    try{ d=await r.json(); }catch(x){}
+    if(!r.ok) err=d?.error||{message:''};
+    else if(d&&d.error){ err=d.error; d=null; }
+    if(err){
+      const m=err.message||'';
+      status=err.status||status;
+      if(status===400 && /content filtering|blocked|policy/i.test(m)) throw new Error('Blocked by content filter — rephrase the keyword/audience (e.g. avoid "teen"+Adults)');
       // API overloaded (529) or rate-limited (429) → wait and retry a few times before giving up
-      if((r.status===529||r.status===429) && overloadTries<5){
+      if((status===529||status===429) && overloadTries<5){
         overloadTries++;
         const wait=Math.min(60000, 4000*Math.pow(2,overloadTries-1)); // 4s,8s,16s,32s,60s
         if(onStatus)onStatus(`⏳ API overloaded — retry ${overloadTries}/5 in ${Math.round(wait/1000)}s…`);
         await new Promise(res=>setTimeout(res,wait));
         continue;
       }
-      throw new Error(m||('Claude '+r.status));}
-    const d=await r.json();
+      throw new Error(m||('Claude '+status));
+    }
+    if(!d||!d.content) throw new Error('Claude returned an empty response');
     messages.push({role:'assistant',content:d.content});
     if(d.stop_reason==='tool_use'){
       const trs=d.content.filter(b=>b.type==='tool_use').map(b=>{
