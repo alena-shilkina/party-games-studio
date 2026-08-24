@@ -1,0 +1,268 @@
+<div class="hdr">
+  <div class="logo">🎈</div>
+  <div><h1>Party Games Studio</h1><p>Holiday & party game articles → WordPress</p></div>
+  <div class="sp"></div>
+  <button class="btn btn-ghost btn-sm" style="width:auto;background:rgba(255,255,255,.2);color:#fff;border:none;font-weight:600" onclick="openBatch()" title="Back to the CSV batch">📚 Back to Batch</button>
+  <button class="btn btn-ghost btn-sm" style="width:auto;background:rgba(255,255,255,.1);color:#fff;border:none" onclick="newArticle()" title="Start over">✚ New Article</button>
+  <button class="gear" onclick="openSettings()" title="Settings">⚙</button>
+</div>
+
+<div class="main">
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="side">
+    <div class="sl">Article brief</div>
+    <div class="fg">
+      <label for="mainKW">Main keyword</label>
+      <input type="text" id="mainKW" placeholder="e.g. baby shower games for a boy">
+    </div>
+    <div class="fg">
+      <label for="articleMode">Article mode</label>
+      <select id="articleMode">
+        <option value="games">Games listicle</option>
+        <option value="prompts">Prompts + cards</option>
+        <option value="ideas">Ideas round-up</option>
+        <option value="recipes">Recipe round-up</option>
+      </select>
+      <label style="display:block;margin-top:8px;font-size:13px"><input type="checkbox" id="downloadable"> Ideas mode: include printable sheets</label>
+      <small>Games = listicle of games. Prompts + cards = one mechanic with a big prompt bank + card decks. Ideas = editorial round-up of visual ideas (cakes, arches, invitations). Recipes = recipe round-up with Google recipe markup. Ideas &amp; Recipes are researched with live web search and cite real sources inline.</small>
+    </div>
+    <div class="fg">
+      <label for="titleInput">Title</label>
+      <input type="text" id="titleInput" placeholder="e.g. 17 Adorable Baby Shower Games">
+      <small>Your exact H1. The number in it sets how many games are generated (no number → auto 11–17).</small>
+    </div>
+    <div class="row">
+      <div class="fg">
+        <label for="category">Category</label>
+        <select id="category">
+          <option value="Baby Shower">Baby Shower</option>
+          <option value="Birthday Party">Birthday Party</option>
+          <option value="Girls Night">Girls Night</option>
+          <option value="Bachelorette">Bachelorette</option>
+          <option value="Kids Party">Kids Party</option>
+          <option value="Holiday Party">Holiday Party</option>
+          <option value="Bridal Shower">Bridal Shower</option>
+          <option value="General Party">General / no theme</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label for="audience">Audience</label>
+        <select id="audience">
+          <option value="adult">Adults</option>
+          <option value="kids">Kids / family</option>
+          <option value="mixed">Mixed</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>WordPress category <button class="btn btn-ghost btn-sm" style="float:right;margin-top:-2px" onclick="fetchWPCats(true)">🔄 Load</button></label>
+      <select id="wpCatSelect" onchange="ST.pubCat=this.value"></select>
+      <small>Where the post is filed on your site. Loaded from the active WordPress site.</small>
+    </div>
+    <div class="fg">
+      <label for="context">Additional context</label>
+      <textarea id="context" placeholder="Angle, must-include games, theme notes, what to avoid…"></textarea>
+    </div>
+
+    <div class="sl">Research</div>
+    <button class="btn btn-ghost" onclick="researchPAA()" id="paaBtn">🔍 Research PAA</button>
+    <div id="paaList"></div>
+
+    <div class="sl">Featured image</div>
+    <div class="fg">
+      <input type="text" id="featKW" placeholder="Pexels search (blank = main keyword)">
+      <div style="display:flex;gap:8px;margin-top:7px">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="fetchPexels()">Search Pexels</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="genFeaturedAINow()">AI hero</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="clearFeat()">Clear</button>
+      </div>
+      <div id="featPreview" style="margin-top:8px"></div>
+    </div>
+
+    <div class="sl">Infographic style</div>
+    <div class="fg">
+      <select id="infoStyle" onchange="activeInfoStyle=this.value"></select>
+      <small>Used when no reference is attached — keeps all sheets in one look.</small>
+    </div>
+
+    <div class="sl">Infographic reference (optional)</div>
+    <div class="fg">
+      <input type="file" id="refFile" accept="image/*" onchange="loadRef(event)">
+      <small>One style reference. Claude reads it and every infographic matches its style, colors & elements.</small>
+      <div style="margin-top:8px">
+        <label for="refMode">How the reference is used</label>
+        <select id="refMode">
+          <option value="image" selected>Attach it — same series, but new icons (recommended)</option>
+          <option value="style">Style text only — don't send the image</option>
+        </select>
+        <small><b>Attach it</b>: the reference goes to the image model as a <i>style guide</i>, and the prompt tells the model to draw the NEXT piece in that same illustrated series — same technique, palette and object world, but its own new icons and arrangements, never a copy or trace of the ones in the reference.<br><b>Style text only</b>: the image is never sent; only Claude's written style contract drives the generation. Weaker match — use it when you have no reference you're comfortable attaching.</small>
+      </div>
+      <div id="refPreview" style="margin-top:8px"></div>
+      <textarea id="styleBlock" placeholder="Style description (auto-written from the reference, editable)…" style="min-height:60px;margin-top:8px;display:none"></textarea>
+    </div>
+
+    <div id="pinSection">
+    <div class="sl">Pinterest pins</div>
+    <div class="fg">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="makePins" checked style="width:auto;margin:0" onchange="togglePins()">
+        <span>Generate the 4 pins with this article</span>
+      </label>
+      <small>Turn this OFF to skip pins entirely: no Claude call for pin CTAs and scenes, and no image
+      generation for the four pin images. Saves the tokens and the Runware cost when you only want the
+      article and its printables. The article, its infographics and publishing are unaffected.</small>
+    </div>
+    <div id="pinFields">
+    <div class="fg">
+      <label for="pinKW">4 pin headlines (separated by | )</label>
+      <textarea id="pinKW" placeholder="17 Adorable Baby Shower Games | Fun Games Guests Will Love | Free Printable Shower Games | Easy Baby Shower Games"></textarea>
+      <small>Your exact pin titles, separated by a vertical bar | (so commas inside a title are fine). Used as-is on the pins, alt text & file name. Claude only adds a CTA and the background scene.</small>
+    </div>
+    <div class="fg">
+      <label for="pinVibe">Pin vibe (palette &amp; decor)</label>
+      <select id="pinVibe" onchange="activeVibe=this.value"></select>
+      <small>The 4 pins share this vibe but get 4 <b>different</b> layouts (panel-top, centered, outline-over-photo, bottom) — so Pinterest never sees them as duplicates. Text is always large &amp; high-contrast. "Auto" reads the vibe from your keyword.</small>
+    </div>
+    </div>
+    </div>
+
+    <div style="margin-top:22px">
+      <button class="btn btn-primary" id="genBtn" onclick="generateArticle()">✨ Generate Article</button>
+    </div>
+    <div class="prog" id="prog">
+      <div class="prog-lbl" id="progLbl">Working…</div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    </div>
+    <div class="hint">
+      Needs <code>wp-media-proxy.php</code> + <code>wp-proxy.php</code> on your site. API keys live on the server. Add your site in ⚙ Settings.
+    </div>
+  </aside>
+
+  <!-- ══════════ STAGE ══════════ -->
+  <section class="stage" id="stage">
+    <div class="empty" id="emptyState">
+      <div class="em">🎉</div>
+      <h2>Your article will appear here</h2>
+      <p>Fill in a keyword, pick a category and pin style, then hit Generate.<br>
+      You'll get an editable preview with printable game infographics and 4 pins.</p>
+    </div>
+    <div id="preview"></div>
+  </section>
+</div>
+
+<div id="pubbarHost"></div>
+
+<!-- ══════════ SETTINGS DRAWER ══════════ -->
+<div class="drawer-bg" id="drawerBg" onclick="closeSettings()"></div>
+<div class="drawer" id="drawer">
+  <div style="display:flex;align-items:center;margin-bottom:16px">
+    <h2 style="flex:1">Settings</h2>
+    <button class="gear" style="background:var(--paper);color:var(--ink)" onclick="closeSettings()">✕</button>
+  </div>
+
+  <div class="sl">API keys</div>
+  <small style="display:block;margin:-2px 0 10px">Keys are stored on the server and never reach this browser. A greyed-out field means that key is already set there. Fill one in only if its server secret is missing.</small>
+  <div class="fg"><label for="claudeKey">Claude API key</label><input type="password" id="claudeKey" placeholder="sk-ant-…"></div>
+  <div class="fg"><label for="runwareKey">Runware API key</label><input type="password" id="runwareKey" placeholder="Runware key (GPT Image 2)"></div>
+  <div class="fg"><label for="pexelsKey">Pexels API key</label><input type="password" id="pexelsKey" placeholder="Pexels key (free stock)"><small>Get one free at pexels.com/api</small></div>
+
+  <div class="sl">Image model</div>
+  <div class="fg">
+    <select id="imgModel">
+      <option value="openai:gpt-image@2">GPT Image 2 (best text)</option>
+      <option value="ideogram:4@0">Ideogram 4.0 (design + text)</option>
+      <option value="bytedance:seedream@4.5">Seedream 4.5 (fallback)</option>
+    </select>
+    <small>GPT Image 2 & Ideogram 4.0 render in-image text well; Seedream is the multilingual fallback if OpenAI's safety filter blocks a prompt.</small>
+  </div>
+
+  <div class="fg">
+    <label for="imgQuality">GPT Image 2 quality</label>
+    <select id="imgQuality">
+      <option value="low">Low — cheapest, fastest</option>
+      <option value="medium" selected>Medium — balanced (default)</option>
+      <option value="high">High — may time out on Runware</option>
+    </select>
+    <small>Only applies to GPT Image 2. <b>Low</b> costs a fraction of medium and is fine for photo-style and light-text sheets — but check text-heavy printables (trivia, bingo, rules) before running a whole wave on it. <b>High</b> often exceeds Runware's sync window and fails.</small>
+  </div>
+
+  <div class="sl">Tone of voice</div>
+  <div class="fg">
+    <textarea id="tone" style="min-height:110px" placeholder="How the article should sound…"></textarea>
+    <small>Injected into every article. Leave blank for the friendly default.</small>
+  </div>
+
+  <div class="sl">WordPress sites</div>
+  <div id="sitesList"></div>
+  <div class="site-card">
+    <div class="row"><div class="fg"><label for="nsName">Name</label><input type="text" id="nsName" placeholder="RCG"></div>
+    <div class="fg"><label for="nsCat">Default category ID</label><input type="number" id="nsCat" placeholder="optional"></div></div>
+    <div class="fg"><label for="nsUrl">Site URL</label><input type="text" id="nsUrl" placeholder="https://redcheeksgirl.com"></div>
+    <div class="row"><div class="fg"><label for="nsUser">WP user</label><input type="text" id="nsUser"></div>
+    <div class="fg"><label for="nsPass">App password</label><input type="password" id="nsPass"></div></div>
+    <button class="btn btn-ghost btn-sm" onclick="addSite()">+ Add site</button>
+  </div>
+  <div class="fg" style="margin-top:12px">
+    <label for="activeSite">Active site</label>
+    <select id="activeSite" onchange="ST.pubCat=null;fetchWPCats(false)"></select>
+  </div>
+
+  <div class="sl">Internal links (CSV)</div>
+  <div class="fg">
+    <input type="file" id="csvFile" accept=".csv" onchange="loadCSV(event)">
+    <small id="csvInfo">Format: url,title — used for interlinking. Optional.</small>
+  </div>
+
+  <div class="sl">Related article (CTA link)</div>
+  <div class="fg"><label for="relAnchor">Anchor</label><input type="text" id="relAnchor" placeholder="baby shower decorations"></div>
+  <div class="fg"><label for="relUrl">URL</label><input type="text" id="relUrl" placeholder="https://…"></div>
+
+  <button class="btn btn-plum" style="margin-top:16px" onclick="saveSettings();toast('Settings saved','ok')">💾 Save settings</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="runwareBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:#b23a48;color:#fff;padding:12px 20px;text-align:center;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,.3)">
+  <span id="stopReason"><strong>⚠ Batch stopped</strong></span>
+  <a id="stopLink" href="https://my.runware.ai/" target="_blank" style="color:#fff;text-decoration:underline;margin-left:8px;display:none">Open Runware ↗</a>
+  <button onclick="document.getElementById('runwareBanner').style.display='none'" style="margin-left:14px;background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer">Dismiss</button>
+</div>
+
+<!-- ══════════ BATCH WORK ZONE (full screen) ══════════ -->
+<div class="batch-zone" id="batchZone">
+  <div class="bz-top">
+    <div class="bz-title">📚 Batch <span id="bzCount" class="bz-count"></span></div>
+    <span class="badge print" id="bzSite">No site</span>
+    <label class="bz-ctl">Mode
+      <select id="bzMode"><option value="review">Review first</option><option value="publish">Publish now</option></select></label>
+    <label class="bz-ctl">as
+      <select id="bzStatus"><option value="draft">Draft</option><option value="publish">Publish</option></select></label>
+    <label class="bz-ctl">Featured:&nbsp;<select id="featMode" style="margin-left:2px;padding:2px 5px;border-radius:6px"><option value="pexels">Pexels (auto)</option><option value="ai">AI-generated</option><option value="manual">Manual / off</option></select></label>
+    <label class="btn btn-ghost btn-sm" style="width:auto;cursor:pointer;min-width:96px">⤒ Load CSV<input type="file" accept=".csv" style="display:none" onchange="importBatchCSV(event)"></label>
+    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:104px" onclick="openReview()">👀 Review (<span id="bzReviewCount">0</span>)</button>
+    <span class="sp"></span>
+    <span id="bzSave" class="bz-save">saved</span>
+    <button class="btn btn-primary btn-sm" style="width:auto;min-width:92px" id="bzRun" onclick="runBatch()">▶️ Start</button>
+    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:92px;display:none" id="bzPause" onclick="pauseBatch()">⏸ Pause</button>
+    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:80px;display:none;color:var(--warn)" id="bzStop" onclick="stopBatch()">⏹ Stop</button>
+    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:104px" onclick="closeBatch()" title="Open the single-article workspace">✎ Single</button>
+  </div>
+  <div class="bz-progwrap"><div class="prog-bar"><div class="prog-fill" id="bzFill"></div></div><span id="bzProgLbl" class="bz-proglbl"></span></div>
+  <div class="bz-body" id="bzRows"></div>
+  <div class="bz-foot">
+    <button class="btn btn-ghost btn-sm" style="width:auto" id="bzAdd" onclick="addBatchRow()">＋ Add article</button>
+    <span style="font-size:12px;color:var(--muted)">5–50 per batch · autosaved</span>
+    <span class="sp"></span>
+    <button class="btn btn-ghost btn-sm" style="width:auto" onclick="clearBatchDone()">Clear finished</button>
+  </div>
+</div>
+
+<!-- ══════════ REVIEW ZONE (full screen) ══════════ -->
+<div class="batch-zone" id="reviewZone">
+  <div class="bz-top">
+    <div class="bz-title">👀 Review before publishing <span id="rvCount" class="bz-count"></span></div>
+    <span style="font-size:12px;color:rgba(255,255,255,.75)">Check each article's infographics, regenerate any that came out wrong, then publish.</span>
+    <span class="sp"></span>
+    <button class="gear" style="background:var(--paper);color:var(--ink)" onclick="closeReview()">✕</button>
+  </div>
+  <div class="bz-body" id="rvBody"></div>
+</div>

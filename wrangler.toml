@@ -1,0 +1,19 @@
+name = "party-games-studio"
+main = "src/index.ts"
+compatibility_date = "2026-08-20"
+workers_dev = true
+
+# Собранная страница подключается в коде как обычный текст.
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
+# Логи в дашборде Cloudflare — пригодятся, если что-то отвалится.
+[observability]
+enabled = true
+
+# Куда Worker'у разрешено проксировать запросы к WordPress.
+# Добавь сюда домен, если появится второй сайт.
+[vars]
+ALLOWED_WP_HOSTS = "redcheeksgirl.com"

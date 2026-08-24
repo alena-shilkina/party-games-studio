@@ -1,0 +1,93 @@
+/* ---------- CLAUDE (plain + web_search loop, from fashion) ---------- */
+function extractJSON(txt){
+  let t=(txt||'').trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
+  const a=t.indexOf('{');
+  if(a>=0){
+    // find the matching closing brace of the FIRST object (respect strings/escapes) → ignore any trailing text
+    let depth=0,inStr=false,esc=false,end=-1;
+    for(let i=a;i<t.length;i++){ const c=t[i];
+      if(inStr){ if(esc)esc=false; else if(c==='\\')esc=true; else if(c==='"')inStr=false; }
+      else { if(c==='"')inStr=true; else if(c==='{')depth++; else if(c==='}'){ depth--; if(depth===0){end=i;break;} } }
+    }
+    t = end>a ? t.slice(a,end+1) : t.slice(a);
+  }
+  try{ return JSON.parse(t); }
+  catch(e1){
+    // repair 1: escape raw control chars AND fix invalid escape sequences INSIDE string values
+    const VALID_ESC='"\\/bfnrtu';
+    const fixCtrl=s=>{ let o='',inStr=false,esc=false;
+      for(let i=0;i<s.length;i++){ const c=s[i];
+        if(inStr){
+          if(esc){ o+= (VALID_ESC.indexOf(c)>=0? c : '\\'+c); esc=false; continue; }  // bad escape → keep the backslash literal
+          if(c==='\\'){o+=c;esc=true;continue;}
+          if(c==='"'){inStr=false;o+=c;continue;}
+          if(c==='\n'){o+='\\n';continue;} if(c==='\r'){o+='\\r';continue;} if(c==='\t'){o+='\\t';continue;}
+          o+=c;
+        } else { if(c==='"'){inStr=true;} o+=c; }
+      } return o; };
+    // repair 2: strip trailing commas before } or ]
+    let repaired=fixCtrl(t).replace(/,\s*([}\]])/g,'$1');
+    try{ return JSON.parse(repaired); }
+    catch(e2){ throw new Error('Response wasn\'t valid JSON (likely truncated — try a smaller article or fewer games). '+e2.message); }
+  }
+}
+async function callClaude(system,content,useSearch,onStatus,maxTokens){
+  const key=v('claudeKey'); if(!keyReady('claude')) throw new Error('Claude key missing in Settings');
+  let messages=[{role:'user',content}];
+  let overloadTries=0, netTries=0, contTries=0, acc='';
+  for(let i=0;i<30;i++){
+    if(batchStopped) throw new Error('__ABORT__');
+    const body={model:'claude-sonnet-4-6',max_tokens:maxTokens||16000,system,messages};
+    if(useSearch) body.tools=[{type:'web_search_20250305',name:'web_search'}];
+    let r;
+    try{
+      r=await fetch('/api/claude',{method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify(body),signal:batchAbort?.signal});
+    }catch(netErr){
+      if(netErr.name==='AbortError'||batchStopped) throw new Error('__ABORT__');
+      // network dropped (computer sleep, ERR_NETWORK_IO_SUSPENDED, connection lost) → wait and retry
+      if(netTries<6){ netTries++;
+        const wait=Math.min(60000, 5000*netTries);
+        if(onStatus)onStatus(`🌐 Network paused — retry ${netTries}/6 in ${Math.round(wait/1000)}s…`);
+        await new Promise(res=>setTimeout(res,wait));
+        continue;
+      }
+      throw new Error('Network error — check your connection (the computer may have gone to sleep during the batch).');
+    }
+    if(!r.ok){let e;try{e=await r.json();}catch(x){}
+      const m=e?.error?.message||'';
+      if(r.status===400 && /content filtering|blocked|policy/i.test(m)) throw new Error('Blocked by content filter — rephrase the keyword/audience (e.g. avoid "teen"+Adults)');
+      // API overloaded (529) or rate-limited (429) → wait and retry a few times before giving up
+      if((r.status===529||r.status===429) && overloadTries<5){
+        overloadTries++;
+        const wait=Math.min(60000, 4000*Math.pow(2,overloadTries-1)); // 4s,8s,16s,32s,60s
+        if(onStatus)onStatus(`⏳ API overloaded — retry ${overloadTries}/5 in ${Math.round(wait/1000)}s…`);
+        await new Promise(res=>setTimeout(res,wait));
+        continue;
+      }
+      throw new Error(m||('Claude '+r.status));}
+    const d=await r.json();
+    messages.push({role:'assistant',content:d.content});
+    if(d.stop_reason==='tool_use'){
+      const trs=d.content.filter(b=>b.type==='tool_use').map(b=>{
+        if(onStatus&&b.input?.query)onStatus('🔍 '+b.input.query);
+        return {type:'tool_result',tool_use_id:b.id,content:''};});
+      messages.push({role:'user',content:trs});
+      continue;
+    }
+    const txt=d.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    // Long articles (15 recipes, 25 games) can hit the output ceiling — with web search on, the search
+    // results are returned inside the answer and eat the same budget. A truncated reply is invalid JSON,
+    // so ask the model to carry on from exactly where it stopped and stitch the pieces together.
+    if(d.stop_reason==='max_tokens' && contTries<3){
+      contTries++;
+      acc+=txt;
+      if(onStatus)onStatus(`✍️ Long article — continuing (${contTries}/3)…`);
+      messages.push({role:'user',content:'Continue the JSON from exactly where you stopped. Do not repeat anything already sent, do not restart, do not add commentary or code fences — output only the remaining raw JSON so the two parts concatenate into one valid document.'});
+      continue;
+    }
+    return acc+txt;
+  }
+  throw new Error('Claude: too many search iterations');
+}
