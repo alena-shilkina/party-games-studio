@@ -3,46 +3,19 @@ let ST={ refMode:'', paa:[], feat:null, csv:[], article:null, pins:[], refDataUr
 
 /* ---------- SETTINGS PERSISTENCE ---------- */
 const SKEYS=['claudeKey','runwareKey','pexelsKey','imgModel','imgQuality','refMode','makePins','tone','relAnchor','relUrl'];
-// Библиотека референсов: id стиля → адрес картинки. Подбирать референс под каждую
-// статью долго, а тем немного и они повторяются. Привязали картинку к стилю один раз —
-// дальше стиль выбирается в строке (или колонкой infographic_style в CSV), а сюжет
-// листа подставляется от темы статьи. Действует только на печатные листы: фотографии
-// идут по своему контракту и стилевой блок не получают.
-let STYLE_REFS={};
-function styleRefFor(id){ return (STYLE_REFS[id||'']||'').trim()||null; }
-
 function loadSettings(){
   try{
     const s=JSON.parse(localStorage.getItem('pgs_settings')||'{}');
     SKEYS.forEach(k=>{ if($(k)&&s[k]!=null) $(k).value=s[k]; });
     ST.sites=s.sites||[]; ST.activeSite=s.activeSite||0;
-    STYLE_REFS=(s.styleRefs&&typeof s.styleRefs==='object')?s.styleRefs:{};
     if(s.csv){ST.csv=s.csv; $('csvInfo').textContent=ST.csv.length+' internal links loaded.';}
   }catch(e){ ST.sites=[]; }
-  renderSites(); renderStyleLibrary();
+  renderSites();
 }
 function saveSettings(){
-  const s={sites:ST.sites,activeSite:parseInt(v('activeSite'))||0,csv:ST.csv,styleRefs:STYLE_REFS};
+  const s={sites:ST.sites,activeSite:parseInt(v('activeSite'))||0,csv:ST.csv};
   SKEYS.forEach(k=>s[k]=v(k));
   localStorage.setItem('pgs_settings',JSON.stringify(s));
-}
-// Настройки → «Style library»: по строке на каждый стиль, в неё вставляется адрес картинки.
-function renderStyleLibrary(){
-  const wrap=$('styleLib'); if(!wrap) return;
-  wrap.innerHTML=INFO_STYLES.filter(s=>s.id!=='auto').map(s=>{
-    const url=STYLE_REFS[s.id]||'';
-    return `<div class="row" style="align-items:center;gap:8px;margin-bottom:6px">
-      <div style="flex:0 0 116px;font-size:12px">${esc(s.label)}</div>
-      ${url?`<img src="${esc(url)}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:6px;border:1px solid var(--line)">`:''}
-      <input type="text" value="${esc(url)}" placeholder="https://… reference for this style"
-             onchange="setStyleRef('${s.id}',this.value)" style="flex:1;min-width:120px;font-size:12px">
-    </div>`;
-  }).join('');
-}
-function setStyleRef(id,url){
-  const u=String(url||'').trim();
-  if(u) STYLE_REFS[id]=u; else delete STYLE_REFS[id];
-  saveSettings(); renderStyleLibrary();
 }
 // Настройки сохраняются сразу, как только что-то поменяли. Раньше запись происходила
 // только при закрытии ящика настроек или по кнопке — поменять модель и уйти, не сохранив,

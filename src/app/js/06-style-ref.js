@@ -39,41 +39,38 @@ function clearRef(){ST.refDataUri=null;ST.styleBlock='';ST.baseRef=null;ST.baseS
 // domain of the active site, for the on-image footer/watermark
 function siteDomain(){ const s=getSite(); if(!s)return''; try{return new URL(s.url).hostname.replace(/^www\./,'');}catch(e){return (s.url||'').replace(/^https?:\/\//,'').replace(/\/.*$/,'').replace(/^www\./,'');} }
 function siteFooter(){ const d=siteDomain(); return d?`\n\nAt the very bottom center, add a small, subtle footer text reading "${d}" in a tiny unobtrusive font.`:''; }
-// auto style derived from the article category, so a set stays consistent even with no reference
-function autoStyleBlock(){
-  const c=v('category').toLowerCase(), a=v('audience');
-  const kids=a==='kids'||/kids|birthday/.test(c);
-  return kids
-    ? 'STYLE: soft cheerful storybook watercolor, gentle rounded shapes, pastel palette of blush, mint, butter yellow and powder blue with soft grey text; friendly little mascot motif repeated across the set.'
-    : 'STYLE: elegant airy watercolor on a cream background, muted tasteful palette with one soft accent color and charcoal text; delicate recurring floral and dot motifs; refined and consistent across the set.';
-}
 // append the shared style block (reference-derived > preset > auto) + site footer to an image prompt
 // Референс для печатного листа: приложенный вручную или к строке — главнее всего,
 // иначе берётся картинка из библиотеки стилей по выбранному стилю. Фотографии сюда
 // не попадают: у них свой контракт и референс им не передаётся.
-function sheetRef(){ return ST.refDataUri || styleRefFor(activeInfoStyle); }
-// выбор стиля в сайдбаре подтягивает его референс, если своего не приложено
-function setInfoStyle(val){ activeInfoStyle=val; if(!ST.baseRef) ST.refDataUri=styleRefFor(val); }
+function sheetRef(){ return ST.refDataUri; }
 // Палитра больше не приходит из референса — он задаёт только технику. Цвета берутся
 // от темы статьи, на уровне семейства оттенков, без жёстких hex: набор остаётся единым,
 // но статья про Хэллоуин не выходит в цветах детского праздника.
+// Техника у листов одна, различает их только палитра — её задаёт тема статьи.
+// Фон всегда мягкий тонированный, розовый или голубой оттенок по теме, и НИКОГДА
+// не жёлтый и не кремовый: тёплый off-white выглядит дёшево и старомодно.
 function themePalette(){
   const c=(v('category')||'').toLowerCase(), a=v('audience');
   const kw=((v('mainKW')||'')+' '+(v('titleInput')||'')).toLowerCase();
-  const say=p=>'PALETTE: '+p+' Use this colour family on every sheet of the set, rendered in the technique above. Text is a dark, clearly readable tone from the same family — never pale type on a pale ground.';
-  if(/halloween|spooky|\bboo\b|pumpkin|witch/.test(kw))            return say('deep plum, burnt orange, charcoal and warm bone, with one brighter accent.');
-  if(/christmas|xmas|santa|winter|new year|nye|hanukkah/.test(kw)) return say('deep forest green, warm red, cream and antique gold.');
-  if(/thanksgiving|fall\b|autumn|harvest/.test(kw))                return say('warm rust, ochre, sage and cream.');
-  if(/easter|spring|valentine/.test(kw))                           return say('soft mint, buttercup, blush and cream.');
-  if(a==='kids'||/kids|birthday/.test(c))                          return say('cheerful pastels — blush, mint, butter yellow, powder blue — on cream.');
-  if(a==='adult'||/bachelorette|girls night/.test(c))              return say('muted and grown-up — dusty rose, deep plum, sand and charcoal on cream.');
-  return say('muted and tasteful — a cream ground, one soft accent and charcoal text.');
+  const say=(ground,accents)=>'PALETTE: the background is '+ground+'. Accents: '+accents
+    +' Text is a deep readable tone from the same family — never pale type on a pale ground. '
+    +'The background must NOT be yellow, cream, ivory, beige, butter, sand or tan, and must not be plain white.';
+  if(/halloween|spooky|\bboo\b|pumpkin|witch/.test(kw))            return say('a soft dusty lilac','deep plum, burnt orange and charcoal.');
+  if(/christmas|xmas|santa|winter|new year|nye|hanukkah/.test(kw)) return say('a pale icy blue','deep forest green, warm red and soft pewter.');
+  if(/thanksgiving|fall\b|autumn|harvest/.test(kw))                return say('a muted sage green','terracotta, rust and deep olive.');
+  if(/easter|spring|valentine/.test(kw))                           return say('a pale mint','blush pink, lilac and sky blue.');
+  if(/\bboy\b|for a boy|little man/.test(kw))                      return say('a soft powder blue','sage, deep navy and dusty coral.');
+  if(/\bgirl\b|for a girl|princess/.test(kw))                      return say('a soft blush pink','dusty rose, sage and deep plum.');
+  if(a==='kids'||/kids|birthday/.test(c))                          return say('a soft blush pink','mint, sky blue and coral.');
+  if(a==='adult'||/bachelorette|girls night/.test(c))              return say('a muted dusty rose','deep plum, slate and charcoal.');
+  return say('a soft blush pink','sage, dusty blue and charcoal.');
 }
+// Техника + палитра. Технику даёт референс, если он приложен, иначе единый встроенный
+// стиль. Палитра всегда от темы статьи.
 function styleText(){
-  const vision=(v('styleBlock')||ST.styleBlock||'').trim();   // техника, прочитанная с референса
-  if(vision) return vision+'\n\n'+themePalette();             // + палитра от темы
-  const preset=INFO_STYLES.find(s=>s.id===activeInfoStyle);   // без референса — готовый пресет
-  return (preset&&preset.block)?preset.block:autoStyleBlock();
+  const vision=(v('styleBlock')||ST.styleBlock||'').trim();
+  return (vision||WATERCOLOUR_SHEET)+'\n\n'+themePalette();
 }
 const RICH_SHEET='RICHNESS — this is a premium downloadable printable, not a plain title card. Every sheet must carry the FULL decorative system from the style contract: the layered border/frame, the patterned band, ornamental rules or dividers, and at least one illustrated motif or vignette drawn in the contract technique. Compose it as a properly designed page: a focal illustration, a strong heading with real typographic hierarchy, supporting text sized against it, and ornament filling what would otherwise be dead space. NEVER output a bare heading floating inside an empty rectangle, and never leave a large blank area — fill it with the motifs named in the contract.';
 // Travels with every styled sheet. The style contract tells the model HOW to draw and WHAT KIND of
@@ -119,17 +116,29 @@ const PHOTO_CONTRACT=`EDITORIAL PHOTOGRAPHY — this is a photograph for a magaz
 // текущего состояния. Раньше она склеивала промпт по-своему — стилевой блок шёл ПОСЛЕ
 // описания листа и без замка в конце, поэтому перерисованный лист уезжал от набора.
 // Теперь сборка одна на все случаи.
+// Еда на редакционном контракте выходила пластмассовой и «нейросетевой»: идеальные
+// порции, глянец, студийный свет. Домашний телефонный кадр читается живым, поэтому
+// в режиме рецептов поверх общего контракта идёт этот блок.
+const HOME_KITCHEN=`SHOT AT HOME, NOT IN A STUDIO — this is a photo the cook took in her own kitchen on a recent phone, not a styled studio set.
+- Light: daylight from a nearby window, slightly uneven and a little cool. No studio strobes, no perfect fill, no rim light.
+- Surroundings: ordinary domestic things — a scratched wooden board, a chipped everyday plate, a worn tea towel, a normal countertop with a crumb on it. Not perfect props, not a prop-styled table.
+- Framing: casual and human, taken from where a person actually stands, slightly off-centre, not perfectly level.
+- Phone-camera character: fairly deep focus rather than creamy studio bokeh, a little sensor noise in the shadows, white balance that is close but not perfectly corrected.
+- The food was made by hand ten minutes ago: uneven portions, a smear on the rim, crumbs on the board, a spoon left in the bowl, real steam or condensation where it belongs, one piece already taken.
+- NOTHING glossy, waxy, symmetrical or airbrushed. If it looks like a stock photo or a render, it is wrong.`;
 function withStyle(prompt,asset,styleOverride,footerOverride){
   // photographs take a completely different route from printable sheets
-  if(asset==='illustration') return PHOTO_CONTRACT+'\n\nPHOTOGRAPH TO SHOOT:\n'+prompt;
+  if(asset==='illustration'){
+    const home=(v('articleMode')==='recipes')?'\n\n'+HOME_KITCHEN:'';
+    return PHOTO_CONTRACT+home+'\n\nPHOTOGRAPH TO SHOOT:\n'+prompt;
+  }
   const sb=(styleOverride)?styleOverride:styleText();
   const foot=(footerOverride!=null)?footerOverride:siteFooter();
   // the style contract goes FIRST so it anchors the whole image. Long sheet descriptions used to
   // dilute a trailing style block, which is why packs drifted away from the reference.
   // RICH_SHEET demands borders, patterned bands and vignettes — that directly contradicts a minimal
   // contract, so it is skipped whenever the chosen style (or a reference) asks for a clean look.
-  const minimal=/STRICTLY NO decorative|minimal|no decorative frames|clean editorial|lots of white space/i.test(sb)
-              || ['editorial','light-modern','stationery','recipe-card'].includes(activeInfoStyle);
+  const minimal=/STRICTLY NO decorative|no decorative frames|lots of white space/i.test(sb);
   const rich=(!minimal && ['prompts','ideas','recipes'].includes(v('articleMode')||'games'))?'\n\n'+RICH_SHEET:'';
   if(!sb) return prompt+rich+foot;
   return sb+'\n\n'+originalityClause()+'\n\n'+STYLE_LOCK+rich+'\n\nSHEET TO DRAW (content only — keep the style above unchanged):\n'+prompt+'\n\n'+STYLE_LOCK+foot;

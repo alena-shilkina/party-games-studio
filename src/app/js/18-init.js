@@ -13,9 +13,7 @@ function newArticle(){
 }
 
 /* ---------- INIT ---------- */
-function renderInfoStyles(){ $('infoStyle').innerHTML=INFO_STYLES.map(s=>`<option value="${s.id}">${s.label}</option>`).join(''); $('infoStyle').value=activeInfoStyle; }
 renderVibes();
-renderInfoStyles();
 renderWPCatSelect();
 loadSettings();
 loadServerKeys();

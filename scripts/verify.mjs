@@ -119,16 +119,18 @@ group('Печатные листы');
   js.includes('roughly one idea in five should have no card')
     ? fail('вернулось правило «одна из пяти без карточки» — это и делало её обязательной') : ok('старое правило про одну из пяти убрано');
 
-  // Библиотека стилей: референс привязан к стилю и подставляется автоматически.
-  body.includes('id="styleLib"') && js.includes('function setStyleRef(')
-    ? ok('библиотека стилей есть в настройках') : fail('в настройках нет библиотеки стилей');
+  // Стиль печатных листов один; различает статьи только палитра, и фон никогда не жёлтый.
+  (js.match(/\{id:'[a-z-]+',label:/g) || []).length === 1
+    ? ok('стиль печатных листов один') : fail('вернулось несколько стилей печатных листов');
+  js.includes('const WATERCOLOUR_SHEET=') && js.includes('NEVER yellow, cream, ivory, beige, butter, sand, tan')
+    ? ok('единый акварельный стиль, тёплый фон запрещён') : fail('нет единого стиля или не запрещён жёлтый фон');
+  js.includes('must NOT be yellow, cream, ivory, beige, butter, sand or tan')
+    ? ok('палитра тоже запрещает тёплый фон') : fail('палитра не запрещает жёлтый фон');
   const refUses = (js.match(/g\.asset==='illustration'\?null:sheetRef\(\)/g) || []).length;
   refUses === 4 ? ok('все четыре места рисования листа берут референс из одного источника')
                 : fail(`sheetRef() используется ${refUses} раз вместо 4`);
-  js.includes("ST.refDataUri=styleRefFor(r.infoStyle||'auto')")
-    ? ok('строка без своего референса берёт его из библиотеки') : fail('строка не подхватывает референс стиля');
   js.includes('styleRef:sheetRef()||null')
-    ? ok('снимок ревью уносит тот же референс') : fail('снимок ревью не сохраняет референс библиотеки');
+    ? ok('снимок ревью уносит тот же референс') : fail('снимок ревью не сохраняет референс');
 
   // Одна сборка промпта на все случаи. У очереди ревью был свой порядок — стиль ПОСЛЕ
   // описания листа, — и перерисованный лист уезжал от набора.
@@ -144,6 +146,14 @@ group('Печатные листы');
     ? ok('референс описывает только технику, без палитры') : fail('референс снова диктует палитру');
   js.includes('function themePalette(') && js.includes("+'\\n\\n'+themePalette()")
     ? ok('палитра подставляется от темы статьи') : fail('палитра не подставляется от темы');
+
+  // Люди в рисованном стиле разрешены, на фотографиях — нет: там видна искусственность.
+  js.includes('People, children and animals ARE allowed here')
+    ? ok('люди на печатных листах разрешены') : fail('люди на печатных листах снова запрещены');
+  js.includes('- NO people, no hands, no faces.')
+    ? ok('на фотографиях людей по-прежнему нет') : fail('запрет людей на фотографиях пропал');
+  js.includes('const HOME_KITCHEN=') && js.includes("v('articleMode')==='recipes'")
+    ? ok('рецепты снимаются как домашнее фото, а не студийное') : fail('нет домашнего фотоконтракта для рецептов');
 
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']

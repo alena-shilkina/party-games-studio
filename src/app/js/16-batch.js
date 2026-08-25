@@ -1,6 +1,6 @@
 /* ---------- BATCH WORK ZONE ---------- */
 function blankRow(){ return {id:crypto.randomUUID(),kw:'',title:'',mode:'games',aud:'adult',
-  wpCat:ST.pubCat||'',infoStyle:'auto',refMode:'',vibe:'Auto',downloadable:false,pinKW:'',context:'',featKW:'',styleBlock:'',refUrl:'',paa:[],paaSel:[],status:'',link:'',error:''}; }
+  wpCat:ST.pubCat||'',refMode:'',vibe:'Auto',downloadable:false,pinKW:'',context:'',featKW:'',styleBlock:'',refUrl:'',paa:[],paaSel:[],status:'',link:'',error:''}; }
 // auto-detect the article theme from the keyword (feeds the generation context)
 function detectTheme(kw){
   const s=(kw||'').toLowerCase();
@@ -91,7 +91,6 @@ function optionList(items,val){ return items.map(o=>`<option value="${esc(o.v)}"
 function catOpts(val){ return optionList([['Baby Shower'],['Birthday Party'],['Girls Night'],['Bachelorette'],['Kids Party'],['Holiday Party'],['Bridal Shower']].map(x=>({v:x[0],l:x[0]})),val); }
 function audOpts(val){ return optionList([{v:'adult',l:'Adults'},{v:'kids',l:'Kids / family'},{v:'mixed',l:'Mixed'}],val); }
 function countOpts(val){ return optionList([{v:'0',l:'Auto 11–17'},{v:'10',l:'10'},{v:'12',l:'12'},{v:'14',l:'14'},{v:'16',l:'16'},{v:'18',l:'18'}],val); }
-function infoOpts(val){ return optionList(INFO_STYLES.map(s=>({v:s.id,l:s.label})),val); }
 function vibeOpts(val){ return optionList(Object.keys(PIN_VIBES).map(k=>({v:k,l:k==='Auto'?'Auto':k})),val); }
 function wpCatOpts(val){ const c=(ST.wpCats||[]); if(!c.length)return `<option value="">— load in main screen —</option>`; return `<option value="">(site default)</option>`+optionList(c.map(x=>({v:x.id,l:x.name})),val); }
 function statusPill(r){
@@ -148,7 +147,6 @@ function renderBatch(){
     <div class="fg"><label>Extra info / context (optional)</label><input placeholder="angle, must-include games, notes" value="${esc(r.context)}" onchange="updRow('${r.id}','context',this.value)"></div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <div class="fg" style="flex:1;min-width:150px"><label>Infographic style</label><select onchange="updRow('${r.id}','infoStyle',this.value)">${infoOpts(r.infoStyle)}</select></div>
       <div class="fg" style="flex:1.4;min-width:200px"><label>Infographic reference</label>
         <div class="brow-ref">
           ${ROWREF[r.id]?`<img src="${ROWREF[r.id]}">`:`<div class="brow-ref-ph">no image</div>`}
@@ -186,7 +184,7 @@ function applyRowToFields(r){
   $('mainKW').value=r.kw; $('category').value=detectTheme(`${r.kw} ${r.title||''} ${r.wpCat||''}`); $('audience').value=r.aud;
   $('titleInput').value=r.title||''; $('context').value=r.context||''; $('pinKW').value=r.pinKW||'';
   if($('articleMode')) $('articleMode').value=r.mode||'games';
-  activeVibe=r.vibe||'Auto'; activeInfoStyle=r.infoStyle||'auto'; ST.pubCat=r.wpCat||getSite()?.cat||null;
+  activeVibe=r.vibe||'Auto'; ST.pubCat=r.wpCat||getSite()?.cat||null;
   // per-row infographic reference: image from memory (if re-attached this session) + saved style block
   // Reference resolution, in strict priority order — never inherit the PREVIOUS row's style:
   //   1. the row's own reference (uploaded on the row, or ref_url from CSV)
@@ -196,7 +194,7 @@ function applyRowToFields(r){
   const rowRef=ROWREF[r.id]||r.refUrl||null;
   if(rowRef){ ST.refDataUri=rowRef; ST.styleBlock=r.styleBlock||''; }
   else if(ST.baseRef){ ST.refDataUri=ST.baseRef; ST.styleBlock=r.styleBlock||ST.baseStyle||''; }
-  else { ST.refDataUri=styleRefFor(r.infoStyle||'auto'); ST.styleBlock=r.styleBlock||''; }   // 3. библиотека стилей
+  else { ST.refDataUri=null; ST.styleBlock=r.styleBlock||''; }   // 3. без референса — встроенный стиль
   // keep the on-screen style field in sync — styleText() reads the DOM first, so a stale value
   // from the previous article would silently override this row's reference style
   if($('styleBlock')) $('styleBlock').value=ST.styleBlock;

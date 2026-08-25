@@ -290,10 +290,8 @@ function importBatchCSV(e){
       r.title=get('title'); r.kw=get('kw')||get('title'); r.context=get('ctx');
       r.pinKW=get('pins');   // pin headlines already use | — same separator as the app fields
       const aud=get('aud').toLowerCase(); r.aud=['adult','kids','mixed'].includes(aud)?aud:'adult';
-      const info=(get('info')||'').trim().toLowerCase();
-      const hit=INFO_STYLES.find(x=>x.id===info)||INFO_STYLES.find(x=>x.label.toLowerCase()===info)
-             || INFO_STYLES.find(x=>info&&x.id.startsWith(info.split(/[\s-]/)[0]));
-      r.infoStyle=hit?hit.id:'auto';   // CSV wins over any auto-style guess
+      // колонка infographic_style больше не читается: стиль печатных листов один,
+      // различает статьи только палитра, и её задаёт тема
       const vibe=get('vibe'); r.vibe=normVibe(vibe)||'Auto';   // case-insensitive: "neutral" → "Neutral"
       r.downloadable=/^(y|yes|true|1|да)$/i.test(get('dl')||'');   // ideas mode: does this article include printable sheets?
       r.featKW=get('feat');
