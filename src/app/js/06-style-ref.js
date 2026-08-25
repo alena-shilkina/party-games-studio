@@ -44,33 +44,14 @@ function siteFooter(){ const d=siteDomain(); return d?`\n\nAt the very bottom ce
 // иначе берётся картинка из библиотеки стилей по выбранному стилю. Фотографии сюда
 // не попадают: у них свой контракт и референс им не передаётся.
 function sheetRef(){ return ST.refDataUri; }
-// Палитра больше не приходит из референса — он задаёт только технику. Цвета берутся
-// от темы статьи, на уровне семейства оттенков, без жёстких hex: набор остаётся единым,
-// но статья про Хэллоуин не выходит в цветах детского праздника.
-// Техника у листов одна, различает их только палитра — её задаёт тема статьи.
-// Фон всегда мягкий тонированный, розовый или голубой оттенок по теме, и НИКОГДА
-// не жёлтый и не кремовый: тёплый off-white выглядит дёшево и старомодно.
-function themePalette(){
-  const c=(v('category')||'').toLowerCase(), a=v('audience');
-  const kw=((v('mainKW')||'')+' '+(v('titleInput')||'')).toLowerCase();
-  const say=(ground,accents)=>'PALETTE: the background is '+ground+'. Accents: '+accents
-    +' Text is a deep readable tone from the same family — never pale type on a pale ground. '
-    +'The background must NOT be yellow, cream, ivory, beige, butter, sand or tan, and must not be plain white.';
-  if(/halloween|spooky|\bboo\b|pumpkin|witch/.test(kw))            return say('a soft dusty lilac','deep plum, burnt orange and charcoal.');
-  if(/christmas|xmas|santa|winter|new year|nye|hanukkah/.test(kw)) return say('a pale icy blue','deep forest green, warm red and soft pewter.');
-  if(/thanksgiving|fall\b|autumn|harvest/.test(kw))                return say('a muted sage green','terracotta, rust and deep olive.');
-  if(/easter|spring|valentine/.test(kw))                           return say('a pale mint','blush pink, lilac and sky blue.');
-  if(/\bboy\b|for a boy|little man/.test(kw))                      return say('a soft powder blue','sage, deep navy and dusty coral.');
-  if(/\bgirl\b|for a girl|princess/.test(kw))                      return say('a soft blush pink','dusty rose, sage and deep plum.');
-  if(a==='kids'||/kids|birthday/.test(c))                          return say('a soft blush pink','mint, sky blue and coral.');
-  if(a==='adult'||/bachelorette|girls night/.test(c))              return say('a muted dusty rose','deep plum, slate and charcoal.');
-  return say('a soft blush pink','sage, dusty blue and charcoal.');
-}
-// Техника + палитра. Технику даёт референс, если он приложен, иначе единый встроенный
-// стиль. Палитра всегда от темы статьи.
+// Конкретный цвет фона не задаём: генератор картинок сам подбирает его под тему,
+// и делает это хорошо. Здесь только рамки — тёплый фон выглядит дёшево, чистый белый
+// пустым, а разные фоны в одном наборе разваливают комплект.
+const BACKGROUND_RULE='BACKGROUND AND PALETTE: choose a soft, lightly tinted ground that suits this article\'s own theme — a muted pastel, dusty or cool tone — and build the accents around it. Use the SAME ground and the SAME accent family on EVERY sheet of this set, so the printables read as one pack. The ground must NOT be yellow, cream, ivory, beige, butter, sand or tan, must not be a warm off-white, and must not be plain white; those read as cheap and dated. Text is a deep readable tone from the same family — never pale type on a pale ground.';
+// Техника + правило фона. Технику даёт референс, если он приложен, иначе встроенный стиль.
 function styleText(){
   const vision=(v('styleBlock')||ST.styleBlock||'').trim();
-  return (vision||WATERCOLOUR_SHEET)+'\n\n'+themePalette();
+  return (vision||WATERCOLOUR_SHEET)+'\n\n'+BACKGROUND_RULE;
 }
 const RICH_SHEET='RICHNESS — this is a premium downloadable printable, not a plain title card. Every sheet must carry the FULL decorative system from the style contract: the layered border/frame, the patterned band, ornamental rules or dividers, and at least one illustrated motif or vignette drawn in the contract technique. Compose it as a properly designed page: a focal illustration, a strong heading with real typographic hierarchy, supporting text sized against it, and ornament filling what would otherwise be dead space. NEVER output a bare heading floating inside an empty rectangle, and never leave a large blank area — fill it with the motifs named in the contract.';
 // Travels with every styled sheet. The style contract tells the model HOW to draw and WHAT KIND of

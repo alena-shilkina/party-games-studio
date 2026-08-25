@@ -1,6 +1,7 @@
-// Проверка единого стиля и палитры по темам. Берём настоящие функции из исходников
-// и подставляем вместо DOM простую заглушку — браузерная панель ненадёжна, а убедиться,
-// что фон нигде не жёлтый, надо наверняка.
+// Проверка единого стиля печатных листов. Конкретный цвет фона мы не задаём — его
+// подбирает генератор картинок. Здесь убеждаемся, что рамки на месте: тёплый фон
+// запрещён, фон требуется одинаковый по всему набору, а референс перебивает технику,
+// но правило фона не отменяет. Браузерная панель ненадёжна, поэтому проверяем в Node.
 import { readFileSync } from 'node:fs';
 
 const src = f => readFileSync('src/app/js/' + f, 'utf8');
@@ -11,62 +12,49 @@ const grab = (text, start, end) => {
   return text.slice(a, b + end.length);
 };
 
-const sheet = grab(src('01-presets.js'), 'const WATERCOLOUR_SHEET=', "';");
-const palette = grab(src('06-style-ref.js'), 'function themePalette(', '\n}');
-const styleT = grab(src('06-style-ref.js'), 'function styleText(', '\n}');
+const sheet   = grab(src('01-presets.js'),   'const WATERCOLOUR_SHEET=', "';");
+const bgRule  = grab(src('06-style-ref.js'), 'const BACKGROUND_RULE=',   "';");
+const styleT  = grab(src('06-style-ref.js'), 'function styleText(',      '\n}');
 
-let fields = {};
-const build = new Function('fields', `
+const build = fields => new Function('fields', `
   const v = id => (fields[id] || '');
   const ST = { styleBlock: fields.__vision || '' };
   ${sheet}
-  ${palette}
+  ${bgRule}
   ${styleT}
-  return { themePalette, styleText, WATERCOLOUR_SHEET };
-`);
+  return { styleText, WATERCOLOUR_SHEET, BACKGROUND_RULE };
+`)(fields);
 
 let bad = 0;
 const check = (n, c) => { console.log((c ? '  ✓ ' : '  ✗ ') + n); if (!c) bad++; };
 
-const WARM = /\b(yellow|cream|ivory|beige|butter|sand|tan)\b/i;
-
-const cases = [
-  ['Halloween',   { mainKW: 'halloween boo baskets', category: 'Holiday Party', audience: 'adult' },  /dusty lilac/],
-  ['Рождество',   { mainKW: 'christmas party games', category: 'Holiday Party', audience: 'mixed' },  /icy blue/],
-  ['Осень',       { mainKW: 'thanksgiving menu board', category: 'General Party', audience: 'adult' },/sage/],
-  ['Детский',     { mainKW: 'circus games preschool', category: 'Kids Party', audience: 'kids' },     /blush pink/],
-  ['Для мальчика',{ mainKW: 'baby shower games for a boy', category: 'Baby Shower', audience: 'mixed' }, /powder blue/],
-  ['Взрослые',    { mainKW: 'girls night questions', category: 'Girls Night', audience: 'adult' },     /dusty rose/],
-];
-
-console.log('Палитра по темам');
-for (const [name, f, expect] of cases) {
-  fields = f;
-  const { themePalette } = build(fields);
-  const p = themePalette();
-  const ground = p.slice(p.indexOf('background is'), p.indexOf('. Accents'));
-  // «фон НЕ жёлтый» — это часть запрета, его из проверки исключаем
-  const groundOnly = ground.replace(/must NOT[\s\S]*/i, '');
-  check(`${name.padEnd(13)} → ${groundOnly.replace('background is ', '')}`, expect.test(p) && !WARM.test(groundOnly));
-}
-
-console.log('\nЕдиный стиль');
-fields = { mainKW: 'circus games', category: 'Kids Party', audience: 'kids' };
+console.log('Единый стиль');
 {
-  const { styleText, WATERCOLOUR_SHEET } = build(fields);
+  const { styleText, WATERCOLOUR_SHEET } = build({});
   const t = styleText();
   check('без референса берётся встроенный акварельный стиль', t.startsWith(WATERCOLOUR_SHEET.slice(0, 40)));
   check('в стиле есть запрет тёплого фона', /NEVER yellow, cream, ivory, beige, butter, sand, tan/.test(t));
-  check('палитра приклеена к стилю', t.includes('PALETTE: the background is'));
-  check('палитра тоже запрещает тёплый фон', /must NOT be yellow/.test(t));
-}
-{
-  fields = { ...fields, __vision: 'STYLE: dense wet-on-wet watercolour with pigment pooling.' };
-  const { styleText } = build(fields);
-  const t = styleText();
-  check('референс перебивает встроенную технику', t.startsWith('STYLE: dense wet-on-wet'));
-  check('палитра от темы всё равно добавляется', t.includes('PALETTE: the background is'));
+  check('правило фона приклеено', t.includes('BACKGROUND AND PALETTE:'));
+  check('правило фона тоже запрещает тёплый тон', /must NOT be yellow/.test(t));
+  check('чистый белый тоже запрещён', /must not be plain white/.test(t));
+  check('фон одинаков по всему набору', /SAME ground and the SAME accent family on EVERY sheet/.test(t));
+  check('конкретный цвет не назначен', !/the background is a (soft|pale|muted)/.test(t));
 }
 
-console.log(bad ? '\nЕСТЬ ПРОБЛЕМЫ' : '\nстиль и палитра работают как задумано');
+console.log('\nРеференс');
+{
+  const { styleText } = build({ __vision: 'STYLE: dense wet-on-wet watercolour with pigment pooling.' });
+  const t = styleText();
+  check('референс перебивает встроенную технику', t.startsWith('STYLE: dense wet-on-wet'));
+  check('правило фона всё равно добавляется', t.includes('BACKGROUND AND PALETTE:'));
+}
+
+console.log('\nТема не влияет на цвет');
+{
+  const a = build({ mainKW: 'halloween boo baskets', category: 'Holiday Party', audience: 'adult' }).styleText();
+  const b = build({ mainKW: 'circus games preschool', category: 'Kids Party', audience: 'kids' }).styleText();
+  check('контракт не зависит от темы — цвет выбирает генератор', a === b);
+}
+
+console.log(bad ? '\nЕСТЬ ПРОБЛЕМЫ' : '\nстиль и правило фона работают как задумано');
 process.exit(bad ? 1 : 0);

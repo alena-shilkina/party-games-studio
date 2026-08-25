@@ -125,7 +125,7 @@ group('Печатные листы');
   js.includes('const WATERCOLOUR_SHEET=') && js.includes('NEVER yellow, cream, ivory, beige, butter, sand, tan')
     ? ok('единый акварельный стиль, тёплый фон запрещён') : fail('нет единого стиля или не запрещён жёлтый фон');
   js.includes('must NOT be yellow, cream, ivory, beige, butter, sand or tan')
-    ? ok('палитра тоже запрещает тёплый фон') : fail('палитра не запрещает жёлтый фон');
+    ? ok('правило фона тоже запрещает тёплый тон') : fail('правило фона не запрещает жёлтый');
   const refUses = (js.match(/g\.asset==='illustration'\?null:sheetRef\(\)/g) || []).length;
   refUses === 4 ? ok('все четыре места рисования листа берут референс из одного источника')
                 : fail(`sheetRef() используется ${refUses} раз вместо 4`);
@@ -141,11 +141,16 @@ group('Печатные листы');
   js.includes('clean printable game page')
     ? fail('в инструкции снова просят «clean» — это уводит листы в белую графику') : ok('из инструкции убрано слово, тянувшее в белую графику');
 
-  // Референс задаёт только технику; палитра и сюжет приходят от темы статьи.
+  // Референс задаёт только технику; конкретный цвет фона не задаём вовсе — его
+  // подбирает генератор картинок, мы только очерчиваем рамки.
   js.includes('TECHNIQUE CONTRACT') && !js.includes('exact palette — name every key colour')
     ? ok('референс описывает только технику, без палитры') : fail('референс снова диктует палитру');
-  js.includes('function themePalette(') && js.includes("+'\\n\\n'+themePalette()")
-    ? ok('палитра подставляется от темы статьи') : fail('палитра не подставляется от темы');
+  js.includes('const BACKGROUND_RULE=') && js.includes("+'\\n\\n'+BACKGROUND_RULE")
+    ? ok('правило фона приклеено к стилю') : fail('правило фона не подставляется');
+  /return say\('a soft|a pale icy blue|a muted dusty rose/.test(js)
+    ? fail('вернулась жёстко заданная палитра по темам') : ok('конкретный цвет фона не навязывается');
+  js.includes('Use the SAME ground and the SAME accent family on EVERY sheet')
+    ? ok('фон требуется одинаковый на всех листах набора') : fail('нет требования единого фона в наборе');
 
   // Люди в рисованном стиле разрешены, на фотографиях — нет: там видна искусственность.
   js.includes('People, children and animals ARE allowed here')
