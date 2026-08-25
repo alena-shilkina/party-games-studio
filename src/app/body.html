@@ -94,11 +94,9 @@
         <select id="refMode" onchange="setRefMode(this.value)">
           <option value="image" selected>Style only — same look, new objects (recommended)</option>
           <option value="motifs">Style + characters — keep the bear a bear</option>
-          <option value="style">Style text only — don't send the image</option>
         </select>
         <small><b>Style only</b>: the reference goes to the image model as a <i>style guide</i>, and the prompt tells the model to draw the NEXT piece in that same illustrated series — same technique, palette and object world, but its own new icons and arrangements, never a copy or trace of the ones in the reference.
-        <br><b>Style + characters</b>: same as above, but the recurring subjects carry over too. If the reference is built around a teddy bear, every sheet keeps that teddy bear instead of getting a rabbit. Claude names the characters concretely when it reads the reference, and each sheet redraws them in its own poses and arrangements.
-        <br><b>Style text only</b>: the image is never sent; only Claude's written style contract drives the generation. Weaker match — use it when you have no reference you're comfortable attaching.</small>
+        <br><b>Style + characters</b>: same as above, but the recurring subjects carry over too. If the reference is built around a teddy bear, every sheet keeps that teddy bear instead of getting a rabbit. Claude names the characters concretely when it reads the reference, and each sheet redraws them in its own poses and arrangements.</small>
       </div>
       <div id="refPreview" style="margin-top:8px"></div>
       <textarea id="styleBlock" placeholder="Style description (auto-written from the reference, editable)…" style="min-height:60px;margin-top:8px;display:none"></textarea>
@@ -247,7 +245,7 @@
     <label class="bz-ctl">as
       <select id="bzStatus"><option value="draft">Draft</option><option value="publish">Publish</option></select></label>
     <label class="bz-ctl">Featured:&nbsp;<select id="featMode" style="margin-left:2px;padding:2px 5px;border-radius:6px"><option value="pexels">Pexels (auto)</option><option value="ai">AI-generated</option><option value="manual">Manual / off</option></select></label>
-    <label class="bz-ctl" title="Default for rows that are left on «batch default». Each row can override it.">Reference:&nbsp;<select id="bzRefMode" onchange="setRefMode(this.value)" style="margin-left:2px;padding:2px 5px;border-radius:6px"><option value="image">Style only</option><option value="motifs">Style + characters</option><option value="style">Style text only</option></select></label>
+    <label class="bz-ctl" title="Default for rows that are left on «batch default». Each row can override it.">Reference:&nbsp;<select id="bzRefMode" onchange="setRefMode(this.value)" style="margin-left:2px;padding:2px 5px;border-radius:6px"><option value="image">Style only</option><option value="motifs">Style + characters</option></select></label>
     <label class="btn btn-ghost btn-sm" style="width:auto;cursor:pointer;min-width:96px">⤒ Load CSV<input type="file" accept=".csv" style="display:none" onchange="importBatchCSV(event)"></label>
     <button class="btn btn-ghost btn-sm" style="width:auto;min-width:104px" onclick="openReview()">👀 Review (<span id="bzReviewCount">0</span>)</button>
     <span class="sp"></span>

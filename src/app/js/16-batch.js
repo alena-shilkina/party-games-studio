@@ -155,7 +155,7 @@ function renderBatch(){
           <div style="flex:1">
             <label class="btn btn-ghost btn-sm" style="cursor:pointer;width:auto;display:inline-block">${ROWREF[r.id]?'🔄 Change':'📎 Upload'}<input type="file" accept="image/*" style="display:none" onchange="loadRowRef(event,'${r.id}')"></label>
             <div id="rref-${r.id}" style="font-size:11px;color:var(--ok);margin-top:5px">${r.styleBlock?'✓ style read':(ROWREF[r.id]?'image attached':'')}</div>
-            <select onchange="updRow('${r.id}','refMode',this.value)" title="How this row's reference is used" style="margin-top:5px;width:100%;padding:3px 6px;font-size:11px">${optionList([{v:'',l:'— batch default —'},{v:'image',l:'Style only'},{v:'motifs',l:'Style + characters'},{v:'style',l:'Style text only'}],r.refMode||'')}</select>
+            <select onchange="updRow('${r.id}','refMode',this.value)" title="How this row's reference is used" style="margin-top:5px;width:100%;padding:3px 6px;font-size:11px">${optionList([{v:'',l:'— batch default —'},{v:'image',l:'Style only'},{v:'motifs',l:'Style + characters'}],r.refMode||'')}</select>
           </div>
         </div>
       </div>

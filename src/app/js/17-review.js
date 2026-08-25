@@ -302,9 +302,7 @@ function importBatchCSV(e){
       // motifs (плюс персонажи), text (не отправлять картинку). Пусто — берётся
       // значение из панели пакета. Синонимы приняты, чтобы не спотыкаться о формулировку.
       const rm=get('refmode').toLowerCase().replace(/[^a-z]/g,'');
-      r.refMode = /motif|character|bear/.test(rm) ? 'motifs'
-                : /text|noimage|notimage/.test(rm) ? 'style'
-                : /style|image/.test(rm) ? 'image' : '';
+      r.refMode = /motif|character|bear/.test(rm) ? 'motifs' : /style|image/.test(rm) ? 'image' : '';
       const md=get('mode').toLowerCase(); r.mode=['games','prompts','ideas','recipes'].includes(md)?md:'games';   // blank → games (old files keep working)
       // wp category: accept ID or name
       const cat=get('cat');

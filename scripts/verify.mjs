@@ -72,11 +72,14 @@ group('Печатные листы');
 
   // Три режима работы с референсом должны быть согласованы: список, разбор и правило.
   // два списка (сайдбар и панель пакета), в каждом одни и те же три варианта
-  const modeOpts = body.match(/<option value="(image|motifs|style)"/g) || [];
+  const modeOpts = body.match(/<option value="(image|motifs)"/g) || [];
   const distinct = new Set(modeOpts).size;
-  distinct === 3 && modeOpts.length === 6
-    ? ok('оба списка режимов референса предлагают все три варианта')
-    : fail(`вариантов ${modeOpts.length} (различных ${distinct}) — ожидали 6 в двух списках`);
+  distinct === 2 && modeOpts.length === 4
+    ? ok('оба списка режимов референса предлагают оба варианта')
+    : fail(`вариантов ${modeOpts.length} (различных ${distinct}) — ожидали 4 в двух списках`);
+  // список в строке пакета рисуется из JS, поэтому смотрим и туда
+  body.includes('value="style"') || js.includes("l:'Style text only'")
+    ? fail('режим «только текст» вернулся в интерфейс') : ok('режима «только текст» больше нет нигде');
   // Панель пакета перекрывает сайдбар, поэтому режим должен быть доступен и оттуда.
   body.includes('id="bzRefMode"') && body.includes('setRefMode(this.value)')
     ? ok('режим референса доступен и из панели пакета') : fail('из панели пакета до режима референса не добраться');
@@ -89,8 +92,11 @@ group('Печатные листы');
   js.includes("updRow('${r.id}','refMode',this.value)") && js.includes('batch default')
     ? ok('режим референса выбирается в каждой строке, с запасным значением пакета')
     : fail('в строке пакета нет выбора режима');
-  /if\(mode==='motifs'\) return MOTIF_ORIGINALITY;/.test(js)
+  js.includes("==='motifs' ? MOTIF_ORIGINALITY : REF_ORIGINALITY")
     ? ok('режим с переносом персонажей подключён') : fail('режим motifs не влияет на правило originality');
+  js.includes('if(!sheetRef()) return ORIGINALITY;')
+    ? ok('без референса в промпт не идёт инструкция про приложенную картинку')
+    : fail('правило рисования не проверяет, есть ли референс');
 
   // Промпт должен быть виден и правим везде, где есть кнопка Regenerate. Функция правки
   // в очереди ревью однажды уже пролежала без дела, не подключённая ни к чему.
@@ -132,6 +138,12 @@ group('Печатные листы');
     ? ok('замок стиля перебивает стилевые слова из описания листа') : fail('замок стиля не защищён от стилевых слов в описании');
   js.includes('clean printable game page')
     ? fail('в инструкции снова просят «clean» — это уводит листы в белую графику') : ok('из инструкции убрано слово, тянувшее в белую графику');
+
+  // Референс задаёт только технику; палитра и сюжет приходят от темы статьи.
+  js.includes('TECHNIQUE CONTRACT') && !js.includes('exact palette — name every key colour')
+    ? ok('референс описывает только технику, без палитры') : fail('референс снова диктует палитру');
+  js.includes('function themePalette(') && js.includes("+'\\n\\n'+themePalette()")
+    ? ok('палитра подставляется от темы статьи') : fail('палитра не подставляется от темы');
 
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']

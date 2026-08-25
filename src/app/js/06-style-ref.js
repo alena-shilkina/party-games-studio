@@ -54,13 +54,26 @@ function autoStyleBlock(){
 function sheetRef(){ return ST.refDataUri || styleRefFor(activeInfoStyle); }
 // выбор стиля в сайдбаре подтягивает его референс, если своего не приложено
 function setInfoStyle(val){ activeInfoStyle=val; if(!ST.baseRef) ST.refDataUri=styleRefFor(val); }
+// Палитра больше не приходит из референса — он задаёт только технику. Цвета берутся
+// от темы статьи, на уровне семейства оттенков, без жёстких hex: набор остаётся единым,
+// но статья про Хэллоуин не выходит в цветах детского праздника.
+function themePalette(){
+  const c=(v('category')||'').toLowerCase(), a=v('audience');
+  const kw=((v('mainKW')||'')+' '+(v('titleInput')||'')).toLowerCase();
+  const say=p=>'PALETTE: '+p+' Use this colour family on every sheet of the set, rendered in the technique above. Text is a dark, clearly readable tone from the same family — never pale type on a pale ground.';
+  if(/halloween|spooky|\bboo\b|pumpkin|witch/.test(kw))            return say('deep plum, burnt orange, charcoal and warm bone, with one brighter accent.');
+  if(/christmas|xmas|santa|winter|new year|nye|hanukkah/.test(kw)) return say('deep forest green, warm red, cream and antique gold.');
+  if(/thanksgiving|fall\b|autumn|harvest/.test(kw))                return say('warm rust, ochre, sage and cream.');
+  if(/easter|spring|valentine/.test(kw))                           return say('soft mint, buttercup, blush and cream.');
+  if(a==='kids'||/kids|birthday/.test(c))                          return say('cheerful pastels — blush, mint, butter yellow, powder blue — on cream.');
+  if(a==='adult'||/bachelorette|girls night/.test(c))              return say('muted and grown-up — dusty rose, deep plum, sand and charcoal on cream.');
+  return say('muted and tasteful — a cream ground, one soft accent and charcoal text.');
+}
 function styleText(){
-  let sb=(v('styleBlock')||ST.styleBlock||'').trim();      // 1. reference-derived (Vision)
-  if(!sb){                                                 // 2. no reference → chosen preset
-    const preset=INFO_STYLES.find(s=>s.id===activeInfoStyle);
-    sb=(preset&&preset.block)?preset.block:autoStyleBlock(); // 'auto' or empty → autoStyleBlock
-  }
-  return sb;
+  const vision=(v('styleBlock')||ST.styleBlock||'').trim();   // техника, прочитанная с референса
+  if(vision) return vision+'\n\n'+themePalette();             // + палитра от темы
+  const preset=INFO_STYLES.find(s=>s.id===activeInfoStyle);   // без референса — готовый пресет
+  return (preset&&preset.block)?preset.block:autoStyleBlock();
 }
 const RICH_SHEET='RICHNESS — this is a premium downloadable printable, not a plain title card. Every sheet must carry the FULL decorative system from the style contract: the layered border/frame, the patterned band, ornamental rules or dividers, and at least one illustrated motif or vignette drawn in the contract technique. Compose it as a properly designed page: a focal illustration, a strong heading with real typographic hierarchy, supporting text sized against it, and ornament filling what would otherwise be dead space. NEVER output a bare heading floating inside an empty rectangle, and never leave a large blank area — fill it with the motifs named in the contract.';
 // Travels with every styled sheet. The style contract tells the model HOW to draw and WHAT KIND of
@@ -84,11 +97,13 @@ const MOTIF_ORIGINALITY=`HOW TO USE THE ATTACHED REFERENCE IMAGE — you are ill
 - VARY the supporting props and their placement so the sheets are not identical, but keep the lead subject recognisably the same across the whole set.`;
 // which originality clause travels with a styled sheet, depending on the chosen reference mode
 function originalityClause(explicit){
-  const mode=explicit||refModeNow();
-  if(mode==='motifs') return MOTIF_ORIGINALITY;
-  return mode==='image' ? REF_ORIGINALITY : ORIGINALITY;
+  // Правило зависит от того, ЕСТЬ ли референс на самом деле: без него нельзя писать
+  // «используй приложенную картинку». Раньше это решал режим, и без референса
+  // в промпт всё равно попадала инструкция про несуществующее изображение.
+  if(!sheetRef()) return ORIGINALITY;
+  return (explicit||refModeNow())==='motifs' ? MOTIF_ORIGINALITY : REF_ORIGINALITY;
 }
-const STYLE_LOCK='CONSISTENCY: this sheet is one of a matching printable set. Reproduce the style contract above EXACTLY — same background colour, same border treatment, same palette hexes, same motifs and the same typeface family on every sheet. Do not reinterpret, restyle or introduce new colours, borders or decorative elements. THE SHEET DESCRIPTION IS CONTENT, NOT STYLE: if it mentions a drawing technique, a colour, a background, a line weight, a mood, or the word "clean", ignore that word completely and draw the sheet in the style contract above. The style contract wins over every style word anywhere else in this prompt.';
+const STYLE_LOCK='CONSISTENCY: this sheet is one of a matching printable set. Every sheet is drawn by the SAME HAND — the exact medium, line quality, edge, shading and level of finish described above — and in the SAME colour family named above. Do not switch technique between sheets, do not step outside that colour family, and do not invent a different look for this one. THE SHEET DESCRIPTION IS CONTENT, NOT STYLE: if it mentions a drawing technique, a colour, a background, a line weight, a mood, or the word "clean", ignore that word completely and draw the sheet in the style contract above. The style contract wins over every style word anywhere else in this prompt.';
 // Editorial photography contract — used for "illustration" assets (cakes, arches, tablescapes, dishes).
 // These are PHOTOGRAPHS, not designed sheets, so they must never receive the printable style contract,
 // the "SHEET TO DRAW" framing or the site footer: that is what made them flat, white and lifeless.
