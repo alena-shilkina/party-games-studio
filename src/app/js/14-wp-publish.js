@@ -104,10 +104,11 @@ function hasAffiliate(a){
 // articles differ, but regenerating the same article stays stable.
 const PLANNER_TITLES=["Party planner's notes","Host's cheat sheet","If you're recreating this","Steal this setup",
   "Worth knowing before you shop","The short version","Planner's shortlist","How to pull this off"];
+// Блока «Games that fit» здесь больше нет: статья об идеях — не про игры, и список
+// названий игр внутри карточки читался как чужеродная вставка.
 const PLANNER_BLOCKS=[
   {icon:'\u2728',label:'Set the scene',       hint:'3-5 concrete set-up details — backdrop, garland, table styling, a height or lighting trick'},
   {icon:'\u{1F370}',label:'On the table',     hint:'3-5 on-theme things to serve, all matching the palette'},
-  {icon:'\u{1F3B2}',label:'Games that fit',   hint:'3-5 game NAMES ONLY suited to this theme and age — no rules'},
   {icon:'\u{1F4B7}',label:'Cheap swap',       hint:'2-4 ways to get the same look for less, with the specific substitute named'},
   {icon:'\u23F1',label:'Twenty-minute version',hint:'2-4 shortcuts for a host who is short on time'},
   {icon:'\u{1F6AB}',label:'Skip this',        hint:'2-3 things that look good online but are not worth the money or effort here'},
@@ -136,9 +137,11 @@ function plannerHTML(g,kw){
   const iconFor=l=>{ const b=PLANNER_BLOCKS.find(x=>x.label.toLowerCase()===String(l||'').toLowerCase()); return b?b.icon:'\u2022'; };
   if(Array.isArray(g&&g.planner)){
     rows=g.planner.filter(x=>x&&x.label&&Array.isArray(x.items)&&x.items.filter(Boolean).length)
+                  // статьи, сделанные до отмены блока, ещё лежат в очереди ревью — режем и там
+                  .filter(x=>!/\bgames?\b/i.test(String(x.label)))
                   .map(x=>[iconFor(x.label),x.label,x.items]);
   }else if(g&&g.planner&&typeof g.planner==='object'){   // older shape
-    rows=[['\u2728','Set the scene',g.planner.decor],['\u{1F370}','On the table',g.planner.table],['\u{1F3B2}','Games that fit',g.planner.games]]
+    rows=[['\u2728','Set the scene',g.planner.decor],['\u{1F370}','On the table',g.planner.table]]   // \u0438\u0433\u0440\u044b \u0441\u044e\u0434\u0430 \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u043f\u043e\u043f\u0430\u0434\u0430\u044e\u0442
       .filter(r=>Array.isArray(r[2])&&r[2].filter(Boolean).length);
   }
   if(!rows.length) return '';

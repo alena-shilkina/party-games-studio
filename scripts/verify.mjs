@@ -102,6 +102,11 @@ group('Печатные листы');
   js.includes('g.extraImagePrompts=[];')
     ? ok('дополнительных кадров у идеи не создаётся') : fail('вернулись дополнительные кадры к идеям');
 
+  // В карточке-подсказке был блок с названиями игр — в статье об идеях он читался как чужой.
+  (js.match(/label:'Games that fit'/g) || []).length === 0 && js.includes("!/\\bgames?\\b/i.test(String(x.label))")
+    ? ok('блока с играми в карточке нет, старые статьи из очереди тоже чистятся')
+    : fail('в карточке снова появился блок с играми');
+
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
     .filter(fn => (js.match(new RegExp(fn.replace('(', '\\('), 'g')) || []).length >= 2);
