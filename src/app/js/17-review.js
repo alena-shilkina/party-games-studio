@@ -31,7 +31,7 @@ async function stageForReview(status){
   const snap={ id:crypto.randomUUID(), title:a.title, status, when:Date.now(),
     article:JSON.parse(JSON.stringify(a)), pins:JSON.parse(JSON.stringify(ST.pins)),
     feat, pubCat:ST.pubCat||null,
-    styleBlock:styleText(), styleRef:ST.refDataUri||null, siteDomain:siteDomain(), category:v('category'), audience:v('audience'),
+    styleBlock:styleText(), styleRef:ST.refDataUri||null, refMode:refModeNow(), siteDomain:siteDomain(), category:v('category'), audience:v('audience'),
     mode:(v('articleMode')||'games') };   // the renderer reads the mode, so it must travel WITH the snapshot   // styleRef pins the reference IMAGE so every regen stays in the set's look
   ST.review.push(snap); saveReview();
   return {ok:true};
@@ -137,6 +137,7 @@ function rerenderReviewBody(id){ const s=ST.review.find(x=>x.id===id); const el=
 // regenerate ONE extra detail shot on a review-queue snapshot (does not touch the main image)
 async function reviewRegenExtra(id,gi,k){
   const s=ST.review.find(x=>x.id===id); if(!s)return; const g=s.article.games[gi]; if(!g)return;
+  ST.refMode=s.refMode||'';
   const extras=g._imgs2||[]; const prompt=(g.extraImagePrompts||[])[k];
   if(!prompt){toast('No prompt stored for this detail shot','err');return;}
   extras[k]={img:null,file:extras[k]&&extras[k].file}; g._imgs2=extras; rerenderReviewBody(id);
@@ -153,7 +154,8 @@ function loadSnapIntoState(s){
   ST.pubCat=s.pubCat||null;
   // restore the exact style so regeneration in the editor keeps THIS article's look (fixes random/childish restyles)
   ST.styleBlock=s.styleBlock||'';
-  ST.refDataUri=s.styleRef||null;   // restore the reference IMAGE too, so regenerating a single sheet in the editor stays in the set's look (not just the text style)
+  ST.refDataUri=s.styleRef||null;
+  ST.refMode=s.refMode||'';   // регенерация в редакторе идёт в том же режиме, что и генерация   // restore the reference IMAGE too, so regenerating a single sheet in the editor stays in the set's look (not just the text style)
   const sb=$('styleBlock'); if(sb) sb.value=s.styleBlock||'';
   if(s.category && $('category')) $('category').value=s.category;
   if(s.audience && $('audience')) $('audience').value=s.audience;
@@ -185,6 +187,7 @@ function reviewEditExtraPrompt(id,gi,k,val){
 // regenerate one infographic inside a staged article, re-upload, update the snapshot
 async function reviewRegen(id,gi){
   const s=ST.review.find(x=>x.id===id); if(!s)return; const g=s.article.games[gi]; if(!g)return;
+  ST.refMode=s.refMode||'';   // перерисовываем в том же режиме, в котором рисовали
   const site=getSite(); toast('Regenerating…','ok');
   try{
     // build the prompt straight from THIS snapshot — do NOT touch ST.article (the background batch may be mid-generation)

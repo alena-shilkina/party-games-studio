@@ -77,8 +77,8 @@ const MOTIF_ORIGINALITY=`HOW TO USE THE ATTACHED REFERENCE IMAGE — you are ill
 - REDRAW, DO NOT COPY: draw those subjects yourself, in NEW poses, angles, sizes and arrangements that suit this sheet. Never trace, cut out, mirror or re-place an element from the reference, and never repeat its layout or composition.
 - VARY the supporting props and their placement so the sheets are not identical, but keep the lead subject recognisably the same across the whole set.`;
 // which originality clause travels with a styled sheet, depending on the chosen reference mode
-function originalityClause(){
-  const mode=v('refMode')||'image';
+function originalityClause(explicit){
+  const mode=explicit||refModeNow();
   if(mode==='motifs') return MOTIF_ORIGINALITY;
   return mode==='image' ? REF_ORIGINALITY : ORIGINALITY;
 }

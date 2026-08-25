@@ -1,5 +1,5 @@
 /* ---------- STATE ---------- */
-let ST={ paa:[], feat:null, csv:[], article:null, pins:[], refDataUri:null, styleBlock:'', baseRef:null, baseStyle:'', wpCats:[], pubCat:null, batch:null, review:[] };
+let ST={ refMode:'', paa:[], feat:null, csv:[], article:null, pins:[], refDataUri:null, styleBlock:'', baseRef:null, baseStyle:'', wpCats:[], pubCat:null, batch:null, review:[] };
 
 /* ---------- SETTINGS PERSISTENCE ---------- */
 const SKEYS=['claudeKey','runwareKey','pexelsKey','imgModel','imgQuality','refMode','makePins','tone','relAnchor','relUrl'];
@@ -25,6 +25,10 @@ document.addEventListener('change',e=>{
   if(id&&SKEYS.includes(id)) saveSettings();
 });
 
+// Режим работы с референсом. У строки пакета может быть свой; если у строки пусто,
+// берём общий — тот, что стоит в панели пакета и в сайдбаре (это одно и то же поле).
+// ST.refMode выставляет тот, кто задаёт контекст: строка пакета или снимок из ревью.
+function refModeNow(){ return ST.refMode || v('refMode') || 'image'; }
 function getSite(){ return (ST.sites||[])[parseInt(v('activeSite'))||0]||null; }
 
 function renderSites(){

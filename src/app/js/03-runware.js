@@ -61,14 +61,14 @@ HARD LIMITS — this contract must be reproducible from words alone:
 Write it as a compact directive block of 4-6 sentences. Start the WHOLE block with the single word "STYLE:" once, then continue in plain sentences — do NOT repeat "STYLE:" at the start of each sentence. Be concrete and repeatable — another generator must produce the SAME look and the SAME recurring subjects on 15 different sheets from this text alone. No preamble.`;
 
 // какой разбор применять — зависит от выбранного режима референса
-function styleVisionSys(){ return (v('refMode')||'image')==='motifs' ? STYLE_VISION_SYS_MOTIFS : STYLE_VISION_SYS; }
-async function styleFromRefUrl(url){
+function styleVisionSys(mode){ return (mode||refModeNow())==='motifs' ? STYLE_VISION_SYS_MOTIFS : STYLE_VISION_SYS; }
+async function styleFromRefUrl(url,mode){
   if(!url||!keyReady('claude')) return '';
   const proxied='https://images.weserv.nl/?url='+encodeURIComponent(url.replace(/^https?:\/\//,''))+'&output=png';
   const blob=await (await fetch(proxied)).blob();
   const dataUri=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(blob); });
   const m=dataUri.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/); if(!m) return '';
-  const sys=styleVisionSys();
+  const sys=styleVisionSys(mode);
   const res=await fetch('/api/claude',{method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':v('claudeKey'),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
@@ -107,7 +107,7 @@ async function runwareGen(prompt,width,height,tries=3,refUri=null){
   // In the default "style only" mode the reference NEVER reaches the image model — the Vision-written
   // style contract carries the look instead, so the model draws original artwork rather than copying
   // someone else's clipart. Ideogram never takes reference images and always uses the text style.
-  const refMode=v('refMode')||'image';
+  const refMode=refModeNow();
   if(refUri && refMode!=='style' && !model.includes('ideogram')){ const png=await toPngRef(refUri); if(png) task.referenceImages=[png]; }
   for(let attempt=1;attempt<=tries;attempt++){
     try{

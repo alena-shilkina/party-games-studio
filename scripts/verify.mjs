@@ -80,8 +80,15 @@ group('Печатные листы');
   // Панель пакета перекрывает сайдбар, поэтому режим должен быть доступен и оттуда.
   body.includes('id="bzRefMode"') && body.includes('setRefMode(this.value)')
     ? ok('режим референса доступен и из панели пакета') : fail('из панели пакета до режима референса не добраться');
-  const sysCalls = (js.match(/const sys=styleVisionSys\(\);/g) || []).length;
+  // три места читают референс; вызовы без аргумента берут режим из контекста, с аргументом — явный
+  const sysCalls = (js.match(/styleVisionSys\(/g) || []).length - 1;   // минус само определение
   sysCalls === 3 ? ok('разбор референса везде выбирается по режиму') : fail(`styleVisionSys() вызван ${sysCalls} раз вместо 3`);
+
+  // режим должен быть выбираем построчно, а не только на весь пакет
+  // разметка строки рисуется из JS, поэтому ищем там
+  js.includes("updRow('${r.id}','refMode',this.value)") && js.includes('batch default')
+    ? ok('режим референса выбирается в каждой строке, с запасным значением пакета')
+    : fail('в строке пакета нет выбора режима');
   /if\(mode==='motifs'\) return MOTIF_ORIGINALITY;/.test(js)
     ? ok('режим с переносом персонажей подключён') : fail('режим motifs не влияет на правило originality');
 

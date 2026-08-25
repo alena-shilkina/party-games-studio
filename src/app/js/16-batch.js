@@ -1,6 +1,6 @@
 /* ---------- BATCH WORK ZONE ---------- */
 function blankRow(){ return {id:crypto.randomUUID(),kw:'',title:'',mode:'games',aud:'adult',
-  wpCat:ST.pubCat||'',infoStyle:'auto',vibe:'Auto',downloadable:false,pinKW:'',context:'',featKW:'',styleBlock:'',refUrl:'',paa:[],paaSel:[],status:'',link:'',error:''}; }
+  wpCat:ST.pubCat||'',infoStyle:'auto',refMode:'',vibe:'Auto',downloadable:false,pinKW:'',context:'',featKW:'',styleBlock:'',refUrl:'',paa:[],paaSel:[],status:'',link:'',error:''}; }
 // auto-detect the article theme from the keyword (feeds the generation context)
 function detectTheme(kw){
   const s=(kw||'').toLowerCase();
@@ -52,7 +52,7 @@ function loadRowRef(e,id){
     if(!keyReady('claude')){ setRowRefState(id,'add Claude key'); return; }
     const m=rd.result.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/); if(!m){setRowRefState(id,'bad image');return;}
     try{
-      const sys=styleVisionSys();
+      const sys=styleVisionSys(r.refMode||v('refMode'));
       const res=await fetch('/api/claude',{method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':v('claudeKey'),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
         body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
@@ -116,7 +116,7 @@ async function retryRow(id){
   const mode=$('bzMode')?$('bzMode').value:(ST.batch.mode||'review');
   const status=$('bzStatus')?$('bzStatus').value:(ST.batch.status||'draft');
   try{
-    if(r.refUrl && !r.styleBlock){ try{ r.styleBlock=await styleFromRefUrl(r.refUrl); saveBatch(); }catch(e){} }
+    if(r.refUrl && !r.styleBlock){ try{ r.styleBlock=await styleFromRefUrl(r.refUrl,r.refMode||v('refMode')); saveBatch(); }catch(e){} }
     applyRowToFields(r);
     await applyFeatured(r.featKW||r.kw, !!r.featKW);
     await generateArticle();
@@ -155,6 +155,7 @@ function renderBatch(){
           <div style="flex:1">
             <label class="btn btn-ghost btn-sm" style="cursor:pointer;width:auto;display:inline-block">${ROWREF[r.id]?'🔄 Change':'📎 Upload'}<input type="file" accept="image/*" style="display:none" onchange="loadRowRef(event,'${r.id}')"></label>
             <div id="rref-${r.id}" style="font-size:11px;color:var(--ok);margin-top:5px">${r.styleBlock?'✓ style read':(ROWREF[r.id]?'image attached':'')}</div>
+            <select onchange="updRow('${r.id}','refMode',this.value)" title="How this row's reference is used" style="margin-top:5px;width:100%;padding:3px 6px;font-size:11px">${optionList([{v:'',l:'— batch default —'},{v:'image',l:'Style only'},{v:'motifs',l:'Style + characters'},{v:'style',l:'Style text only'}],r.refMode||'')}</select>
           </div>
         </div>
       </div>
@@ -181,6 +182,7 @@ function bzProg(pct,lbl){ $('bzFill').style.width=pct+'%'; if(lbl!=null)$('bzPro
 // push a row's settings into the single-article fields, then reuse the whole pipeline
 function applyRowToFields(r){
   ST.batchRow=r;   // ideas mode reads r.downloadable when building the brief
+  ST.refMode=r.refMode||'';   // у строки может быть свой режим работы с референсом
   $('mainKW').value=r.kw; $('category').value=detectTheme(`${r.kw} ${r.title||''} ${r.wpCat||''}`); $('audience').value=r.aud;
   $('titleInput').value=r.title||''; $('context').value=r.context||''; $('pinKW').value=r.pinKW||'';
   if($('articleMode')) $('articleMode').value=r.mode||'games';
@@ -313,7 +315,7 @@ async function runBatch(){
     r.status='running'; r.error=''; renderBatch(); saveBatch();
     bzProg(Math.round(done/todo.length*100),`Article ${done+1}/${todo.length}: ${r.kw}`);
     try{
-      if(r.refUrl && !r.styleBlock){ try{ r.styleBlock=await styleFromRefUrl(r.refUrl); saveBatch(); }catch(e){} }
+      if(r.refUrl && !r.styleBlock){ try{ r.styleBlock=await styleFromRefUrl(r.refUrl,r.refMode||v('refMode')); saveBatch(); }catch(e){} }
       applyRowToFields(r);
       await applyFeatured(r.featKW||r.kw, !!r.featKW);
       let ok=false, lastErr='';
