@@ -191,11 +191,12 @@ function applyRowToFields(r){
   // Reference resolution, in strict priority order — never inherit the PREVIOUS row's style:
   //   1. the row's own reference (uploaded on the row, or ref_url from CSV)
   //   2. a reference attached by hand in the sidebar, used as a default for rows that have none
-  //   3. nothing → fall back to the preset/auto style
+  //   3. картинка из библиотеки стилей, привязанная к стилю этой строки
+  //   4. ничего → только текстовое описание пресета
   const rowRef=ROWREF[r.id]||r.refUrl||null;
   if(rowRef){ ST.refDataUri=rowRef; ST.styleBlock=r.styleBlock||''; }
   else if(ST.baseRef){ ST.refDataUri=ST.baseRef; ST.styleBlock=r.styleBlock||ST.baseStyle||''; }
-  else { ST.refDataUri=null; ST.styleBlock=r.styleBlock||''; }
+  else { ST.refDataUri=styleRefFor(r.infoStyle||'auto'); ST.styleBlock=r.styleBlock||''; }   // 3. библиотека стилей
   // keep the on-screen style field in sync — styleText() reads the DOM first, so a stale value
   // from the previous article would silently override this row's reference style
   if($('styleBlock')) $('styleBlock').value=ST.styleBlock;

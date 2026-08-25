@@ -195,7 +195,7 @@ function rerenderGame(i){ const card=$('gc-'+i); if(card) card.outerHTML=gameCar
 async function regenImg(i){
   const g=ST.article.games[i]; if(!g.imagePrompt){toast('No image prompt for this game','err');return;}
   g._img=null; g._err=null; rerenderGame(i);
-  try{ g._img=await runwareGen(withStyle(g.imagePrompt,g.asset),SIZE_PRINT.w,SIZE_PRINT.h,3,g.asset==='illustration'?null:ST.refDataUri); g._file=g._file||buildFilename(ST.article.focusKeyword,g.name,i); }
+  try{ g._img=await runwareGen(withStyle(g.imagePrompt,g.asset),SIZE_PRINT.w,SIZE_PRINT.h,3,g.asset==='illustration'?null:sheetRef()); g._file=g._file||buildFilename(ST.article.focusKeyword,g.name,i); }
   catch(e){ g._err=e.message; }
   rerenderGame(i);
 }
@@ -205,7 +205,7 @@ async function regenExtraImg(i,k){
   if(!prompt){toast('No prompt stored for this detail shot','err');return;}
   extras[k]={img:null,file:extras[k]&&extras[k].file}; g._imgs2=extras; rerenderGame(i);
   try{
-    const u=await runwareGen(withStyle(prompt,g.asset),SIZE_PRINT.w,SIZE_PRINT.h,3,g.asset==='illustration'?null:ST.refDataUri);
+    const u=await runwareGen(withStyle(prompt,g.asset),SIZE_PRINT.w,SIZE_PRINT.h,3,g.asset==='illustration'?null:sheetRef());
     extras[k]={img:u,file:extras[k].file||buildFilename(ST.article.focusKeyword,(g.name||'')+'-detail-'+(k+1),i)};
   }catch(e){ toast(e.message,'err'); }
   g._imgs2=extras; rerenderGame(i);

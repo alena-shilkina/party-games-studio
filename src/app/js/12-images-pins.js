@@ -6,7 +6,7 @@ async function generateImages(){
   // pool of 2 — parallel enough to be fast, low enough to avoid Runware overload 5xx
   await runPool(jobs, async ([g,i])=>{
     try{
-      g._img=await runwareGen(withStyle(g.imagePrompt,g.asset),SIZE_PRINT.w,SIZE_PRINT.h,3,g.asset==='illustration'?null:ST.refDataUri); g._err=null;
+      g._img=await runwareGen(withStyle(g.imagePrompt,g.asset),SIZE_PRINT.w,SIZE_PRINT.h,3,g.asset==='illustration'?null:sheetRef()); g._err=null;
       g._file=buildFilename(kw,g.name,i);
       // ideas mode may ask for 1-2 extra detail shots (the cake, the table, a decor close-up)
       const extras=(g.extraImagePrompts||[]).filter(x=>String(x||'').trim()).slice(0,2);
@@ -14,7 +14,7 @@ async function generateImages(){
         g._imgs2=[];
         for(let k=0;k<extras.length;k++){
           try{
-            const u=await runwareGen(withStyle(extras[k],g.asset),SIZE_PRINT.w,SIZE_PRINT.h,3,g.asset==='illustration'?null:ST.refDataUri);
+            const u=await runwareGen(withStyle(extras[k],g.asset),SIZE_PRINT.w,SIZE_PRINT.h,3,g.asset==='illustration'?null:sheetRef());
             if(u) g._imgs2.push({img:u,file:buildFilename(kw,g.name+'-detail-'+(k+1),i)});
           }catch(e){ if(e.message==='__ABORT__'||isBalanceError(e.message)) throw e; }
         }

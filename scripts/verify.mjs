@@ -113,6 +113,17 @@ group('Печатные листы');
   js.includes('roughly one idea in five should have no card')
     ? fail('вернулось правило «одна из пяти без карточки» — это и делало её обязательной') : ok('старое правило про одну из пяти убрано');
 
+  // Библиотека стилей: референс привязан к стилю и подставляется автоматически.
+  body.includes('id="styleLib"') && js.includes('function setStyleRef(')
+    ? ok('библиотека стилей есть в настройках') : fail('в настройках нет библиотеки стилей');
+  const refUses = (js.match(/g\.asset==='illustration'\?null:sheetRef\(\)/g) || []).length;
+  refUses === 4 ? ok('все четыре места рисования листа берут референс из одного источника')
+                : fail(`sheetRef() используется ${refUses} раз вместо 4`);
+  js.includes("ST.refDataUri=styleRefFor(r.infoStyle||'auto')")
+    ? ok('строка без своего референса берёт его из библиотеки') : fail('строка не подхватывает референс стиля');
+  js.includes('styleRef:sheetRef()||null')
+    ? ok('снимок ревью уносит тот же референс') : fail('снимок ревью не сохраняет референс библиотеки');
+
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
     .filter(fn => (js.match(new RegExp(fn.replace('(', '\\('), 'g')) || []).length >= 2);

@@ -48,6 +48,12 @@ function autoStyleBlock(){
     : 'STYLE: elegant airy watercolor on a cream background, muted tasteful palette with one soft accent color and charcoal text; delicate recurring floral and dot motifs; refined and consistent across the set.';
 }
 // append the shared style block (reference-derived > preset > auto) + site footer to an image prompt
+// Референс для печатного листа: приложенный вручную или к строке — главнее всего,
+// иначе берётся картинка из библиотеки стилей по выбранному стилю. Фотографии сюда
+// не попадают: у них свой контракт и референс им не передаётся.
+function sheetRef(){ return ST.refDataUri || styleRefFor(activeInfoStyle); }
+// выбор стиля в сайдбаре подтягивает его референс, если своего не приложено
+function setInfoStyle(val){ activeInfoStyle=val; if(!ST.baseRef) ST.refDataUri=styleRefFor(val); }
 function styleText(){
   let sb=(v('styleBlock')||ST.styleBlock||'').trim();      // 1. reference-derived (Vision)
   if(!sb){                                                 // 2. no reference → chosen preset

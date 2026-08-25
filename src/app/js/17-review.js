@@ -31,7 +31,7 @@ async function stageForReview(status){
   const snap={ id:crypto.randomUUID(), title:a.title, status, when:Date.now(),
     article:JSON.parse(JSON.stringify(a)), pins:JSON.parse(JSON.stringify(ST.pins)),
     feat, pubCat:ST.pubCat||null,
-    styleBlock:styleText(), styleRef:ST.refDataUri||null, refMode:refModeNow(), siteDomain:siteDomain(), category:v('category'), audience:v('audience'),
+    styleBlock:styleText(), styleRef:sheetRef()||null, refMode:refModeNow(), siteDomain:siteDomain(), category:v('category'), audience:v('audience'),
     mode:(v('articleMode')||'games') };   // the renderer reads the mode, so it must travel WITH the snapshot   // styleRef pins the reference IMAGE so every regen stays in the set's look
   ST.review.push(snap); saveReview();
   return {ok:true};

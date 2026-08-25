@@ -81,7 +81,7 @@
 
     <div class="sl">Infographic style</div>
     <div class="fg">
-      <select id="infoStyle" onchange="activeInfoStyle=this.value"></select>
+      <select id="infoStyle" onchange="setInfoStyle(this.value)"></select>
       <small>Used when no reference is attached — keeps all sheets in one look.</small>
     </div>
 
@@ -187,6 +187,13 @@
       <option value="high">High — may time out on Runware</option>
     </select>
     <small>Only applies to GPT Image 2. <b>Low</b> costs a fraction of medium and is fine for photo-style and light-text sheets — but check text-heavy printables (trivia, bingo, rules) before running a whole wave on it. <b>High</b> often exceeds Runware's sync window and fails.</small>
+  </div>
+
+  <div class="sl">Style library</div>
+  <div class="fg">
+    <small style="display:block;margin:-2px 0 8px">Attach one reference image to each style, once. After that pick the style per row (or set <code>infographic_style</code> in the CSV) and its reference is used automatically — the sheet's subject still comes from the article. Applies to printable sheets only; photos never use a reference.</small>
+    <div id="styleLib"></div>
+    <small>A row's own reference always wins, so a one-off article with a specific character still overrides the library. Paste any public URL — your WordPress media library works well.</small>
   </div>
 
   <div class="sl">Tone of voice</div>
