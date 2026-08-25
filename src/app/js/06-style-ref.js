@@ -88,7 +88,7 @@ function originalityClause(explicit){
   if(mode==='motifs') return MOTIF_ORIGINALITY;
   return mode==='image' ? REF_ORIGINALITY : ORIGINALITY;
 }
-const STYLE_LOCK='CONSISTENCY: this sheet is one of a matching printable set. Reproduce the style contract above EXACTLY — same background colour, same border treatment, same palette hexes, same motifs and the same typeface family on every sheet. Do not reinterpret, restyle or introduce new colours, borders or decorative elements.';
+const STYLE_LOCK='CONSISTENCY: this sheet is one of a matching printable set. Reproduce the style contract above EXACTLY — same background colour, same border treatment, same palette hexes, same motifs and the same typeface family on every sheet. Do not reinterpret, restyle or introduce new colours, borders or decorative elements. THE SHEET DESCRIPTION IS CONTENT, NOT STYLE: if it mentions a drawing technique, a colour, a background, a line weight, a mood, or the word "clean", ignore that word completely and draw the sheet in the style contract above. The style contract wins over every style word anywhere else in this prompt.';
 // Editorial photography contract — used for "illustration" assets (cakes, arches, tablescapes, dishes).
 // These are PHOTOGRAPHS, not designed sheets, so they must never receive the printable style contract,
 // the "SHEET TO DRAW" framing or the site footer: that is what made them flat, white and lifeless.
@@ -100,10 +100,15 @@ const PHOTO_CONTRACT=`EDITORIAL PHOTOGRAPHY — this is a photograph for a magaz
 - PHYSICAL PLAUSIBILITY: everything must be buildable and complete, resting on a real surface and obeying gravity. Nothing is fused into a wall, broken, warped, floating or trailing off the edge. Stacked or tiered things sit level and hold together.
 - NO people, no hands, no faces. NO text, letters, numbers, captions, watermarks or logos anywhere in the image. No brand labels.
 - PHOTOREALISM — this must look like a real photograph taken by a magazine photographer, not a render. CAMERA: shot on a 50mm lens at about f/2.8, from a natural eye-level or slight three-quarter angle; soft directional daylight from one side with gentle falloff and real, slightly soft shadows; shallow depth of field where the front of the food is sharp and the back genuinely falls out of focus. IMPERFECTION IS THE POINT: hand-made and hand-arranged things are never identical. Every piece differs in size, angle and placement — some lean, one sits slightly apart, garnish lands unevenly. Include honest small mess: a few crumbs, a smear on the board, an oil pool that is not symmetrical, a herb leaf out of place, one piece already eaten or a bite taken. Real props show light wear — a scratched board, a linen napkin with creases, a fingerprint on a glass. REAL SURFACES: matte where food is matte (cheese, bread, meat), shine only where fat or glaze genuinely sits. No plastic or waxy sheen, no rubbery highlights, no uniform glossy coating over everything. FORBIDDEN AI LOOK: no HDR glow, no halo or rim-light around every item, no over-saturated candy colours, no perfect radial symmetry, no identical repeated objects cloned across the frame, no impossibly clean surfaces, no floating ingredients, no smooth airbrushed texture. Slight natural grain and true-to-life colour, as if straight out of camera with minimal editing.`;
-function withStyle(prompt,asset){
+// Стиль и подвал можно передать явно: очередь ревью рисует лист из снимка, а не из
+// текущего состояния. Раньше она склеивала промпт по-своему — стилевой блок шёл ПОСЛЕ
+// описания листа и без замка в конце, поэтому перерисованный лист уезжал от набора.
+// Теперь сборка одна на все случаи.
+function withStyle(prompt,asset,styleOverride,footerOverride){
   // photographs take a completely different route from printable sheets
   if(asset==='illustration') return PHOTO_CONTRACT+'\n\nPHOTOGRAPH TO SHOOT:\n'+prompt;
-  const sb=styleText();
+  const sb=(styleOverride)?styleOverride:styleText();
+  const foot=(footerOverride!=null)?footerOverride:siteFooter();
   // the style contract goes FIRST so it anchors the whole image. Long sheet descriptions used to
   // dilute a trailing style block, which is why packs drifted away from the reference.
   // RICH_SHEET demands borders, patterned bands and vignettes — that directly contradicts a minimal
@@ -111,6 +116,6 @@ function withStyle(prompt,asset){
   const minimal=/STRICTLY NO decorative|minimal|no decorative frames|clean editorial|lots of white space/i.test(sb)
               || ['editorial','light-modern','stationery','recipe-card'].includes(activeInfoStyle);
   const rich=(!minimal && ['prompts','ideas','recipes'].includes(v('articleMode')||'games'))?'\n\n'+RICH_SHEET:'';
-  if(!sb) return prompt+rich+siteFooter();
-  return sb+'\n\n'+originalityClause()+'\n\n'+STYLE_LOCK+rich+'\n\nSHEET TO DRAW (content only — keep the style above unchanged):\n'+prompt+'\n\n'+STYLE_LOCK+siteFooter();
+  if(!sb) return prompt+rich+foot;
+  return sb+'\n\n'+originalityClause()+'\n\n'+STYLE_LOCK+rich+'\n\nSHEET TO DRAW (content only — keep the style above unchanged):\n'+prompt+'\n\n'+STYLE_LOCK+foot;
 }

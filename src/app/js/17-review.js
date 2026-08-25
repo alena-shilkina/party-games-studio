@@ -194,9 +194,10 @@ async function reviewRegen(id,gi){
     // photographs and printable sheets need completely different prompts, here too
     const isIllus=g.asset==='illustration';
     const footer=(!isIllus&&s.siteDomain)?`\n\nAt the very bottom center, add a small, subtle footer text reading "${s.siteDomain}" in a tiny unobtrusive font.`:'';
-    const prompt=isIllus
-      ? PHOTO_CONTRACT+'\n\nPHOTOGRAPH TO SHOOT:\n'+(g.imagePrompt||g.name)
-      : (g.imagePrompt||('printable '+g.name))+(s.styleBlock?'\n\n'+s.styleBlock+'\n\n'+originalityClause()+'\n\n'+STYLE_LOCK:'')+footer;
+    // Та же сборка, что и при обычной генерации: стилевой блок ВПЕРЕДИ, описание листа
+    // как содержимое, замок стиля в конце. Раньше здесь был свой порядок — стиль ПОСЛЕ
+    // описания и без замка в конце, — и перерисованный лист уезжал от остального набора.
+    const prompt=withStyle(g.imagePrompt||('printable '+g.name), g.asset, s.styleBlock, footer);
     const img=await runwareGen(prompt,SIZE_PRINT.w,SIZE_PRINT.h,3,isIllus?null:(s.styleRef||null));   // sheets reuse the SET's reference; photos must not inherit a sheet reference
     const up=await wpSideload(site,img,buildFilename(s.article.focusKeyword,g.name,gi),g.name+(isIllus?'':' printable game sheet'),'');
     g._img=up.src; saveReview(); renderReview(); toast('Infographic redone','ok');

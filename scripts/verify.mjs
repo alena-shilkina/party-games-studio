@@ -124,6 +124,15 @@ group('Печатные листы');
   js.includes('styleRef:sheetRef()||null')
     ? ok('снимок ревью уносит тот же референс') : fail('снимок ревью не сохраняет референс библиотеки');
 
+  // Одна сборка промпта на все случаи. У очереди ревью был свой порядок — стиль ПОСЛЕ
+  // описания листа, — и перерисованный лист уезжал от набора.
+  js.includes('withStyle(g.imagePrompt||(\'printable \'+g.name), g.asset, s.styleBlock, footer)')
+    ? ok('перерисовка из ревью использует общую сборку промпта') : fail('очередь ревью снова собирает промпт по-своему');
+  js.includes('THE SHEET DESCRIPTION IS CONTENT, NOT STYLE')
+    ? ok('замок стиля перебивает стилевые слова из описания листа') : fail('замок стиля не защищён от стилевых слов в описании');
+  js.includes('clean printable game page')
+    ? fail('в инструкции снова просят «clean» — это уводит листы в белую графику') : ok('из инструкции убрано слово, тянувшее в белую графику');
+
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
     .filter(fn => (js.match(new RegExp(fn.replace('(', '\\('), 'g')) || []).length >= 2);
