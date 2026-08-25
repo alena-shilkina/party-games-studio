@@ -81,7 +81,18 @@ function originalityClause(explicit){
   if(!sheetRef()) return ORIGINALITY;
   return (explicit||refModeNow())==='motifs' ? MOTIF_ORIGINALITY : REF_ORIGINALITY;
 }
-const STYLE_LOCK='CONSISTENCY: this sheet is one of a matching printable set. Every sheet is drawn by the SAME HAND — the exact medium, line quality, edge, shading and level of finish described above — and in the SAME colour family named above. Do not switch technique between sheets, do not step outside that colour family, and do not invent a different look for this one. THE SHEET DESCRIPTION IS CONTENT, NOT STYLE: if it mentions a drawing technique, a colour, a background, a line weight, a mood, or the word "clean", ignore that word completely and draw the sheet in the style contract above. The style contract wins over every style word anywhere else in this prompt.';
+// Листы одной статьи рисуются РАЗНЫМИ запросами: генератор не видит соседние листы
+// и не знает, что он там нарисовал. Единственное, что держит комплект вместе, — этот
+// текст, одинаковый во всех запросах. Поэтому он перечисляет всё поимённо: шрифты,
+// рамку, поля, мотивы. Общего «сделай в одном стиле» тут не хватает.
+const STYLE_LOCK='CONSISTENCY — THIS SHEET IS ONE PAGE OF A MATCHING SET, and the buyer will see all of them side by side. Someone flipping through the pack must not be able to tell which sheet was made first. Everything below is IDENTICAL on every sheet of this article:\n'
++'- THE HAND: the same medium, line quality, edge treatment, shading and level of finish described above. Never switch technique between sheets.\n'
++'- THE TYPE: the SAME two typefaces throughout — one display face for the sheet title, one quiet face for body text and labels. The same weights, the same capitalisation habit, the same title treatment and the same relative sizes. Never a different lettering style, never hand-lettering on one sheet and a typeface on another.\n'
++'- THE COLOURS: the same ground and the same accent family on every sheet.\n'
++'- THE FRAME: the same border or frame treatment, the same corner behaviour and the same page margins, so the sheets stack evenly.\n'
++'- THE MOTIFS: the same family of decorative elements, drawn fresh each time but recognisably from one set — if one sheet has painted botanical sprigs in the corners, they all do.\n'
++'Only the CONTENT changes from sheet to sheet. '
++'THE SHEET DESCRIPTION IS CONTENT, NOT STYLE: if it mentions a drawing technique, a colour, a background, a line weight, a mood, or the word "clean", ignore that word completely and draw the sheet in the style contract above. The style contract wins over every style word anywhere else in this prompt.';
 // Editorial photography contract — used for "illustration" assets (cakes, arches, tablescapes, dishes).
 // These are PHOTOGRAPHS, not designed sheets, so they must never receive the printable style contract,
 // the "SHEET TO DRAW" framing or the site footer: that is what made them flat, white and lifeless.
