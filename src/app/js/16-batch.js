@@ -24,8 +24,20 @@ function saveBatch(){
   localStorage.setItem('pgs_batch',JSON.stringify(ST.batch));
   const s=$('bzSave'); if(s){ s.classList.add('show'); clearTimeout(saveBatch._t); saveBatch._t=setTimeout(()=>s.classList.remove('show'),900); }
 }
+// Режим работы с референсом один на всё приложение и живёт в списке сайдбара. Панель пакета
+// перекрывает сайдбар целиком, поэтому из неё до настройки было не добраться — здесь копия
+// того же списка, обе стороны пишут в одно и то же поле.
+function setRefMode(val){
+  const el=$('refMode'); if(el){ el.value=val; saveSettings(); }
+  const bz=$('bzRefMode'); if(bz) bz.value=val;
+}
+function syncRefModeControls(){
+  const val=v('refMode')||'image';
+  const bz=$('bzRefMode'); if(bz) bz.value=val;
+}
 function openBatch(){ if(!ST.batch)loadBatch(); $('bzStatus').value=ST.batch.status||'draft'; if($('featMode'))$('featMode').value=ST.batch.featMode||(ST.batch.autoFeatured===false?'manual':'pexels');
   if($('bzMode'))$('bzMode').value=ST.batch.mode||'review';
+  syncRefModeControls();
   $('bzSite').textContent=getSite()?getSite().name:'No site — set in ⚙';
   updateReviewCount(); renderBatch(); $('batchZone').classList.add('on'); }
 function closeBatch(){ $('batchZone').classList.remove('on'); }

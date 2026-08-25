@@ -71,8 +71,15 @@ group('Печатные листы');
     ? ok('запрет заглушек и половинчатых ключей на месте') : fail('нет запрета заглушек в ключе');
 
   // Три режима работы с референсом должны быть согласованы: список, разбор и правило.
-  const modes = (body.match(/<option value="(image|motifs|style)"/g) || []).length;
-  modes === 3 ? ok('в списке режимов референса три варианта') : fail(`режимов референса ${modes} вместо 3`);
+  // два списка (сайдбар и панель пакета), в каждом одни и те же три варианта
+  const modeOpts = body.match(/<option value="(image|motifs|style)"/g) || [];
+  const distinct = new Set(modeOpts).size;
+  distinct === 3 && modeOpts.length === 6
+    ? ok('оба списка режимов референса предлагают все три варианта')
+    : fail(`вариантов ${modeOpts.length} (различных ${distinct}) — ожидали 6 в двух списках`);
+  // Панель пакета перекрывает сайдбар, поэтому режим должен быть доступен и оттуда.
+  body.includes('id="bzRefMode"') && body.includes('setRefMode(this.value)')
+    ? ok('режим референса доступен и из панели пакета') : fail('из панели пакета до режима референса не добраться');
   const sysCalls = (js.match(/const sys=styleVisionSys\(\);/g) || []).length;
   sysCalls === 3 ? ok('разбор референса везде выбирается по режиму') : fail(`styleVisionSys() вызван ${sysCalls} раз вместо 3`);
   /if\(mode==='motifs'\) return MOTIF_ORIGINALITY;/.test(js)
