@@ -169,3 +169,11 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .badge.active{background:var(--ok-l);color:var(--ok)}
 .badge.print{background:var(--coral-l);color:var(--coral)}
 .badge.quiet{background:var(--plum-l);color:var(--plum)}
+
+/* Промпт под кнопкой Regenerate: свёрнут, разворачивается по клику. */
+.pw{margin:8px 0 0;text-align:left}
+.pw>summary{cursor:pointer;font-size:12px;color:var(--muted);user-select:none;list-style:none;padding:2px 0}
+.pw>summary::-webkit-details-marker{display:none}
+.pw>summary:hover{color:var(--ink)}
+.pw textarea{width:100%;box-sizing:border-box;margin-top:6px;min-height:120px;font-family:ui-monospace,monospace;font-size:11px;line-height:1.5}
+.pw small{display:block;margin-top:4px;color:var(--muted);font-size:11px}

@@ -77,6 +77,22 @@ function buildTOC(a){
 // a bare image, which is exactly how a mismatched or wrong detail shot went unnoticed until it
 // was already live. regen/regenExtra let the caller wire this to either the working article
 // (regenImg/regenExtraImg) or a Review-queue snapshot (reviewRegen/reviewRegenExtra).
+// Промпт рядом с каждой кнопкой «Regenerate». Раньше его не показывали нигде, и
+// перегенерировать приходилось вслепую: если лист вышел не тем, поправить формулировку
+// было негде. Свёрнут по умолчанию, чтобы не загромождать превью.
+// setter — готовое выражение вида "setGamePrompt(3,this.value)": оно решает, куда писать,
+// в рабочую статью или в снимок очереди ревью.
+function promptBox(text,setter,label){
+  if(!setter) return '';
+  return `<details class="pw"><summary>✎ ${esc(label||'Prompt')}</summary>
+    <textarea spellcheck="false" onchange="${setter}" placeholder="image prompt for this sheet…">${esc(text||'')}</textarea>
+    <small>Edits are saved as you type and apply the next time you press Regenerate.</small></details>`;
+}
+function setGamePrompt(i,val){ const g=ST.article&&ST.article.games&&ST.article.games[i]; if(g) g.imagePrompt=val; }
+function setGameExtraPrompt(i,k,val){
+  const g=ST.article&&ST.article.games&&ST.article.games[i]; if(!g) return;
+  g.extraImagePrompts=g.extraImagePrompts||[]; g.extraImagePrompts[k]=val;
+}
 function ideaBlockHTML(g,i,opts){
   opts=opts||{};
   const editable=opts.editable!==false;
@@ -94,6 +110,7 @@ function ideaBlockHTML(g,i,opts){
           <span class="fn">${g._file||''}</span>
         </figcaption></figure>`
     :(wantsImg?`<div class="ph" id="ph-${i}" style="max-width:340px;margin:16px auto">${g._err?('⚠ '+esc(g._err)):'…'}</div>`:'');
+  const promptMain=wantsImg?promptBox(g.imagePrompt,opts.setPrompt):'';
   const extras=(g._imgs2||[]).filter(x=>x&&x.img);
   const extraHTML=extras.map((x,k)=>`<figure style="margin:16px auto;text-align:center;max-width:480px">
       <img src="${x.img}" style="display:block;width:100%;border-radius:8px;border:1px solid var(--line)">
@@ -101,10 +118,12 @@ function ideaBlockHTML(g,i,opts){
         <span style="color:var(--muted)">extra shot ${k+1}</span>
         <button class="btn btn-ghost btn-sm" style="width:auto" onclick="${opts.regenExtra?opts.regenExtra(k):''}">🔄 Regenerate</button>
         <a class="btn btn-ghost btn-sm" style="width:auto" href="${x.img}" download="${x.file||'detail.png'}" target="_blank">↓ Download</a>
-      </figcaption></figure>`).join('');
+      </figcaption>
+      ${promptBox((g.extraImagePrompts||[])[k],opts.setExtraPrompt?opts.setExtraPrompt(k):'','Prompt — extra shot '+(k+1))}
+      </figure>`).join('');
   const planner=opts.showPlanner!==false?plannerHTML(g,opts.kw||''):'';
   const shop=opts.showShop!==false?sectionShopHTML(g):'';
-  return `<div class="game-card" id="${idAttr}">${heading}${content}${mainImg}${extraHTML}${planner}${shop}</div>`;
+  return `<div class="game-card" id="${idAttr}">${heading}${content}${mainImg}${promptMain}${extraHTML}${planner}${shop}</div>`;
 }
 function gameCard(g,i){
   // printables mode: show the idea's real published shape — heading, prose, main image, every
@@ -114,6 +133,7 @@ function gameCard(g,i){
       idPrefix:'gc', kw:(ST.article&&ST.article.focusKeyword)||'',
       ideaNo:(v('articleMode')==='ideas')?(i+1):0,
       regen:`regenImg(${i})`, regenExtra:k=>`regenExtraImg(${i},${k})`,
+      setPrompt:`setGamePrompt(${i},this.value)`, setExtraPrompt:k=>`setGameExtraPrompt(${i},${k},this.value)`,
     });
   }
   return gameCardFull(g,i);
@@ -130,7 +150,8 @@ function gameCardFull(g,i){
   const tools=wantsImg?`<div class="gc-tools">
     <button class="btn btn-ghost btn-sm" onclick="regenImg(${i})">🔄 Regenerate</button>
     ${g._img?`<a class="btn btn-ghost btn-sm" href="${g._img}" download="${g._file||'game.png'}" target="_blank">↓ Download</a>`:''}
-    <span class="fn">${g._file||''}</span></div>`:'';
+    <span class="fn">${g._file||''}</span></div>
+    ${promptBox(g.imagePrompt,`setGamePrompt(${i},this.value)`)}`:'';
   // active / non-printable games get an optional video-demo control instead of an infographic
   let videoTools='';
   if(!wantsImg){

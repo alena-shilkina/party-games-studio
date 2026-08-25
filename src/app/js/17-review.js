@@ -85,7 +85,9 @@ function reviewArticleBodyHTML(s){
   const mode=s.mode||inferMode(a)||'games';
   const opts=(g,i)=>({idPrefix:'rv-'+s.id+'-gc', kw:a.focusKeyword||'', editable:false,
     ideaNo:mode==='ideas'?0:0,   // numbering assigned by the caller below when it applies
-    regen:`reviewRegen('${s.id}',${i})`, regenExtra:k=>`reviewRegenExtra('${s.id}',${i},${k})`});
+    regen:`reviewRegen('${s.id}',${i})`, regenExtra:k=>`reviewRegenExtra('${s.id}',${i},${k})`,
+    setPrompt:`reviewEditPrompt('${s.id}',${i},this.value)`,
+    setExtraPrompt:k=>`reviewEditExtraPrompt('${s.id}',${i},${k},this.value)`});
   let h=`<p style="font-style:italic;color:var(--muted);font-size:12px;margin:0 0 10px">${esc(a.metaDescription||'')}</p>`;
   h+=`<div style="font-size:13px;line-height:1.6;margin-bottom:14px">${a.intro||''}</div>`;
   if(secs.length){
@@ -171,9 +173,15 @@ function inferMode(a){
   }
   return 'games';
 }
+// Правка промпта прямо в очереди ревью. Функция была написана давно, но к интерфейсу
+// её никто не подключил — промпт нигде не показывался, и перегенерация шла вслепую.
 function reviewEditPrompt(id,gi,val){
   const s=ST.review.find(x=>x.id===id); if(!s||!s.article.games[gi])return;
   s.article.games[gi].imagePrompt=val; saveReview();
+}
+function reviewEditExtraPrompt(id,gi,k,val){
+  const s=ST.review.find(x=>x.id===id); const g=s&&s.article.games[gi]; if(!g)return;
+  g.extraImagePrompts=g.extraImagePrompts||[]; g.extraImagePrompts[k]=val; saveReview();
 }
 // regenerate one infographic inside a staged article, re-upload, update the snapshot
 async function reviewRegen(id,gi){

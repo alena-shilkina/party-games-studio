@@ -54,7 +54,7 @@ Describe the reference image's visual system, covering ALL of:
 (5) typography character (serif/sans, weight, all-caps or mixed, colour) — the whole set must share one type style.
 
 HARD LIMITS — this contract must be reproducible from words alone:
-- Describe the subjects by what they ARE, never by whose they are. Do NOT name or reference any brand, franchise, logo, monogram, named artist or trademarked mascot, and do NOT describe anything that would identify one. If the reference shows a branded character, describe only the plain animal or object underneath it.
+- Describe the subjects by what they look like: kind, colour, proportions, accessories. That description is what gets redrawn, so it has to stand on its own without the picture.
 - Do NOT copy the reference's layout, composition or the exact arrangement of its elements.
 - Do NOT describe the words printed on the reference.
 

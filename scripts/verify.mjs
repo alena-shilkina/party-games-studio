@@ -77,6 +77,16 @@ group('Печатные листы');
   sysCalls === 3 ? ok('разбор референса везде выбирается по режиму') : fail(`styleVisionSys() вызван ${sysCalls} раз вместо 3`);
   /if\(mode==='motifs'\) return MOTIF_ORIGINALITY;/.test(js)
     ? ok('режим с переносом персонажей подключён') : fail('режим motifs не влияет на правило originality');
+
+  // Промпт должен быть виден и правим везде, где есть кнопка Regenerate. Функция правки
+  // в очереди ревью однажды уже пролежала без дела, не подключённая ни к чему.
+  js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
+  const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
+    .filter(fn => (js.match(new RegExp(fn.replace('(', '\\('), 'g')) || []).length >= 2);
+  wired.length === 4
+    ? ok('промпт правится и в статье, и в очереди ревью, включая дополнительные кадры')
+    : fail('не подключены: ' + ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
+        .filter(f => !wired.includes(f)).join(', '));
 }
 
 group('Интерфейс');

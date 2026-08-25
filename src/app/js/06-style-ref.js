@@ -75,8 +75,7 @@ const REF_ORIGINALITY=`HOW TO USE THE ATTACHED REFERENCE IMAGE — it is a STYLE
 const MOTIF_ORIGINALITY=`HOW TO USE THE ATTACHED REFERENCE IMAGE — you are illustrating the NEXT sheet of the SAME series, and this series keeps its cast of characters and objects.
 - MATCH: the drawing technique, line weight, fills and shading, palette and border treatment — AND the recurring subjects named in the style contract above. If the series is built around a teddy bear, this sheet carries that same teddy bear. Do not swap it for a different animal or object.
 - REDRAW, DO NOT COPY: draw those subjects yourself, in NEW poses, angles, sizes and arrangements that suit this sheet. Never trace, cut out, mirror or re-place an element from the reference, and never repeat its layout or composition.
-- VARY the supporting props and their placement so the sheets are not identical, but keep the lead subject recognisably the same across the whole set.
-- No trademarked or copyrighted characters, mascots, logos, brand names, monograms or emblems anywhere, including on clothing, packaging or props. If the reference shows a branded character, draw the plain animal or object, never the brand's version of it.`;
+- VARY the supporting props and their placement so the sheets are not identical, but keep the lead subject recognisably the same across the whole set.`;
 // which originality clause travels with a styled sheet, depending on the chosen reference mode
 function originalityClause(){
   const mode=v('refMode')||'image';
