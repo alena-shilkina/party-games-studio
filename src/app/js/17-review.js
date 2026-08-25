@@ -279,7 +279,7 @@ function importBatchCSV(e){
     const col=name=>header.indexOf(name);
     const idx={ title:col('title'), kw:col('keyword'), pins:col('pin_headlines'), ctx:col('extra_info'),
       aud:col('audience'), cat:col('wp_category'), info:col('infographic_style'), vibe:col('pin_vibe'), dl:col('downloadable'),
-      feat:col('featured_keyword'), ref:col('ref_url'), mode:col('article_mode') };
+      feat:col('featured_keyword'), ref:col('ref_url'), refmode:col('ref_mode'), mode:col('article_mode') };
     if(idx.kw<0 && idx.title<0){ toast('CSV needs at least a "title" or "keyword" column','err'); return; }
     const rows=[];
     for(let i=1;i<table.length;i++){
@@ -297,6 +297,13 @@ function importBatchCSV(e){
       r.downloadable=/^(y|yes|true|1|да)$/i.test(get('dl')||'');   // ideas mode: does this article include printable sheets?
       r.featKW=get('feat');
       r.refUrl=get('ref');   // remote reference image URL (fetched at run time)
+      // ref_mode задаёт, как использовать этот референс: style (только манера),
+      // motifs (плюс персонажи), text (не отправлять картинку). Пусто — берётся
+      // значение из панели пакета. Синонимы приняты, чтобы не спотыкаться о формулировку.
+      const rm=get('refmode').toLowerCase().replace(/[^a-z]/g,'');
+      r.refMode = /motif|character|bear/.test(rm) ? 'motifs'
+                : /text|noimage|notimage/.test(rm) ? 'style'
+                : /style|image/.test(rm) ? 'image' : '';
       const md=get('mode').toLowerCase(); r.mode=['games','prompts','ideas','recipes'].includes(md)?md:'games';   // blank → games (old files keep working)
       // wp category: accept ID or name
       const cat=get('cat');
