@@ -1,7 +1,7 @@
-// Проверка единого стиля печатных листов. Конкретный цвет фона мы не задаём — его
-// подбирает генератор картинок. Здесь убеждаемся, что рамки на месте: тёплый фон
-// запрещён, фон требуется одинаковый по всему набору, а референс перебивает технику,
-// но правило фона не отменяет. Браузерная панель ненадёжна, поэтому проверяем в Node.
+// Проверка стиля печатных листов. Стиль один: современная акварель — насыщенная,
+// с настоящими персонажами. Отдельно следим, что вернулось НЕ то, что уже отвергли:
+// приглушённая пастель, ботанические веточки по углам, вензеля и строгая антиква.
+// Браузерная панель ненадёжна, поэтому гоняем настоящие функции в Node.
 import { readFileSync } from 'node:fs';
 
 const src = f => readFileSync('src/app/js/' + f, 'utf8');
@@ -12,9 +12,9 @@ const grab = (text, start, end) => {
   return text.slice(a, b + end.length);
 };
 
-const sheet   = grab(src('01-presets.js'),   'const WATERCOLOUR_SHEET=', "';");
-const bgRule  = grab(src('06-style-ref.js'), 'const BACKGROUND_RULE=',   "';");
-const styleT  = grab(src('06-style-ref.js'), 'function styleText(',      '\n}');
+const sheet  = grab(src('01-presets.js'),   'const WATERCOLOUR_SHEET=', "Never plain white either.';");
+const bgRule = grab(src('06-style-ref.js'), 'const BACKGROUND_RULE=',   "';");
+const styleT = grab(src('06-style-ref.js'), 'function styleText(',      '\n}');
 
 const build = fields => new Function('fields', `
   const v = id => (fields[id] || '');
@@ -22,39 +22,50 @@ const build = fields => new Function('fields', `
   ${sheet}
   ${bgRule}
   ${styleT}
-  return { styleText, WATERCOLOUR_SHEET, BACKGROUND_RULE };
+  return { styleText, WATERCOLOUR_SHEET };
 `)(fields);
 
 let bad = 0;
 const check = (n, c) => { console.log((c ? '  ✓ ' : '  ✗ ') + n); if (!c) bad++; };
 
-console.log('Единый стиль');
-{
-  const { styleText, WATERCOLOUR_SHEET } = build({});
-  const t = styleText();
-  check('без референса берётся встроенный акварельный стиль', t.startsWith(WATERCOLOUR_SHEET.slice(0, 40)));
-  check('в стиле есть запрет тёплого фона', /NEVER yellow, cream, ivory, beige, butter, sand, tan/.test(t));
-  check('правило фона приклеено', t.includes('BACKGROUND AND PALETTE:'));
-  check('правило фона тоже запрещает тёплый тон', /must NOT be yellow/.test(t));
-  check('чистый белый тоже запрещён', /must not be plain white/.test(t));
-  check('фон одинаков по всему набору', /SAME ground and the SAME accent family on EVERY sheet/.test(t));
-  check('конкретный цвет не назначен', !/the background is a (soft|pale|muted)/.test(t));
-}
+const t = build({}).styleText();
+
+console.log('Чего в стиле быть не должно');
+check('не просит приглушённую пастель',      !/muted and tasteful|soft pastel palette/i.test(t));
+check('не просит ботанические веточки',      !/delicate painted botanical sprigs/i.test(t));
+check('не просит строгую антикву',           !/clean modern serif for the title/i.test(t));
+check('ботаника прямо запрещена',            /NO delicate botanical sprigs, leaves, blossoms/.test(t));
+check('вензеля и гравюрные рамки запрещены', /scrollwork, filigree, flourishes/.test(t));
+check('свадебная антиква запрещена',         /NOT a formal high-contrast serif/.test(t));
+check('бледная пастель названа провалом',    /pale washed-out pastel haze is a failure/.test(t));
+
+console.log('\nЧто в стиле должно быть');
+check('акварель как техника',            /modern hand-painted watercolour illustration/.test(t));
+check('яркая и чёткая заявлена сразу',   /bright, crisp, lively and characterful/.test(t));
+check('это рисуют сегодня, а не в 2000-х', /not like 2000s clip-art/.test(t));
+check('запрет мутного и размытого',      /Nothing muddy, blurry, hazy, soft-focus, faded or washed out/.test(t));
+check('чёткие силуэты',                  /defined silhouettes, clean confident shapes/.test(t));
+check('насыщенный цвет',                 /bright, clear and properly saturated/.test(t));
+check('настоящие персонажи и предметы',  /characters, animals, people, food, objects, props/.test(t));
+check('крупный читаемый шрифт',          /comfortably large and easy to read/.test(t));
+check('тёплый фон запрещён',             /NEVER yellow, cream, ivory, beige/.test(t));
+check('чистый белый запрещён',           /Never plain white either/.test(t));
+check('правило фона приклеено',          t.includes('BACKGROUND AND PALETTE:'));
+check('фон одинаков по набору',          /SAME ground and the SAME accent family on EVERY sheet/.test(t));
 
 console.log('\nРеференс');
 {
-  const { styleText } = build({ __vision: 'STYLE: dense wet-on-wet watercolour with pigment pooling.' });
-  const t = styleText();
-  check('референс перебивает встроенную технику', t.startsWith('STYLE: dense wet-on-wet'));
-  check('правило фона всё равно добавляется', t.includes('BACKGROUND AND PALETTE:'));
+  const withRef = build({ __vision: 'STYLE: dense gouache with visible brush marks.' }).styleText();
+  check('референс перебивает встроенную технику', withRef.startsWith('STYLE: dense gouache'));
+  check('правило фона всё равно добавляется',     withRef.includes('BACKGROUND AND PALETTE:'));
 }
 
-console.log('\nТема не влияет на цвет');
+console.log('\nСтиль один для всех');
 {
-  const a = build({ mainKW: 'halloween boo baskets', category: 'Holiday Party', audience: 'adult' }).styleText();
-  const b = build({ mainKW: 'circus games preschool', category: 'Kids Party', audience: 'kids' }).styleText();
-  check('контракт не зависит от темы — цвет выбирает генератор', a === b);
+  const a = build({ audience: 'kids',  category: 'Kids Party'  }).styleText();
+  const b = build({ audience: 'adult', category: 'Girls Night' }).styleText();
+  check('контракт не зависит от аудитории и темы', a === b);
 }
 
-console.log(bad ? '\nЕСТЬ ПРОБЛЕМЫ' : '\nстиль и правило фона работают как задумано');
+console.log(bad ? '\nЕСТЬ ПРОБЛЕМЫ' : '\nстиль соответствует тому, что просили');
 process.exit(bad ? 1 : 0);

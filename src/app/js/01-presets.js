@@ -90,11 +90,20 @@ function currentVibeBlock(){
 }
 
 /* ---------- ЕДИНЫЙ СТИЛЬ ПЕЧАТНЫХ ЛИСТОВ ----------
-   Раньше здесь было восемь пресетов, и каждая тема тянула свой — набор разъезжался,
-   а подбирать референс под каждую категорию оказалось долго. Теперь техника одна
-   и не меняется. Меняется только палитра, её даёт themePalette() от темы статьи.
-   Референс, приложенный к строке или в сайдбаре, по-прежнему перебивает этот блок. */
-const WATERCOLOUR_SHEET='STYLE: modern watercolour illustration, the kind sold as a premium clipart set — soft hand-painted washes with visible pigment gradients and gentle granulation, NO ink outlines and no drawn contour lines; edges stay soft where a form meets the ground and turn crisper where two washes meet; shading is built from layered translucent washes, never a flat fill and never an airbrushed gradient; every subject has believable proportions with a little painterly irregularity — charming and characterful, never cartoonish, never stiff clip-art; a soft, barely-there shadow grounds each element; delicate painted botanical sprigs, small blooms and leaves used sparingly as accents, never crowding the content. Typography: a clean modern serif for the title and a quiet sans for the body, both in a dark readable tone from the palette. BACKGROUND — MANDATORY: the sheet sits on a soft TINTED ground, chosen to suit the article and kept identical across the whole set. NEVER yellow, cream, ivory, beige, butter, sand, tan or any warm off-white; those read as cheap and dated. Never plain white either.';
+   Один стиль на всё: современная акварель уровня платного клипарт-набора.
+   Здесь же перечислено то, чего быть НЕ должно — приглушённая пастель, ботанические
+   веточки по углам, вензеля, гравюрные рамки и строгая антиква. Это язык свадебной
+   полиграфии; на печатных листах он выглядит вяло и старомодно.
+   Референс, приложенный к строке или в сайдбаре, перебивает технику целиком. */
+const WATERCOLOUR_SHEET='STYLE: modern hand-painted watercolour illustration — bright, crisp, lively and characterful. This is how a working illustrator draws TODAY, for a contemporary digital shop.\n'
++'- CONTEMPORARY, NOT DATED — read this twice: it must look like illustration made now, not like 2000s clip-art, not like a scrapbook embellishment pack, not like a faded stock-art CD, not like craft-store greeting cards. Nothing nostalgic, nothing vintage, nothing "shabby chic".\n'
++'- CRISP AND CLEARLY RESOLVED: defined silhouettes, clean confident shapes, sharp detail where it matters, so every element reads instantly. Nothing muddy, blurry, hazy, soft-focus, faded or washed out. Watercolour here means the medium, not softness for its own sake.\n'
++'- TECHNIQUE: washes with visible pigment gradients and gentle granulation, NO ink outlines and no drawn contour lines; edges stay soft where a form meets the ground and turn crisp where two washes meet; shading is built from layered translucent washes, never a flat fill and never an airbrushed gradient; a soft, barely-there shadow grounds each element. It must read as painted by hand, never as a vector trace or stiff clip-art.\n'
++'- COLOUR: bright, clear and properly saturated, with real contrast between elements. The paint looks freshly loaded, not diluted. A pale washed-out pastel haze is a failure.\n'
++'- WHAT IS ILLUSTRATED: the actual subjects of this article — characters, animals, people, food, objects, props — painted with expression, movement and personality, at a generous size that reads across a table.\n'
++'- FORBIDDEN DECORATION, this is the most common mistake: NO delicate botanical sprigs, leaves, blossoms, laurel wreaths or floral corners used as ornament; NO vignettes, scrollwork, filigree, flourishes, diamond or lozenge borders, engraved frames or certificate-style rules. That is wedding-stationery language and it drains the life out of the sheet. If the page needs a border at all, keep it simple and painted.\n'
++'- TYPE: a clean, confident modern typeface, comfortably large and easy to read. NOT a formal high-contrast serif, NOT a wedding script, NOT tight elegant letterspacing.\n'
++'- BACKGROUND, MANDATORY: the sheet sits on a soft TINTED ground, chosen to suit the article and kept identical across the whole set. NEVER yellow, cream, ivory, beige, butter, sand, tan or any warm off-white; those read as cheap and dated. Never plain white either.';
 const INFO_STYLES=[
   {id:'watercolour',label:'Modern watercolour',block:WATERCOLOUR_SHEET}
 ];

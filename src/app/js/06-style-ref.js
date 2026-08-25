@@ -48,7 +48,7 @@ function sheetRef(){ return ST.refDataUri; }
 // и делает это хорошо. Здесь только рамки — тёплый фон выглядит дёшево, чистый белый
 // пустым, а разные фоны в одном наборе разваливают комплект.
 const BACKGROUND_RULE='BACKGROUND AND PALETTE: choose a soft, lightly tinted ground that suits this article\'s own theme — a muted pastel, dusty or cool tone — and build the accents around it. Use the SAME ground and the SAME accent family on EVERY sheet of this set, so the printables read as one pack. The ground must NOT be yellow, cream, ivory, beige, butter, sand or tan, must not be a warm off-white, and must not be plain white; those read as cheap and dated. Text is a deep readable tone from the same family — never pale type on a pale ground.';
-// Техника + правило фона. Технику даёт референс, если он приложен, иначе встроенный стиль.
+// Техника + правило фона. Технику даёт референс, если он приложен, иначе единый стиль.
 function styleText(){
   const vision=(v('styleBlock')||ST.styleBlock||'').trim();
   return (vision||WATERCOLOUR_SHEET)+'\n\n'+BACKGROUND_RULE;

@@ -124,6 +124,14 @@ group('Печатные листы');
     ? ok('стиль печатных листов один') : fail('вернулось несколько стилей печатных листов');
   js.includes('const WATERCOLOUR_SHEET=') && js.includes('NEVER yellow, cream, ivory, beige, butter, sand, tan')
     ? ok('единый акварельный стиль, тёплый фон запрещён') : fail('нет единого стиля или не запрещён жёлтый фон');
+  // Стиль должен быть яркий и чёткий, как рисуют сегодня. Отдельно сторожим возврат
+  // к тому, что уже отвергли: пастель, ботанические веточки, вензеля, свадебная антиква.
+  js.includes('bright, crisp, lively and characterful') && js.includes('not like 2000s clip-art')
+    ? ok('стиль заявлен ярким, чётким и современным') : fail('из стиля пропали яркость, чёткость или современность');
+  js.includes('NO delicate botanical sprigs, leaves, blossoms') && js.includes('NOT a formal high-contrast serif')
+    ? ok('ботаника, вензеля и свадебная антиква запрещены') : fail('вернулся свадебный язык оформления');
+  /muted and tasteful|delicate painted botanical sprigs and small blooms are the right accent/.test(js)
+    ? fail('в стиле снова просят приглушённость и веточки') : ok('приглушённый вариант стиля не вернулся');
   js.includes('must NOT be yellow, cream, ivory, beige, butter, sand or tan')
     ? ok('правило фона тоже запрещает тёплый тон') : fail('правило фона не запрещает жёлтый');
   const refUses = (js.match(/g\.asset==='illustration'\?null:sheetRef\(\)/g) || []).length;
