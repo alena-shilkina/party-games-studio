@@ -107,6 +107,12 @@ group('Печатные листы');
     ? ok('блока с играми в карточке нет, старые статьи из очереди тоже чистятся')
     : fail('в карточке снова появился блок с играми');
 
+  // Карточка-подсказка должна быть исключением, а не обязательной врезкой на каждой идее.
+  js.includes('MOST IDEAS GET NO CARD') && js.includes('the DEFAULT is not to have one')
+    ? ok('карточка-подсказка не обязательна') : fail('карточка-подсказка снова навязывается каждой идее');
+  js.includes('roughly one idea in five should have no card')
+    ? fail('вернулось правило «одна из пяти без карточки» — это и делало её обязательной') : ok('старое правило про одну из пяти убрано');
+
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
     .filter(fn => (js.match(new RegExp(fn.replace('(', '\\('), 'g')) || []).length >= 2);
