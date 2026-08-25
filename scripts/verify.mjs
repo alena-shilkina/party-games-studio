@@ -62,6 +62,23 @@ group('Правила человеческого текста');
   /const HUMANIZER=`/.test(js) ? ok('сам блок правил на месте') : fail('блок HUMANIZER не найден');
 }
 
+group('Печатные листы');
+{
+  // Ответы печатались там, где их быть не должно, и с заглушками вида [answer].
+  js.includes('FIRST DECIDE WHETHER THE SHEET SHOULD HAVE A KEY AT ALL')
+    ? ok('правило "нужен ли ключ вообще" на месте') : fail('нет правила о том, когда ключ не нужен');
+  js.includes('NEVER PRINT A PLACEHOLDER') && js.includes('NEVER PRINT A HALF-REAL KEY')
+    ? ok('запрет заглушек и половинчатых ключей на месте') : fail('нет запрета заглушек в ключе');
+
+  // Три режима работы с референсом должны быть согласованы: список, разбор и правило.
+  const modes = (body.match(/<option value="(image|motifs|style)"/g) || []).length;
+  modes === 3 ? ok('в списке режимов референса три варианта') : fail(`режимов референса ${modes} вместо 3`);
+  const sysCalls = (js.match(/const sys=styleVisionSys\(\);/g) || []).length;
+  sysCalls === 3 ? ok('разбор референса везде выбирается по режиму') : fail(`styleVisionSys() вызван ${sysCalls} раз вместо 3`);
+  /if\(mode==='motifs'\) return MOTIF_ORIGINALITY;/.test(js)
+    ? ok('режим с переносом персонажей подключён') : fail('режим motifs не влияет на правило originality');
+}
+
 group('Интерфейс');
 {
   // Здесь однажды уже была поломка: функция панели существовала, а кнопки, которая её

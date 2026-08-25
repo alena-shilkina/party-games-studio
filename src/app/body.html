@@ -92,10 +92,13 @@
       <div style="margin-top:8px">
         <label for="refMode">How the reference is used</label>
         <select id="refMode">
-          <option value="image" selected>Attach it — same series, but new icons (recommended)</option>
+          <option value="image" selected>Style only — same look, new objects (recommended)</option>
+          <option value="motifs">Style + characters — keep the bear a bear</option>
           <option value="style">Style text only — don't send the image</option>
         </select>
-        <small><b>Attach it</b>: the reference goes to the image model as a <i>style guide</i>, and the prompt tells the model to draw the NEXT piece in that same illustrated series — same technique, palette and object world, but its own new icons and arrangements, never a copy or trace of the ones in the reference.<br><b>Style text only</b>: the image is never sent; only Claude's written style contract drives the generation. Weaker match — use it when you have no reference you're comfortable attaching.</small>
+        <small><b>Style only</b>: the reference goes to the image model as a <i>style guide</i>, and the prompt tells the model to draw the NEXT piece in that same illustrated series — same technique, palette and object world, but its own new icons and arrangements, never a copy or trace of the ones in the reference.
+        <br><b>Style + characters</b>: same as above, but the recurring subjects carry over too. If the reference is built around a teddy bear, every sheet keeps that teddy bear instead of getting a rabbit. Claude names the characters concretely when it reads the reference, and each sheet redraws them in its own poses and arrangements. Branded mascots are still never reproduced — a brand's bear comes out as a plain bear.
+        <br><b>Style text only</b>: the image is never sent; only Claude's written style contract drives the generation. Weaker match — use it when you have no reference you're comfortable attaching.</small>
       </div>
       <div id="refPreview" style="margin-top:8px"></div>
       <textarea id="styleBlock" placeholder="Style description (auto-written from the reference, editable)…" style="min-height:60px;margin-top:8px;display:none"></textarea>

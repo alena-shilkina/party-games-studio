@@ -21,7 +21,7 @@ async function analyzeRef(){
   const m=ST.refDataUri.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/); if(!m){toast('Unsupported image','err');return;}
   $('styleBlock').value='Reading style…';
   try{
-    const sys=STYLE_VISION_SYS;
+    const sys=styleVisionSys();
     const res=await fetch('/api/claude',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':v('claudeKey'),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
@@ -69,8 +69,20 @@ const REF_ORIGINALITY=`HOW TO USE THE ATTACHED REFERENCE IMAGE — it is a STYLE
 - NEVER: copy, trace, cut out, re-crop, mirror or re-place any individual icon, figure, mascot or decorative element from the reference; never repeat its layout or composition; never reproduce any text, wordmark or signature visible in it.
 - The finished sheet should look like it belongs beside the reference on a shelf — clearly the same series, obviously not the same page.
 - No trademarked or copyrighted characters, mascots, logos, brand names, monograms or emblems anywhere, including on clothing, packaging or props drawn in the artwork.`;
-// which originality clause travels with a styled sheet, depending on whether the image is attached
-function originalityClause(){ return (v('refMode')||'image')==='image' ? REF_ORIGINALITY : ORIGINALITY; }
+// Третий режим: переносим не только манеру рисунка, но и самих героев. Нужен, когда
+// в референсе есть персонаж, который должен остаться персонажем — мишка не должен
+// превращаться в зайца только потому, что повторять предметы из референса запрещено.
+const MOTIF_ORIGINALITY=`HOW TO USE THE ATTACHED REFERENCE IMAGE — you are illustrating the NEXT sheet of the SAME series, and this series keeps its cast of characters and objects.
+- MATCH: the drawing technique, line weight, fills and shading, palette and border treatment — AND the recurring subjects named in the style contract above. If the series is built around a teddy bear, this sheet carries that same teddy bear. Do not swap it for a different animal or object.
+- REDRAW, DO NOT COPY: draw those subjects yourself, in NEW poses, angles, sizes and arrangements that suit this sheet. Never trace, cut out, mirror or re-place an element from the reference, and never repeat its layout or composition.
+- VARY the supporting props and their placement so the sheets are not identical, but keep the lead subject recognisably the same across the whole set.
+- No trademarked or copyrighted characters, mascots, logos, brand names, monograms or emblems anywhere, including on clothing, packaging or props. If the reference shows a branded character, draw the plain animal or object, never the brand's version of it.`;
+// which originality clause travels with a styled sheet, depending on the chosen reference mode
+function originalityClause(){
+  const mode=v('refMode')||'image';
+  if(mode==='motifs') return MOTIF_ORIGINALITY;
+  return mode==='image' ? REF_ORIGINALITY : ORIGINALITY;
+}
 const STYLE_LOCK='CONSISTENCY: this sheet is one of a matching printable set. Reproduce the style contract above EXACTLY — same background colour, same border treatment, same palette hexes, same motifs and the same typeface family on every sheet. Do not reinterpret, restyle or introduce new colours, borders or decorative elements.';
 // Editorial photography contract — used for "illustration" assets (cakes, arches, tablescapes, dishes).
 // These are PHOTOGRAPHS, not designed sheets, so they must never receive the printable style contract,

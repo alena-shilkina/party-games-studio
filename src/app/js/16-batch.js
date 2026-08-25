@@ -40,7 +40,7 @@ function loadRowRef(e,id){
     if(!keyReady('claude')){ setRowRefState(id,'add Claude key'); return; }
     const m=rd.result.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/); if(!m){setRowRefState(id,'bad image');return;}
     try{
-      const sys=STYLE_VISION_SYS;
+      const sys=styleVisionSys();
       const res=await fetch('/api/claude',{method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':v('claudeKey'),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
         body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,

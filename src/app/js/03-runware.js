@@ -40,13 +40,35 @@ HARD LIMITS — this contract must be reproducible from words alone:
 - Do NOT describe the subject matter of the reference or the words printed on it.
 
 Write it as a compact directive block of 3-5 sentences. Start the WHOLE block with the single word "STYLE:" once, then continue in plain sentences — do NOT repeat "STYLE:" at the start of each sentence. Be concrete and repeatable — another generator must be able to produce the SAME look on 15 different sheets from this text alone. No preamble.`;
+
+// Вариант для режима «перенести и мотивы»: тот же разбор, но пункт (4) называет
+// конкретных персонажей и предметы, чтобы мишка остался мишкой, а не превратился в зайца.
+// Запрет на торговые марки остаётся: узнаваемого фирменного маскота переносить нельзя.
+const STYLE_VISION_SYS_MOTIFS=`You are writing a STYLE CONTRACT so that a whole SET of printable sheets can be generated in one identical, coordinated look, keeping the SAME recurring subjects as the reference.
+
+Describe the reference image's visual system, covering ALL of:
+(1) illustration technique (e.g. soft watercolour, flat vector, gouache, engraved line art, marker-and-ink) — line weight, fills, texture, shading;
+(2) exact palette — name every key colour with an approximate hex code, and say which is the BACKGROUND colour and which is the dominant accent;
+(3) the border / frame treatment (thickness, colour, single or double rule, inset margin, any patterned band and where it sits);
+(4) RECURRING SUBJECTS — name the actual creatures and objects the set is built from, concretely enough to redraw them: species or kind, colour, proportions, and any accessory they consistently carry (e.g. "a small cream teddy bear with a dark green ribbon at the neck, sitting", "a pale rocking horse with a gold mane"). Say which of them is the lead subject that should appear on most sheets, and how they are arranged (scattered corner clusters, a top band, a loose confetti spread, a tidy grid);
+(5) typography character (serif/sans, weight, all-caps or mixed, colour) — the whole set must share one type style.
+
+HARD LIMITS — this contract must be reproducible from words alone:
+- Describe the subjects by what they ARE, never by whose they are. Do NOT name or reference any brand, franchise, logo, monogram, named artist or trademarked mascot, and do NOT describe anything that would identify one. If the reference shows a branded character, describe only the plain animal or object underneath it.
+- Do NOT copy the reference's layout, composition or the exact arrangement of its elements.
+- Do NOT describe the words printed on the reference.
+
+Write it as a compact directive block of 4-6 sentences. Start the WHOLE block with the single word "STYLE:" once, then continue in plain sentences — do NOT repeat "STYLE:" at the start of each sentence. Be concrete and repeatable — another generator must produce the SAME look and the SAME recurring subjects on 15 different sheets from this text alone. No preamble.`;
+
+// какой разбор применять — зависит от выбранного режима референса
+function styleVisionSys(){ return (v('refMode')||'image')==='motifs' ? STYLE_VISION_SYS_MOTIFS : STYLE_VISION_SYS; }
 async function styleFromRefUrl(url){
   if(!url||!keyReady('claude')) return '';
   const proxied='https://images.weserv.nl/?url='+encodeURIComponent(url.replace(/^https?:\/\//,''))+'&output=png';
   const blob=await (await fetch(proxied)).blob();
   const dataUri=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(blob); });
   const m=dataUri.match(/^data:(image\/[a-zA-Z]+);base64,(.+)$/); if(!m) return '';
-  const sys=STYLE_VISION_SYS;
+  const sys=styleVisionSys();
   const res=await fetch('/api/claude',{method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':v('claudeKey'),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:sys,
@@ -86,7 +108,7 @@ async function runwareGen(prompt,width,height,tries=3,refUri=null){
   // style contract carries the look instead, so the model draws original artwork rather than copying
   // someone else's clipart. Ideogram never takes reference images and always uses the text style.
   const refMode=v('refMode')||'image';
-  if(refUri && refMode==='image' && !model.includes('ideogram')){ const png=await toPngRef(refUri); if(png) task.referenceImages=[png]; }
+  if(refUri && refMode!=='style' && !model.includes('ideogram')){ const png=await toPngRef(refUri); if(png) task.referenceImages=[png]; }
   for(let attempt=1;attempt<=tries;attempt++){
     try{
       if(batchStopped) throw new Error('__ABORT__');

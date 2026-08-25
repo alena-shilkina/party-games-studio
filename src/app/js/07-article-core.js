@@ -5,7 +5,25 @@ const DEFAULT_TONE=`Warm, upbeat, and practical — like a friend who has hosted
 const BANNED_FORMATS=`BANNED PRINTABLE FORMATS — never propose or generate these, in any mode, under any name: crossword, hangman, dot-to-dot, word scramble, word search, AND every picture-rebus format — emoji decode, emoji pictionary, emoji riddles, picture-puzzle 'guess the phrase', rebus puzzles. Letter puzzles fail because the generator invents answers whose letters do not match. Rebus and emoji puzzles fail because the picture combination has to resolve to a REAL, recognisable phrase (a film, a song, a saying) and the generator instead pairs random icons into meaningless answers like 'Sun Glasses Star' or 'Cat Rain', which makes the sheet unsolvable and forces the editor to rewrite it by hand. Never work around this by calling it a 'picture code', 'icon puzzle', 'symbol game' or 'guess the phrase from the pictures'. Use solvable formats instead: bingo, trivia with an answer key, fill-in-the-blank, would-you-rather, this-or-that, checklists, prompt/wish cards, mad libs, colouring pages, mazes, guess-how-many, I-spy, matching, scavenger hunt lists.`;
 
 // blank-field rule for any printable a guest fills in by hand
-const ANSWER_KEY_RULE=`ANSWER KEY RULE — applies to ANY printable sheet that carries an answer key (trivia, quizzes, riddles, matching, guess-the-year, name-that-tune, etc.). Follow all four points inside the imagePrompt you write:
+const ANSWER_KEY_RULE=`ANSWER KEY RULE.
+
+FIRST DECIDE WHETHER THE SHEET SHOULD HAVE A KEY AT ALL. Most printables should NOT.
+
+A key belongs ONLY when every answer is already determined by what is printed on the sheet itself, and you can write those answers out in full right now: trivia and quizzes, riddles, word scrambles of known titles, matching pairs, fill-in-the-blank of a known phrase, guess-the-year.
+
+A key must be COMPLETELY ABSENT — no key, no "Answer Key" label, no numbered list along the bottom — whenever the answers depend on anything outside the sheet. That includes, among others:
+- bingo cards of any kind: there is nothing to answer, and no call list either;
+- raffle tickets, prediction cards, wish and advice cards, keepsake cards;
+- anything about the real guests or hosts: "whose baby photo", "guess the baby photo", "he said / she said", "how well do you know the mum-to-be";
+- anything the host supplies later: scavenger hunts over a personal registry, photo matching, ranking games, guess-how-many;
+- checklists, invitations, menus, table numbers, labels, and any sheet with blank writing lines.
+When in doubt, leave the key OUT. A missing key costs nothing; a broken one ruins the printable.
+
+NEVER PRINT A PLACEHOLDER. Square-bracket stand-ins such as [answer], [name], [item], [Guest], [guest name], [Mom/Dad], [correct order] must NEVER appear on a printed sheet, inside a key or anywhere else. Neither must notes to the host like "host fills in before printing". If you cannot state a real answer, the sheet gets no key at all.
+
+NEVER PRINT A HALF-REAL KEY. A key that starts with a few real answers and then continues with placeholders is worse than no key. Either every entry is a real answer, or there is no key.
+
+WHEN A KEY DOES BELONG, follow all four points inside the imagePrompt you write:
 1. CONTINUOUS NUMBERING: if the sheet has sections or categories, question numbers run CONTINUOUSLY across the whole sheet, 1 to N — they NEVER restart at 1 in each section. Spell the mapping out in the prompt, e.g. "numbered continuously 1-20 across all sections (Section A = Q1-5, Section B = Q6-10, Section C = Q11-15, Section D = Q16-20)".
 2. SAMPLES ARE NOT THE FULL SET: whenever you show example questions in the prompt as a tone/style guide, label them exactly as "(style reference only — generate all N questions)". Never phrase a prompt so it could read as if only the listed samples need to exist.
 3. COMPLETE KEY WITH THE COUNT STATED: the answer-key instruction must name the full count and range, e.g. "include a COMPLETE answer key with all N numbered answers (1-N) matching every question on the sheet", and then show the pattern continuing past the samples, e.g. "6. [answer] 7. [answer] … continuing through N".
