@@ -91,7 +91,6 @@ function optionList(items,val){ return items.map(o=>`<option value="${esc(o.v)}"
 function catOpts(val){ return optionList([['Baby Shower'],['Birthday Party'],['Girls Night'],['Bachelorette'],['Kids Party'],['Holiday Party'],['Bridal Shower']].map(x=>({v:x[0],l:x[0]})),val); }
 function audOpts(val){ return optionList([{v:'adult',l:'Adults'},{v:'kids',l:'Kids / family'},{v:'mixed',l:'Mixed'}],val); }
 function countOpts(val){ return optionList([{v:'0',l:'Auto 11–17'},{v:'10',l:'10'},{v:'12',l:'12'},{v:'14',l:'14'},{v:'16',l:'16'},{v:'18',l:'18'}],val); }
-function vibeOpts(val){ return optionList(Object.keys(PIN_VIBES).map(k=>({v:k,l:k==='Auto'?'Auto':k})),val); }
 function wpCatOpts(val){ const c=(ST.wpCats||[]); if(!c.length)return `<option value="">— load in main screen —</option>`; return `<option value="">(site default)</option>`+optionList(c.map(x=>({v:x.id,l:x.name})),val); }
 function statusPill(r){
   const retry=`<button class="btn btn-ghost btn-sm" style="width:auto;font-size:11px;padding:3px 8px;margin-left:6px" onclick="retryRow('${r.id}')" title="Regenerate this article">↻ Retry</button>`;
@@ -157,7 +156,6 @@ function renderBatch(){
           </div>
         </div>
       </div>
-      <div class="fg" style="flex:1;min-width:150px"><label>Pin vibe</label><select onchange="updRow('${r.id}','vibe',this.value)">${vibeOpts(r.vibe)}</select></div>
     </div>
     <div class="fg" style="margin-top:-2px"><textarea placeholder="Reference style description appears here — editable" style="min-height:46px;font-size:12px" onchange="updRow('${r.id}','styleBlock',this.value)">${esc(r.styleBlock||'')}</textarea></div>
 
@@ -168,7 +166,6 @@ function renderBatch(){
     </div>
     ${(r.paa&&r.paa.length)?`<div class="brow-paa" id="paa-${r.id}">${r.paa.map((q,qi)=>`<span class="chip ${(r.paaSel&&r.paaSel[qi])?'on':''}" onclick="toggleRowPAA('${r.id}',${qi})">${esc(q)}</span>`).join('')}</div>`:``}
 
-    <div class="fg" style="margin-top:6px"><label style="font-size:10px">Featured image keyword (optional · blank = main keyword)</label><input placeholder="blank = main keyword" value="${esc(r.featKW||'')}" onchange="updRow('${r.id}','featKW',this.value)"></div>
     </div>`).join('');
 }
 function updRow(id,field,val){ const r=ST.batch.rows.find(x=>x.id===id); if(!r)return; r[field]=val; saveBatch(); }
