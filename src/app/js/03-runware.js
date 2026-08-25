@@ -21,44 +21,43 @@ async function toPngRef(src){
 }
 // describe the STYLE of a remote reference image (from CSV) as text, so it drives GPT Image like a manual upload does.
 // fetched through weserv (CORS-enabled) so the browser can read the bytes for Vision.
-// Референс отвечает ТОЛЬКО за технику: чем и как нарисовано. Палитра, сюжет, вёрстка
-// и шрифт берутся от темы статьи — иначе один референс намертво привязывал бы весь набор
-// к своим цветам, и статья про Хэллоуин выходила в лавандовых тонах ночной ярмарки.
-const STYLE_VISION_SYS=`You are writing a TECHNIQUE CONTRACT: how a whole SET of printable sheets should be DRAWN. Describe only the hand — the medium and the way it is applied. Not what the reference shows, not which colours it uses, not how it is laid out.
+// Референс описывает стиль ЦЕЛИКОМ: техника, точная палитра, рамка, мотивы, шрифт.
+// Так задумывалось изначально, и так оно и работает: чем подробнее контракт, тем ровнее
+// получается набор. Попытка оставить в нём одну технику себя не оправдала — без палитры
+// и рамки листы расходились. Если референса нет, никакого стиля мы не навязываем вовсе.
+const STYLE_VISION_SYS=`You are writing a STYLE CONTRACT so that a whole SET of printable sheets can be generated in one identical, coordinated look — WITHOUT copying the reference artwork.
 
-Cover ALL of:
-(1) MEDIUM AND TECHNIQUE, named the way an illustrator would name it: dense wet-on-wet watercolour with pigment pooling; flat vector with no gradients; gouache with visible brush marks; engraved line art with cross-hatching; soft coloured pencil; marker with an ink outline. Say whether shapes are outlined or defined by colour alone.
-(2) LINE AND EDGE: line weight and how even it is; whether edges are crisp, feathered or bleeding; how much paper or brush texture shows.
-(3) SHADING AND DEPTH: flat fills, soft blended shading, hatching, dry-brush; how much contrast there is between light and dark.
-(4) COLOUR CHARACTER — how the colour behaves, never which colour it is: muted and desaturated, soft pastel wash, deep and saturated, high-contrast, chalky, luminous.
-(5) LEVEL OF DETAIL AND FINISH: sparse and airy or dense and decorative; hand-made and slightly irregular or crisp and geometric.
+Describe the reference image's visual system, covering ALL of:
+(1) illustration technique (e.g. soft watercolour, flat vector, gouache, engraved line art, marker-and-ink) — line weight, fills, texture, shading;
+(2) exact palette — name every key colour with an approximate hex code, and say which is the BACKGROUND colour and which is the dominant accent;
+(3) the border / frame treatment (thickness, colour, single or double rule, inset margin, any patterned band and where it sits);
+(4) MOTIF WORLD — the CATEGORY of small objects the set is built from, as generic nouns only (e.g. "everyday teen-room objects: phones, headphones, nail polish, boba cups, scrunchies, polaroids" or "woodland botanicals: ferns, berries, small birds"), plus how they are arranged (scattered corner clusters, a top band, a loose confetti spread, a tidy grid);
+(5) typography character (serif/sans, weight, all-caps or mixed, colour) — the whole set must share one type style.
 
-HARD LIMITS — these are what keep the contract reusable across every theme:
-- NEVER name a colour, a hex code, a palette, a background colour or an accent colour. The palette comes from the article's own theme, not from this reference.
-- NEVER describe the subject matter, the objects, the characters or the scene.
-- NEVER describe layout, borders, frames or how elements are arranged.
-- NEVER describe typography or any text visible on the reference.
-- NEVER name a brand, franchise, logo or artist.
+HARD LIMITS — this contract must be reproducible from words alone:
+- Do NOT describe, name or single out any individual illustration, drawing, icon or arrangement from the reference. Describe families and categories, never specific artworks.
+- Do NOT name or reference any character, mascot, brand, logo, franchise or named artist, and do NOT describe anything that would identify one.
+- Do NOT describe the subject matter of the reference or the words printed on it.
 
-Write 2-4 compact sentences. Start the WHOLE block with the single word "STYLE:" once, then continue in plain sentences — do NOT repeat "STYLE:". Another illustrator must be able to reproduce the same hand on 15 different sheets, on any subject and in any palette, from this text alone. No preamble.`;
+Write it as a compact directive block of 3-5 sentences. Start the WHOLE block with the single word "STYLE:" once, then continue in plain sentences — do NOT repeat "STYLE:" at the start of each sentence. Be concrete and repeatable — another generator must be able to produce the SAME look on 15 different sheets from this text alone. No preamble.`;
 
-// Тот же разбор техники, но дополнительно называет героев: нужен, когда в референсе есть
-// персонаж, который должен остаться персонажем.
-const STYLE_VISION_SYS_MOTIFS=`You are writing a TECHNIQUE CONTRACT: how a whole SET of printable sheets should be DRAWN, plus the recurring characters that must carry over from the reference.
+// Тот же подробный разбор, но пункт (4) называет конкретных героев: нужен, когда
+// в референсе есть персонаж, который должен остаться персонажем.
+const STYLE_VISION_SYS_MOTIFS=`You are writing a STYLE CONTRACT so that a whole SET of printable sheets can be generated in one identical, coordinated look, keeping the SAME recurring characters as the reference.
 
-Cover ALL of:
-(1) MEDIUM AND TECHNIQUE, named the way an illustrator would name it: dense wet-on-wet watercolour with pigment pooling; flat vector with no gradients; gouache with visible brush marks; engraved line art with cross-hatching; soft coloured pencil. Say whether shapes are outlined or defined by colour alone.
-(2) LINE AND EDGE: line weight and how even it is; whether edges are crisp, feathered or bleeding; how much paper or brush texture shows.
-(3) SHADING AND DEPTH: flat fills, soft blended shading, hatching, dry-brush; how much contrast there is between light and dark.
-(4) COLOUR CHARACTER — how the colour behaves, never which colour it is: muted and desaturated, soft pastel wash, deep and saturated, high-contrast, chalky, luminous.
-(5) RECURRING CHARACTERS: name the creatures or objects that must appear across the set, by kind, proportion and any accessory they consistently carry ("a small sitting teddy bear with a ribbon at the neck", "a rocking horse with a flowing mane"). Say which one is the lead. Describe their SHAPE, not their colour — they will be recoloured to each article's palette.
+Describe the reference image's visual system, covering ALL of:
+(1) illustration technique (e.g. soft watercolour, flat vector, gouache, engraved line art, marker-and-ink) — line weight, fills, texture, shading;
+(2) exact palette — name every key colour with an approximate hex code, and say which is the BACKGROUND colour and which is the dominant accent;
+(3) the border / frame treatment (thickness, colour, single or double rule, inset margin, any patterned band and where it sits);
+(4) RECURRING CHARACTERS — name the actual creatures and objects the set is built from, concretely enough to redraw them: kind, colour, proportions and any accessory they consistently carry (e.g. "a small cream teddy bear with a dark green ribbon at the neck, sitting", "a pale rocking horse with a gold mane"). Say which is the lead character that should appear on most sheets, plus how they are arranged (scattered corner clusters, a top band, a loose spread, a tidy grid);
+(5) typography character (serif/sans, weight, all-caps or mixed, colour) — the whole set must share one type style.
 
-HARD LIMITS:
-- NEVER name a colour, a hex code, a palette, a background colour or an accent colour. The palette comes from the article's own theme.
-- NEVER describe layout, borders, frames or how elements are arranged.
-- NEVER describe typography or any text visible on the reference.
+HARD LIMITS — this contract must be reproducible from words alone:
+- Describe the characters by what they look like: kind, colour, proportions, accessories. That description is what gets redrawn, so it must stand on its own without the picture.
+- Do NOT copy the reference's layout, composition or the exact arrangement of its elements.
+- Do NOT describe the words printed on the reference.
 
-Write 3-5 compact sentences. Start the WHOLE block with the single word "STYLE:" once, then continue in plain sentences — do NOT repeat "STYLE:". Another illustrator must be able to reproduce the same hand and the same characters on 15 different sheets, in any palette, from this text alone. No preamble.`;
+Write it as a compact directive block of 4-6 sentences. Start the WHOLE block with the single word "STYLE:" once, then continue in plain sentences — do NOT repeat "STYLE:" at the start of each sentence. Be concrete and repeatable — another generator must produce the SAME look and the SAME characters on 15 different sheets from this text alone. No preamble.`;
 
 // какой разбор применять — зависит от выбранного режима референса
 function styleVisionSys(mode){ return (mode||refModeNow())==='motifs' ? STYLE_VISION_SYS_MOTIFS : STYLE_VISION_SYS; }

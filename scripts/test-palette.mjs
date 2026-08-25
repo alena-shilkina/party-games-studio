@@ -1,6 +1,10 @@
-// Проверка стиля печатных листов. Стиль один: современная акварель — насыщенная,
-// с настоящими персонажами. Отдельно следим, что вернулось НЕ то, что уже отвергли:
-// приглушённая пастель, ботанические веточки по углам, вензеля и строгая антиква.
+// Проверка сборки промпта для печатного листа.
+//
+// Стиль задаётся ТОЛЬКО приложенным референсом: Claude разбирает его подробно —
+// техника, палитра, рамка, мотивы, шрифт. Своего встроенного стиля у приложения нет:
+// именно он приносил ботанику и вензеля по углам. Без референса лист рисуется
+// по описанию от Claude, и мы добавляем единственное — запрет тёплого фона.
+//
 // Браузерная панель ненадёжна, поэтому гоняем настоящие функции в Node.
 import { readFileSync } from 'node:fs';
 
@@ -12,60 +16,75 @@ const grab = (text, start, end) => {
   return text.slice(a, b + end.length);
 };
 
-const sheet  = grab(src('01-presets.js'),   'const WATERCOLOUR_SHEET=', "Never plain white either.';");
-const bgRule = grab(src('06-style-ref.js'), 'const BACKGROUND_RULE=',   "';");
-const styleT = grab(src('06-style-ref.js'), 'function styleText(',      '\n}');
+const style6 = src('06-style-ref.js');
+const pieces = [
+  grab(style6, 'const BACKGROUND_RULE=', "';"),
+  grab(style6, 'const RICH_SHEET=',      "';"),
+  grab(style6, 'const ORIGINALITY=',     "';"),
+  grab(style6, 'const STYLE_LOCK=',      "anywhere else in this prompt.';"),
+  grab(style6, 'function styleText(',    '\n}'),
+  grab(style6, 'function withStyle(',    '\n}'),
+].join('\n');
 
 const build = fields => new Function('fields', `
   const v = id => (fields[id] || '');
   const ST = { styleBlock: fields.__vision || '' };
-  ${sheet}
-  ${bgRule}
-  ${styleT}
-  return { styleText, WATERCOLOUR_SHEET };
+  const PHOTO_CONTRACT = 'PHOTO';
+  const HOME_KITCHEN = 'HOME';
+  const REF_ORIGINALITY = 'REF_ORIGINALITY';
+  const MOTIF_ORIGINALITY = 'MOTIF_ORIGINALITY';
+  const siteFooter = () => '';
+  const sheetRef = () => (fields.__ref || null);
+  const refModeNow = () => (fields.__mode || 'image');
+  const originalityClause = () => sheetRef() ? (refModeNow()==='motifs'?MOTIF_ORIGINALITY:REF_ORIGINALITY) : ORIGINALITY;
+  ${pieces}
+  return { styleText, withStyle };
 `)(fields);
 
 let bad = 0;
 const check = (n, c) => { console.log((c ? '  ✓ ' : '  ✗ ') + n); if (!c) bad++; };
 
-const t = build({}).styleText();
-
-console.log('Чего в стиле быть не должно');
-check('не просит приглушённую пастель',      !/muted and tasteful|soft pastel palette/i.test(t));
-check('не просит ботанические веточки',      !/delicate painted botanical sprigs/i.test(t));
-check('не просит строгую антикву',           !/clean modern serif for the title/i.test(t));
-check('ботаника прямо запрещена',            /NO delicate botanical sprigs, leaves, blossoms/.test(t));
-check('вензеля и гравюрные рамки запрещены', /scrollwork, filigree, flourishes/.test(t));
-check('свадебная антиква запрещена',         /NOT a formal high-contrast serif/.test(t));
-check('бледная пастель названа провалом',    /pale washed-out pastel haze is a failure/.test(t));
-
-console.log('\nЧто в стиле должно быть');
-check('акварель как техника',            /modern hand-painted watercolour illustration/.test(t));
-check('яркая и чёткая заявлена сразу',   /bright, crisp, lively and characterful/.test(t));
-check('это рисуют сегодня, а не в 2000-х', /not like 2000s clip-art/.test(t));
-check('запрет мутного и размытого',      /Nothing muddy, blurry, hazy, soft-focus, faded or washed out/.test(t));
-check('чёткие силуэты',                  /defined silhouettes, clean confident shapes/.test(t));
-check('насыщенный цвет',                 /bright, clear and properly saturated/.test(t));
-check('настоящие персонажи и предметы',  /characters, animals, people, food, objects, props/.test(t));
-check('крупный читаемый шрифт',          /comfortably large and easy to read/.test(t));
-check('тёплый фон запрещён',             /NEVER yellow, cream, ivory, beige/.test(t));
-check('чистый белый запрещён',           /Never plain white either/.test(t));
-check('правило фона приклеено',          t.includes('BACKGROUND AND PALETTE:'));
-check('фон одинаков по набору',          /SAME ground and the SAME accent family on EVERY sheet/.test(t));
-
-console.log('\nРеференс');
+console.log('Без референса стиль не навязывается');
 {
-  const withRef = build({ __vision: 'STYLE: dense gouache with visible brush marks.' }).styleText();
-  check('референс перебивает встроенную технику', withRef.startsWith('STYLE: dense gouache'));
-  check('правило фона всё равно добавляется',     withRef.includes('BACKGROUND AND PALETTE:'));
+  const { styleText, withStyle } = build({ articleMode: 'ideas' });
+  const out = withStyle('a bingo sheet with 16 squares', 'printable');
+  check('стилевого контракта нет', styleText() === '');
+  check('описание листа осталось первым', out.startsWith('a bingo sheet with 16 squares'));
+  check('запрет тёплого фона всё равно добавлен', out.includes('BACKGROUND:') && /NOT sit on yellow, cream, ivory/.test(out));
+  check('декоративная система не требуется', !out.includes('RICHNESS'));
+  check('нет инструкции про приложенную картинку', !out.includes('REF_ORIGINALITY'));
 }
 
-console.log('\nСтиль один для всех');
+console.log('\nС референсом контракт работает целиком');
 {
-  const a = build({ audience: 'kids',  category: 'Kids Party'  }).styleText();
-  const b = build({ audience: 'adult', category: 'Girls Night' }).styleText();
-  check('контракт не зависит от аудитории и темы', a === b);
+  const vision = 'STYLE: soft watercolour, palette of blush #f4d9df and sage #cfe6d6 on cream, thin double rule border, scattered corner clusters of small florals, high-contrast serif titles.';
+  const { withStyle } = build({ articleMode: 'ideas', __vision: vision, __ref: 'data:image/png;base64,xx' });
+  const out = withStyle('a bingo sheet with 16 squares', 'printable');
+  check('контракт стоит первым', out.startsWith('STYLE: soft watercolour'));
+  check('в контракте сохранена палитра с кодами', /#f4d9df/.test(out));
+  check('в контракте сохранены рамка и мотивы', /double rule border/.test(out) && /corner clusters/.test(out));
+  check('в контракте сохранён шрифт', /serif titles/.test(out));
+  check('запрет тёплого фона тоже есть', out.includes('BACKGROUND:'));
+  check('замок стиля стоит с двух сторон', (out.match(/CONSISTENCY — THIS SHEET IS ONE PAGE/g) || []).length === 2);
+  check('описание листа подано как содержимое', out.includes('SHEET TO DRAW (content only'));
+  check('декоративная система уместна — контракт есть', out.includes('RICHNESS'));
 }
 
-console.log(bad ? '\nЕСТЬ ПРОБЛЕМЫ' : '\nстиль соответствует тому, что просили');
+console.log('\nРежим с персонажами');
+{
+  const { withStyle } = build({ __vision: 'STYLE: gouache.', __ref: 'x', __mode: 'motifs' });
+  const out = withStyle('a matching sheet', 'printable');
+  check('подставлено правило переноса персонажей', out.includes('MOTIF_ORIGINALITY'));
+}
+
+console.log('\nФотографии идут своей дорогой');
+{
+  const { withStyle } = build({ articleMode: 'recipes', __vision: 'STYLE: gouache.', __ref: 'x' });
+  const out = withStyle('a plated dish', 'illustration');
+  check('стилевой контракт к фото не приклеивается', !out.includes('gouache'));
+  check('используется фотоконтракт', out.startsWith('PHOTO'));
+  check('в рецептах добавлен домашний кадр', out.includes('HOME'));
+}
+
+console.log(bad ? '\nЕСТЬ ПРОБЛЕМЫ' : '\nсборка промпта соответствует договорённости');
 process.exit(bad ? 1 : 0);

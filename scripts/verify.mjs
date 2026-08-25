@@ -119,21 +119,19 @@ group('Печатные листы');
   js.includes('roughly one idea in five should have no card')
     ? fail('вернулось правило «одна из пяти без карточки» — это и делало её обязательной') : ok('старое правило про одну из пяти убрано');
 
-  // Стиль печатных листов один; различает статьи только палитра, и фон никогда не жёлтый.
-  (js.match(/\{id:'[a-z-]+',label:/g) || []).length === 1
-    ? ok('стиль печатных листов один') : fail('вернулось несколько стилей печатных листов');
-  js.includes('const WATERCOLOUR_SHEET=') && js.includes('NEVER yellow, cream, ivory, beige, butter, sand, tan')
-    ? ok('единый акварельный стиль, тёплый фон запрещён') : fail('нет единого стиля или не запрещён жёлтый фон');
-  // Стиль должен быть яркий и чёткий, как рисуют сегодня. Отдельно сторожим возврат
-  // к тому, что уже отвергли: пастель, ботанические веточки, вензеля, свадебная антиква.
-  js.includes('bright, crisp, lively and characterful') && js.includes('not like 2000s clip-art')
-    ? ok('стиль заявлен ярким, чётким и современным') : fail('из стиля пропали яркость, чёткость или современность');
-  js.includes('NO delicate botanical sprigs, leaves, blossoms') && js.includes('NOT a formal high-contrast serif')
-    ? ok('ботаника, вензеля и свадебная антиква запрещены') : fail('вернулся свадебный язык оформления');
-  /muted and tasteful|delicate painted botanical sprigs and small blooms are the right accent/.test(js)
-    ? fail('в стиле снова просят приглушённость и веточки') : ok('приглушённый вариант стиля не вернулся');
-  js.includes('must NOT be yellow, cream, ivory, beige, butter, sand or tan')
-    ? ok('правило фона тоже запрещает тёплый тон') : fail('правило фона не запрещает жёлтый');
+  // Своего встроенного стиля у приложения быть не должно: он приносил ботанику
+  // и вензеля по углам. Стиль задаёт только приложенный референс.
+  !js.includes('const INFO_STYLES=') && !js.includes('const WATERCOLOUR_SHEET=')
+    ? ok('встроенного стиля печатных листов нет') : fail('вернулся встроенный стиль или список пресетов');
+  /function styleText\(\)\{\s*return \(v\('styleBlock'\)\|\|ST\.styleBlock\|\|''\)\.trim\(\);/.test(js)
+    ? ok('стиль берётся только из референса') : fail('styleText снова подмешивает что-то своё');
+  js.includes("const rich=(sb && !minimal")
+    ? ok('декоративная система требуется только вместе с контрактом')
+    : fail('RICH_SHEET снова просит украшения там, где контракта нет');
+  js.includes('const BACKGROUND_RULE=') && js.includes('NOT sit on yellow, cream, ivory, beige, butter, sand, tan')
+    ? ok('тёплый фон запрещён') : fail('запрет тёплого фона пропал');
+  (js.match(/BACKGROUND_RULE/g) || []).length >= 3
+    ? ok('запрет фона добавляется и с референсом, и без него') : fail('запрет фона применяется не во всех ветках');
   const refUses = (js.match(/g\.asset==='illustration'\?null:sheetRef\(\)/g) || []).length;
   refUses === 4 ? ok('все четыре места рисования листа берут референс из одного источника')
                 : fail(`sheetRef() используется ${refUses} раз вместо 4`);
@@ -149,16 +147,16 @@ group('Печатные листы');
   js.includes('clean printable game page')
     ? fail('в инструкции снова просят «clean» — это уводит листы в белую графику') : ok('из инструкции убрано слово, тянувшее в белую графику');
 
-  // Референс задаёт только технику; конкретный цвет фона не задаём вовсе — его
-  // подбирает генератор картинок, мы только очерчиваем рамки.
-  js.includes('TECHNIQUE CONTRACT') && !js.includes('exact palette — name every key colour')
-    ? ok('референс описывает только технику, без палитры') : fail('референс снова диктует палитру');
-  js.includes('const BACKGROUND_RULE=') && js.includes("+'\\n\\n'+BACKGROUND_RULE")
-    ? ok('правило фона приклеено к стилю') : fail('правило фона не подставляется');
-  /return say\('a soft|a pale icy blue|a muted dusty rose/.test(js)
-    ? fail('вернулась жёстко заданная палитра по темам') : ok('конкретный цвет фона не навязывается');
-  js.includes('Use the SAME ground and the SAME accent family on EVERY sheet')
-    ? ok('фон требуется одинаковый на всех листах набора') : fail('нет требования единого фона в наборе');
+  // Референс разбирается ПОДРОБНО: техника, палитра с кодами, рамка, мотивы, шрифт.
+  // Попытка сузить его до одной техники себя не оправдала — набор расходился.
+  js.includes('exact palette — name every key colour with an approximate hex code')
+    ? ok('референс описывается с палитрой и кодами цветов') : fail('из разбора референса пропала палитра');
+  js.includes('the border / frame treatment') && js.includes('typography character')
+    ? ok('референс описывает рамку и шрифт') : fail('из разбора референса пропали рамка или шрифт');
+  js.includes('TECHNIQUE CONTRACT')
+    ? fail('вернулся урезанный разбор «только техника»') : ok('разбор референса полный, не урезанный');
+  js.includes('RECURRING CHARACTERS — name the actual creatures')
+    ? ok('режим с персонажами называет героев конкретно') : fail('режим с персонажами потерял описание героев');
   // Листы рисуются разными запросами, поэтому единство держится только на тексте замка:
   // общего «в одном стиле» мало, нужен поимённый список.
   ['THE HAND:', 'THE TYPE:', 'THE COLOURS:', 'THE FRAME:', 'THE MOTIFS:'].every(x => js.includes(x))

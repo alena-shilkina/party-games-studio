@@ -44,14 +44,14 @@ function siteFooter(){ const d=siteDomain(); return d?`\n\nAt the very bottom ce
 // иначе берётся картинка из библиотеки стилей по выбранному стилю. Фотографии сюда
 // не попадают: у них свой контракт и референс им не передаётся.
 function sheetRef(){ return ST.refDataUri; }
-// Конкретный цвет фона не задаём: генератор картинок сам подбирает его под тему,
-// и делает это хорошо. Здесь только рамки — тёплый фон выглядит дёшево, чистый белый
-// пустым, а разные фоны в одном наборе разваливают комплект.
-const BACKGROUND_RULE='BACKGROUND AND PALETTE: choose a soft, lightly tinted ground that suits this article\'s own theme — a muted pastel, dusty or cool tone — and build the accents around it. Use the SAME ground and the SAME accent family on EVERY sheet of this set, so the printables read as one pack. The ground must NOT be yellow, cream, ivory, beige, butter, sand or tan, must not be a warm off-white, and must not be plain white; those read as cheap and dated. Text is a deep readable tone from the same family — never pale type on a pale ground.';
-// Техника + правило фона. Технику даёт референс, если он приложен, иначе единый стиль.
+// Единственное, что мы навязываем всегда — тёплый фон и чистый белый. Остальное решают
+// Claude в описании листа и генератор картинки. Свой встроенный стиль мы больше
+// не подсовываем: именно он приносил веточки и цветочки по углам.
+const BACKGROUND_RULE='BACKGROUND: the sheet must NOT sit on yellow, cream, ivory, beige, butter, sand, tan or any warm off-white ground; those read as cheap and dated. Plain white is also wrong. Use a soft tinted ground instead, and keep it identical across every sheet of this set.';
+// Стиль берётся ТОЛЬКО из референса. Нет референса — никакого стилевого контракта,
+// лист рисуется по описанию от Claude и решению генератора.
 function styleText(){
-  const vision=(v('styleBlock')||ST.styleBlock||'').trim();
-  return (vision||WATERCOLOUR_SHEET)+'\n\n'+BACKGROUND_RULE;
+  return (v('styleBlock')||ST.styleBlock||'').trim();
 }
 const RICH_SHEET='RICHNESS — this is a premium downloadable printable, not a plain title card. Every sheet must carry the FULL decorative system from the style contract: the layered border/frame, the patterned band, ornamental rules or dividers, and at least one illustrated motif or vignette drawn in the contract technique. Compose it as a properly designed page: a focal illustration, a strong heading with real typographic hierarchy, supporting text sized against it, and ornament filling what would otherwise be dead space. NEVER output a bare heading floating inside an empty rectangle, and never leave a large blank area — fill it with the motifs named in the contract.';
 // Travels with every styled sheet. The style contract tells the model HOW to draw and WHAT KIND of
@@ -131,7 +131,11 @@ function withStyle(prompt,asset,styleOverride,footerOverride){
   // RICH_SHEET demands borders, patterned bands and vignettes — that directly contradicts a minimal
   // contract, so it is skipped whenever the chosen style (or a reference) asks for a clean look.
   const minimal=/STRICTLY NO decorative|no decorative frames|lots of white space/i.test(sb);
-  const rich=(!minimal && ['prompts','ideas','recipes'].includes(v('articleMode')||'games'))?'\n\n'+RICH_SHEET:'';
-  if(!sb) return prompt+rich+foot;
-  return sb+'\n\n'+originalityClause()+'\n\n'+STYLE_LOCK+rich+'\n\nSHEET TO DRAW (content only — keep the style above unchanged):\n'+prompt+'\n\n'+STYLE_LOCK+foot;
+  // только вместе со стилевым контрактом: без него «полная декоративная система»
+  // превращается в выдуманные веточки и вензеля по углам
+  const rich=(sb && !minimal && ['prompts','ideas','recipes'].includes(v('articleMode')||'games'))?'\n\n'+RICH_SHEET:'';
+  // Без референса стиль не навязываем: лист рисуется по описанию от Claude и решению
+  // генератора. Единственное, что добавляем всегда, — запрет тёплого фона.
+  if(!sb) return prompt+rich+'\n\n'+BACKGROUND_RULE+foot;
+  return sb+'\n\n'+BACKGROUND_RULE+'\n\n'+originalityClause()+'\n\n'+STYLE_LOCK+rich+'\n\nSHEET TO DRAW (content only — keep the style above unchanged):\n'+prompt+'\n\n'+STYLE_LOCK+foot;
 }

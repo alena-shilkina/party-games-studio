@@ -89,21 +89,9 @@ function currentVibeBlock(){
   return (PIN_VIBES[name]&&PIN_VIBES[name].block)||PIN_VIBES['Neutral'].block;
 }
 
-/* ---------- ЕДИНЫЙ СТИЛЬ ПЕЧАТНЫХ ЛИСТОВ ----------
-   Один стиль на всё: современная акварель уровня платного клипарт-набора.
-   Здесь же перечислено то, чего быть НЕ должно — приглушённая пастель, ботанические
-   веточки по углам, вензеля, гравюрные рамки и строгая антиква. Это язык свадебной
-   полиграфии; на печатных листах он выглядит вяло и старомодно.
-   Референс, приложенный к строке или в сайдбаре, перебивает технику целиком. */
-const WATERCOLOUR_SHEET='STYLE: modern hand-painted watercolour illustration — bright, crisp, lively and characterful. This is how a working illustrator draws TODAY, for a contemporary digital shop.\n'
-+'- CONTEMPORARY, NOT DATED — read this twice: it must look like illustration made now, not like 2000s clip-art, not like a scrapbook embellishment pack, not like a faded stock-art CD, not like craft-store greeting cards. Nothing nostalgic, nothing vintage, nothing "shabby chic".\n'
-+'- CRISP AND CLEARLY RESOLVED: defined silhouettes, clean confident shapes, sharp detail where it matters, so every element reads instantly. Nothing muddy, blurry, hazy, soft-focus, faded or washed out. Watercolour here means the medium, not softness for its own sake.\n'
-+'- TECHNIQUE: washes with visible pigment gradients and gentle granulation, NO ink outlines and no drawn contour lines; edges stay soft where a form meets the ground and turn crisp where two washes meet; shading is built from layered translucent washes, never a flat fill and never an airbrushed gradient; a soft, barely-there shadow grounds each element. It must read as painted by hand, never as a vector trace or stiff clip-art.\n'
-+'- COLOUR: bright, clear and properly saturated, with real contrast between elements. The paint looks freshly loaded, not diluted. A pale washed-out pastel haze is a failure.\n'
-+'- WHAT IS ILLUSTRATED: the actual subjects of this article — characters, animals, people, food, objects, props — painted with expression, movement and personality, at a generous size that reads across a table.\n'
-+'- FORBIDDEN DECORATION, this is the most common mistake: NO delicate botanical sprigs, leaves, blossoms, laurel wreaths or floral corners used as ornament; NO vignettes, scrollwork, filigree, flourishes, diamond or lozenge borders, engraved frames or certificate-style rules. That is wedding-stationery language and it drains the life out of the sheet. If the page needs a border at all, keep it simple and painted.\n'
-+'- TYPE: a clean, confident modern typeface, comfortably large and easy to read. NOT a formal high-contrast serif, NOT a wedding script, NOT tight elegant letterspacing.\n'
-+'- BACKGROUND, MANDATORY: the sheet sits on a soft TINTED ground, chosen to suit the article and kept identical across the whole set. NEVER yellow, cream, ivory, beige, butter, sand, tan or any warm off-white; those read as cheap and dated. Never plain white either.';
-const INFO_STYLES=[
-  {id:'watercolour',label:'Modern watercolour',block:WATERCOLOUR_SHEET}
-];
+/* ---------- СТИЛЬ ПЕЧАТНЫХ ЛИСТОВ ----------
+   Своего встроенного стиля у приложения больше нет. Стиль задаётся ТОЛЬКО приложенным
+   референсом: Claude разбирает его подробно — техника, палитра, рамка, мотивы, шрифт, —
+   и этот контракт держит весь набор ровным. Если референса нет, лист рисуется по описанию
+   от Claude и решению генератора; мы не подсовываем ни пресетов, ни «фирменной» манеры.
+   Встроенные пресеты приносили ботанику и вензеля по углам, поэтому их и убрали. */
