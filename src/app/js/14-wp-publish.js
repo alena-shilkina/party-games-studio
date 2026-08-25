@@ -204,7 +204,8 @@ async function gamesBodyHTML(a,site){
   if((a.sections||[]).length){
     let h='';
     const isIdeas=(v('articleMode')||'games')==='ideas';
-    let ideaNo=0;   // ideas are a numbered round-up: "1. …" through "20. …" across the whole article
+    // Внутри статьи идеи НЕ нумеруются: число живёт в заголовке H1, а в тексте нумерация
+    // читалась как список, а не как редакторская подборка.
     // is this section the games section? — it holds at least one asset:"game" sheet
     const isGamesSec=sec=>sheets.some(g=>g.asset==='game' && (g.section||'')===(sec.heading||''));
     for(let si=0;si<a.sections.length;si++){
@@ -221,7 +222,7 @@ async function gamesBodyHTML(a,site){
         // games AND ideas: H3 name + its own prose, then the image. This alternation is what gives
         // Mediavine somewhere to place ads — a stack of images with no text between them is dead space.
         if(g.asset==='game'){ h+=`<h3 id="game-${i}">${esc(g.name||'')}</h3>`+(g.content||''); }
-        else if(isIdeas && (g.name||g.content)){ h+=`<h3 id="game-${i}">${++ideaNo}. ${esc(g.name||'')}</h3>`+(g.content||''); }
+        else if(isIdeas && (g.name||g.content)){ h+=`<h3 id="game-${i}">${esc(g.name||'')}</h3>`+(g.content||''); }
         h+=await sheetFigure(g,i);
         if(isIdeas){
           h+=plannerHTML(g,a.focusKeyword);                 // text block between the images keeps ad slots alive

@@ -356,47 +356,34 @@ function applyInvitationSpec(art,mode,wantDl){
   return art;
 }
 
-// Left alone the model shoots the same picture every time: the dessert table with the cake. A party is
-// felt from many angles, so each idea is dealt a DIFFERENT shot type, rotated from the keyword.
-const SHOT_TYPES=[
-  {k:'dessert table',   d:'the full dessert table seen wide and straight on, cake in the middle, styled backdrop behind'},
-  {k:'cake close-up',   d:'a close, low three-quarter view of the cake alone on its stand, texture and piping sharp, background softly blurred'},
-  {k:'balloon corner',  d:'the balloon installation or backdrop corner of the room, shot slightly wide to show how it sits in the space'},
-  {k:'high chair',      d:'the decorated high chair corner — banner, garland, tray set for the cake moment'},
-  {k:'tablescape above',d:'a flat lay looking straight down on the guest table: plates, napkins, cutlery, cups and small favours laid out'},
-  {k:'place setting',   d:'one single place setting in close detail — plate, patterned napkin, name card, tiny favour'},
-  {k:'welcome corner',  d:'the entrance or welcome sign area guests see first, with a small styled vignette beside it'},
-  {k:'favour table',    d:'the take-home favour table: bags or boxes lined up with tags and ribbon'},
-  {k:'food spread',     d:'the savoury food close up — platters, fruit, snack cups arranged in the theme palette'},
-  {k:'drinks station',  d:'the drinks corner: dispenser or bottles, labelled cups, straws, ice bucket'},
-  {k:'hanging decor',   d:'looking up at the hanging decor — streamers, paper lanterns, garlands against the ceiling'},
-  {k:'activity corner', d:'the play or activity corner set up for little guests: soft mat, baskets, simple props'},
-  {k:'gift table',      d:'the gift and card table with a styled sign and a few wrapped boxes in the palette'},
-  {k:'cupcake tower',   d:'a tiered stand of cupcakes or treats photographed at eye level'},
-  {k:'outdoor setup',   d:'the same theme staged outdoors — garden table, blanket, dappled daylight'},
-  {k:'small details',   d:'a tight still life of the small details: ribbon, confetti, a topper, a napkin fold, a candle'}
+// Без подсказки модель снимает каждую идею одинаково: в лоб, по центру, с одного расстояния.
+// Раньше здесь лежал список мест на празднике — десертный стол, шары, стульчик для кормления —
+// и он навязывал СЮЖЕТ: статья про подарочные корзины получала фотографии чужой вечеринки.
+// Теперь ротация задаёт только КАДР, а что в кадре — решает абзац этой идеи.
+const SHOT_FRAMINGS=[
+  'a wide establishing shot: the whole subject in its setting, straight on, with room to breathe around it',
+  'a close three-quarter view from slightly above, the front sharp and the background falling away',
+  'a flat lay looking straight down, the elements laid out across the surface',
+  'a tight detail crop of the part that matters most — texture, edge, fold, ribbon, surface',
+  'a low, near eye-level angle so the subject stands against the space behind it',
+  'the subject shown mid-use or mid-arrangement, as if someone stepped away a moment ago',
+  'an off-centre composition with the subject to one side and quiet negative space beside it',
+  'a slightly pulled-back view that includes the corner of the room or surface it lives on'
 ];
 function assignShotTypes(art,mode){
   if(mode!=='ideas') return art;
   const rnd=rng32(seedNum(art.focusKeyword||art.title||'x'));
-  const pool=SHOT_TYPES.slice();
+  const pool=SHOT_FRAMINGS.slice();
   for(let i=pool.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
   let n=0, assigned=0;
-  const nextShot=()=>pool[(n++)%pool.length];
   (art.games||[]).forEach(g=>{
     if(g.asset!=='illustration'||!g.imagePrompt) return;
-    const shot=nextShot();
+    const framing=pool[(n++)%pool.length];
     g.imagePrompt=String(g.imagePrompt).replace(/\s*SHOT:[\s\S]*$/i,'').trim()
-      +` SHOT: ${shot.d}. Keep the theme's own palette and props, but this frame must show THIS part of the party — not the standard dessert-table-with-cake unless that is what is asked for here. No people.`;
-    if(Array.isArray(g.extraImagePrompts)){
-      g.extraImagePrompts=g.extraImagePrompts.filter(x=>String(x||'').trim()).slice(0,2).map(x=>{
-        const e=nextShot();
-        return String(x).replace(/\s*SHOT:[\s\S]*$/i,'').trim()
-          +` SHOT: ${e.d}. Clearly different subject and framing from the other photos of this idea. No people.`;
-      });
-    }
+      +` SHOT: ${framing}. The subject is whatever THIS idea's own paragraph describes — only the framing rotates, the subject never turns into generic party scenery. No people.`;
+    g.extraImagePrompts=[];   // одна фотография на идею: дополнительные кадры отменены
     assigned++;
   });
-  if(assigned) console.log('[PGS] shot types rotated across',assigned,'ideas');
+  if(assigned) console.log('[PGS] framings rotated across',assigned,'ideas');
   return art;
 }

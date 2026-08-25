@@ -80,6 +80,14 @@ group('Печатные листы');
 
   // Промпт должен быть виден и правим везде, где есть кнопка Regenerate. Функция правки
   // в очереди ревью однажды уже пролежала без дела, не подключённая ни к чему.
+  // Режим Ideas: фотографии идут от абзаца, нумерации внутри статьи нет.
+  js.includes('SHOT_FRAMINGS') && !js.includes('SHOT_TYPES')
+    ? ok('ракурсы задают только кадр, а не сюжет') : fail('вернулся список «мест на празднике» вместо ротации кадров');
+  /ideaNo\+\+|\+\+ideaNo|ideaNo:\s*\(?i\+1/.test(js)
+    ? fail('внутри статьи снова нумеруются идеи') : ok('идеи внутри статьи не нумеруются');
+  js.includes('g.extraImagePrompts=[];')
+    ? ok('дополнительных кадров у идеи не создаётся') : fail('вернулись дополнительные кадры к идеям');
+
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
     .filter(fn => (js.match(new RegExp(fn.replace('(', '\\('), 'g')) || []).length >= 2);

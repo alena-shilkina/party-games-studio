@@ -91,7 +91,6 @@ function reviewArticleBodyHTML(s){
   let h=`<p style="font-style:italic;color:var(--muted);font-size:12px;margin:0 0 10px">${esc(a.metaDescription||'')}</p>`;
   h+=`<div style="font-size:13px;line-height:1.6;margin-bottom:14px">${a.intro||''}</div>`;
   if(secs.length){
-    let ideaNo=0;
     secs.forEach(sec=>{
       h+=`<h2 style="margin:22px 0 8px;font-size:16px">${esc(sec.heading||'')}</h2>`;
       const isGamesSec=games.some(g=>g.asset==='game'&&(g.section||'')===(sec.heading||''));
@@ -99,12 +98,12 @@ function reviewArticleBodyHTML(s){
       games.forEach((g,i)=>{
         if((g.section||'')!==(sec.heading||'')) return;
         if(g.asset==='game'){ h+=`<h3 style="margin:16px 0 4px;font-size:14px">${esc(g.name||'')}</h3><div style="font-size:13px">${g.content||''}</div>`+ideaBlockHTML(g,i,Object.assign(opts(g,i),{showHeading:false,showPlanner:false,showShop:false})); }
-        else { ideaNo++; h+=ideaBlockHTML(g,i,Object.assign(opts(g,i),{ideaNo})); }
+        else { h+=ideaBlockHTML(g,i,opts(g,i)); }   // без нумерации, как в статье
       });
     });
     games.forEach((g,i)=>{ if(!secs.some(x=>(x.heading||'')===(g.section||''))) h+=ideaBlockHTML(g,i,opts(g,i)); });
   }else{
-    games.forEach((g,i)=>{ h+=ideaBlockHTML(g,i,Object.assign(opts(g,i),{ideaNo:i+1})); });
+    games.forEach((g,i)=>{ h+=ideaBlockHTML(g,i,opts(g,i)); });
   }
   if((a.faq||[]).length){
     h+=`<h2 style="margin:22px 0 8px;font-size:16px">FAQ</h2>`

@@ -131,7 +131,7 @@ function gameCard(g,i){
   if(['prompts','ideas','recipes'].includes(v('articleMode')||'games') && g.asset!=='game'){
     return ideaBlockHTML(g,i,{
       idPrefix:'gc', kw:(ST.article&&ST.article.focusKeyword)||'',
-      ideaNo:(v('articleMode')==='ideas')?(i+1):0,
+      ideaNo:0,   // внутри статьи идеи не нумеруются
       regen:`regenImg(${i})`, regenExtra:k=>`regenExtraImg(${i},${k})`,
       setPrompt:`setGamePrompt(${i},this.value)`, setExtraPrompt:k=>`setGameExtraPrompt(${i},${k},this.value)`,
     });
