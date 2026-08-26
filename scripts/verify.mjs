@@ -49,7 +49,7 @@ group('Ключи не уходят в браузер');
   const wpDirect = (js.match(/site\.url\+'\/wp-[^']*/g) || []).filter(m => !m.includes('wp-admin'));
   wpDirect.length ? fail('прямые вызовы WordPress: ' + wpDirect.join(', ')) : ok('WordPress — только через Worker');
 
-  ['/api/claude', '/api/runware', '/api/pexels', '/api/wp', '/api/keys'].forEach(r =>
+  ['/api/claude', '/api/runware', '/api/llm', '/api/pexels', '/api/wp', '/api/keys'].forEach(r =>
     js.includes(r) ? ok('используется ' + r) : fail('маршрут ' + r + ' нигде не вызывается'));
 }
 
@@ -172,6 +172,14 @@ group('Печатные листы');
     ? ok('на фотографиях людей по-прежнему нет') : fail('запрет людей на фотографиях пропал');
   js.includes('const HOME_KITCHEN=') && js.includes("v('articleMode')==='recipes'")
     ? ok('рецепты снимаются как домашнее фото, а не студийное') : fail('нет домашнего фотоконтракта для рецептов');
+
+  // Вторая модель для текста: переключатель, своя ветка вызова и тот же ключ Runware.
+  body.includes('id="textModel"') && body.includes('id="textModelId"')
+    ? ok('модель текста переключается и её id правится') : fail('нет переключателя модели текста');
+  js.includes('function callLuna(') && js.includes("textModel()!=='claude'")
+    ? ok('вторая модель подключена к генерации статьи') : fail('вторая модель не вызывается');
+  js.includes("v('textModelId')||'openai:gpt@5.6-luna'")
+    ? ok('идентификатор модели берётся из настроек') : fail('идентификатор модели зашит намертво');
 
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']

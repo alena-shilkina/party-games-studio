@@ -31,7 +31,70 @@ function extractJSON(txt){
     catch(e2){ throw new Error('Response wasn\'t valid JSON (likely truncated — try a smaller article or fewer games). '+e2.message); }
   }
 }
+// Какая модель пишет текст статьи. Claude по умолчанию; вторая — для сравнения качества.
+// Обе идут через Worker, ключи в браузер не попадают.
+function textModel(){ return v('textModel')||'claude'; }
+
+// GPT-5.6 Luna и другие текстовые модели Runware — через её OpenAI-совместимый эндпоинт.
+// Отличий от Claude два, и оба существенные:
+//   1) веб-поиска нет: там, где Claude ищет источники и вставляет живые ссылки,
+//      эта модель пишет по своим знаниям, и ссылок в тексте не будет;
+//   2) ответ приходит в формате OpenAI — choices[0].message.content вместо блоков.
+// Наружу функция отдаёт то же самое, что callClaude: склеенный текст.
+async function callLuna(system,content,useSearch,onStatus,maxTokens){
+  const model=v('textModelId')||'openai:gpt@5.6-luna';
+  let messages=[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}];
+  let overloadTries=0, netTries=0, contTries=0, acc='';
+  if(useSearch && onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');
+  for(let i=0;i<12;i++){
+    if(batchStopped) throw new Error('__ABORT__');
+    let r;
+    try{
+      r=await fetch('/api/llm',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model,max_tokens:maxTokens||16000,messages}),signal:batchAbort?.signal});
+    }catch(netErr){
+      if(netErr.name==='AbortError'||batchStopped) throw new Error('__ABORT__');
+      if(netTries<6){ netTries++;
+        const wait=Math.min(60000,5000*netTries);
+        if(onStatus)onStatus(`🌐 Network paused — retry ${netTries}/6 in ${Math.round(wait/1000)}s…`);
+        await new Promise(res=>setTimeout(res,wait));
+        continue;
+      }
+      throw new Error('Network error — check your connection.');
+    }
+    // тело читаем один раз: на медленном пути Worker отдаёт 200 с ошибкой внутри
+    let d=null, err=null, status=r.status;
+    try{ d=await r.json(); }catch(x){}
+    if(!r.ok) err=d?.error||{message:''};
+    else if(d&&d.error){ err=d.error; d=null; }
+    if(err){
+      const m=err.message||''; status=err.status||status;
+      if((status===429||status===529||status>=500) && overloadTries<5){
+        overloadTries++;
+        const wait=Math.min(60000,4000*Math.pow(2,overloadTries-1));
+        if(onStatus)onStatus(`⏳ Model busy — retry ${overloadTries}/5 in ${Math.round(wait/1000)}s…`);
+        await new Promise(res=>setTimeout(res,wait));
+        continue;
+      }
+      throw new Error(m||(model+' '+status));
+    }
+    const choice=d&&d.choices&&d.choices[0];
+    if(!choice) throw new Error(model+' returned an empty response');
+    const txt=String((choice.message&&choice.message.content)||'');
+    // упёрлись в потолок ответа — просим продолжить с того же места, как у Claude
+    if(choice.finish_reason==='length' && contTries<3){
+      contTries++; acc+=txt;
+      if(onStatus)onStatus(`✍️ Long article — continuing (${contTries}/3)…`);
+      messages.push({role:'assistant',content:txt});
+      messages.push({role:'user',content:'Continue the JSON from exactly where you stopped. Do not repeat anything already sent, do not restart, do not add commentary or code fences — output only the remaining raw JSON so the two parts concatenate into one valid document.'});
+      continue;
+    }
+    return acc+txt;
+  }
+  throw new Error(model+': too many continuations');
+}
 async function callClaude(system,content,useSearch,onStatus,maxTokens){
+  if(textModel()!=='claude') return callLuna(system,content,useSearch,onStatus,maxTokens);
   const key=v('claudeKey'); if(!keyReady('claude')) throw new Error('Claude key missing in Settings');
   let messages=[{role:'user',content}];
   let overloadTries=0, netTries=0, contTries=0, acc='';

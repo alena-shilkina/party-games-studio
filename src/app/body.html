@@ -181,6 +181,13 @@
     <small>Only applies to GPT Image 2. <b>Low</b> costs a fraction of medium and is fine for photo-style and light-text sheets — but check text-heavy printables (trivia, bingo, rules) before running a whole wave on it. <b>High</b> often exceeds Runware's sync window and fails.</small>
   </div>
 
+  <div class="sl">Text model</div>
+  <div class="fg">
+    <label for="textModelId">Runware model id</label>
+    <input type="text" id="textModelId" placeholder="openai:gpt@5.6-luna">
+    <small>Used when the batch toolbar is switched to the Runware model. Runs through Runware's OpenAI-compatible endpoint on your existing Runware key, so no extra secret is needed. Blank falls back to <code>openai:gpt@5.6-luna</code>. This model has no web search: Ideas and Recipes will be written without live sources.</small>
+  </div>
+
   <div class="sl">Tone of voice</div>
   <div class="fg">
     <textarea id="tone" style="min-height:110px" placeholder="How the article should sound…"></textarea>
@@ -233,6 +240,7 @@
       <select id="bzStatus"><option value="draft">Draft</option><option value="publish">Publish</option></select></label>
     <label class="bz-ctl">Featured:&nbsp;<select id="featMode" style="margin-left:2px;padding:2px 5px;border-radius:6px"><option value="pexels">Pexels (auto)</option><option value="ai">AI-generated</option><option value="manual">Manual / off</option></select></label>
     <label class="bz-ctl" title="Default for rows that are left on «batch default». Each row can override it.">Reference:&nbsp;<select id="bzRefMode" onchange="setRefMode(this.value)" style="margin-left:2px;padding:2px 5px;border-radius:6px"><option value="image">Style only</option><option value="motifs">Style + characters</option></select></label>
+    <label class="bz-ctl" title="Which model writes the article text. Claude searches the web for sources; the Runware model does not.">Text:&nbsp;<select id="textModel" style="margin-left:2px;padding:2px 5px;border-radius:6px"><option value="claude">Claude</option><option value="luna">GPT-5.6 Luna</option></select></label>
     <label class="btn btn-ghost btn-sm" style="width:auto;cursor:pointer;min-width:96px">⤒ Load CSV<input type="file" accept=".csv" style="display:none" onchange="importBatchCSV(event)"></label>
     <button class="btn btn-ghost btn-sm" style="width:auto;min-width:104px" onclick="openReview()">👀 Review (<span id="bzReviewCount">0</span>)</button>
     <span class="sp"></span>

@@ -2,7 +2,7 @@
 let ST={ refMode:'', paa:[], feat:null, csv:[], article:null, pins:[], refDataUri:null, styleBlock:'', baseRef:null, baseStyle:'', wpCats:[], pubCat:null, batch:null, review:[] };
 
 /* ---------- SETTINGS PERSISTENCE ---------- */
-const SKEYS=['claudeKey','runwareKey','pexelsKey','imgModel','imgQuality','refMode','makePins','tone','relAnchor','relUrl'];
+const SKEYS=['claudeKey','runwareKey','pexelsKey','imgModel','imgQuality','refMode','textModel','textModelId','makePins','tone','relAnchor','relUrl'];
 function loadSettings(){
   try{
     const s=JSON.parse(localStorage.getItem('pgs_settings')||'{}');

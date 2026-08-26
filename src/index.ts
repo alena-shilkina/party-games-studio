@@ -65,6 +65,7 @@ export default {
         });
       case '/api/claude':  return proxyClaude(request, env);
       case '/api/runware': return proxyRunware(request, env);
+      case '/api/llm':     return proxyRunwareChat(request, env);
       case '/api/pexels':  return proxyPexels(url, request, env);
       case '/api/wp':      return proxyToWordPress(request, url, env);
     }
@@ -276,6 +277,20 @@ async function collectAnthropicStream(res: Response): Promise<Response> {
   const out = message as Record<string, any>;
   out.content = blocks.filter(Boolean);
   return json(out, 200);
+}
+
+// Текстовые модели Runware через её OpenAI-совместимый эндпоинт. Ключ тот же самый,
+// что для картинок, поэтому отдельного секрета не понадобилось.
+async function proxyRunwareChat(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') return notFound();
+  const fromClient = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+  const key = env.RUNWARE_API_KEY || fromClient;
+  if (!key) return noKey('Runware');
+  return slowSafe(fetch('https://api.runware.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: request.body,
+  }), anthropicError);   // форма {error:{message}} совпадает, приложение её понимает
 }
 
 async function proxyRunware(request: Request, env: Env): Promise<Response> {
