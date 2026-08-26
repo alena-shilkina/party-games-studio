@@ -117,6 +117,8 @@ async function generateArticle(){
     else { ST.pins=[]; renderPins(); }
     prog(100,'✅ Done');
     toast('Article ready','ok');
-  }catch(e){toast(e.message,'err');console.error(e);}
+  // Настоящую причину раньше видел только тост на 2,6 секунды и консоль, а строка пакета
+  // писала «generation failed». Запоминаем текст, чтобы он дошёл до строки и до ревью.
+  }catch(e){ ST.lastError=e.message||String(e); toast(e.message,'err'); console.error('[PGS] статья не собралась:',e); }
   btn.disabled=false; progDone();
 }

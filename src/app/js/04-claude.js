@@ -124,13 +124,14 @@ async function lunaSearchOnce(model,system,content,maxTokens){
     settings, tools:[{type:'search'}], includeCost:true, deliveryMethod:'sync'};
   const r=await fetch('/api/llm/native',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify([task]),signal:batchAbort?.signal});
-  const d=await r.json();
-  if(!r.ok||d?.errors?.length||d?.error){
-    // печатаем настоящую причину: контракт родного API задокументирован не целиком,
-    // и без текста ошибки чинить его придётся вслепую
-    const why=d?.errors?.[0]?.message||d?.error?.message||('HTTP '+r.status);
-    console.warn('[PGS] веб-поиск недоступен:',why,d);
-    throw new Error('native: '+why);
+  // Читаем СНАЧАЛА как текст: тело ошибки может быть не-JSON, и тогда r.json() падал
+  // раньше, чем причина попадала в консоль, из-за чего сообщение вообще не появлялось.
+  const raw=await r.text();
+  let d=null; try{ d=JSON.parse(raw); }catch(e){}
+  if(!r.ok||!d||d.errors?.length||d.error){
+    const why=d?.errors?.[0]?.message||d?.error?.message||raw.slice(0,300)||('HTTP '+r.status);
+    console.warn('[PGS] веб-поиск недоступен, HTTP '+r.status+':',why);
+    throw new Error('web search unavailable (HTTP '+r.status+'): '+String(why).slice(0,160));
   }
   const item=(d&&Array.isArray(d.data))?d.data[0]:null;
   const text=item&&typeof item.text==='string'?item.text:'';

@@ -111,7 +111,7 @@ async function retryRow(id){
   if(!getSite()){ toast('Select a WP site in Settings','err'); return; }
   retryRunning=true;
   batchStopped=false; batchAbort=new AbortController();
-  r.status='running'; r.error=''; renderBatch();
+  r.status='running'; r.error=''; ST.lastError=''; renderBatch();
   const mode=$('bzMode')?$('bzMode').value:(ST.batch.mode||'review');
   const status=$('bzStatus')?$('bzStatus').value:(ST.batch.status||'draft');
   try{
@@ -119,7 +119,7 @@ async function retryRow(id){
     applyRowToFields(r);
     await applyFeatured(r.featKW||r.kw, !!r.featKW);
     await generateArticle();
-    if(!ST.article) throw new Error('generation failed');
+    if(!ST.article) throw new Error(ST.lastError||'generation failed');
     r.cost=costSummary(); r.costUsd=costTotalUsd();
     if(mode==='review'){ const rr=await stageForReview(status); if(rr&&rr.ok){ r.status='done'; r.link=''; } else throw new Error('staging failed'); }
     else { const res=await publish(status); if(res&&res.ok){ r.status='done'; r.link=res.link; } else throw new Error(res&&res.error||'publish failed'); }
@@ -309,7 +309,7 @@ async function runBatch(){
   let done=0;
   for(const r of todo){
     if(batchPaused) break;
-    r.status='running'; r.error=''; renderBatch(); saveBatch();
+    r.status='running'; r.error=''; ST.lastError=''; renderBatch(); saveBatch();
     bzProg(Math.round(done/todo.length*100),`Article ${done+1}/${todo.length}: ${r.kw}`);
     try{
       if(r.refUrl && !r.styleBlock){ try{ r.styleBlock=await styleFromRefUrl(r.refUrl,r.refMode||v('refMode')); saveBatch(); }catch(e){} }
@@ -319,7 +319,7 @@ async function runBatch(){
       for(let attempt=0;attempt<2 && !ok;attempt++){       // one auto-retry (bad JSON is often transient)
         try{
           await generateArticle();
-          if(!ST.article) throw new Error('generation failed');
+          if(!ST.article) throw new Error(ST.lastError||'generation failed');
           r.cost=costSummary(); r.costUsd=costTotalUsd();   // точная цена картинок + токены текста
           if(batchStopped){
             // Runware ran out mid-images: SAVE the finished text to Review (don't waste the Claude tokens), then stop
