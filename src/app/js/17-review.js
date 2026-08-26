@@ -269,6 +269,28 @@ function parseCSV(text){
   if(cur!==''||row.length){ row.push(cur); rows.push(row); }
   return rows.filter(r=>r.join('').trim()!=='').map(r=>r.map(s=>s.trim()));
 }
+/* ---------- РАЗБОР ЗНАЧЕНИЙ ИЗ CSV ----------
+   В таблице пишут как удобно: «Ideas round-up», «IDEAS», «ideas». Раньше требовалось
+   точное совпадение со списком, и всё остальное молча превращалось в games — ошибку
+   было видно только по готовым статьям. Теперь сопоставляем по смыслу, а всё, что
+   не удалось распознать, показываем сразу после импорта. */
+function normArticleMode(s){
+  const t=String(s||'').toLowerCase();
+  if(!t) return '';
+  if(/idea/.test(t)) return 'ideas';
+  if(/recipe|food|dish/.test(t)) return 'recipes';
+  if(/prompt|card|deck/.test(t)) return 'prompts';
+  if(/game|listicle/.test(t)) return 'games';
+  return '';
+}
+function normAudience(s){
+  const t=String(s||'').toLowerCase();
+  if(!t) return '';
+  if(/kid|child|toddler|preschool|family|teen/.test(t)) return 'kids';
+  if(/mixed|both|all\s*age|any\s*age/.test(t)) return 'mixed';
+  if(/adult|grown/.test(t)) return 'adult';
+  return '';
+}
 function importBatchCSV(e){
   const f=e.target.files[0]; if(!f)return;
   const rd=new FileReader();
@@ -277,11 +299,16 @@ function importBatchCSV(e){
     const table=parseCSV(text);
     if(!table.length){ toast('Empty CSV','err'); return; }
     const header=table[0].map(h=>h.toLowerCase().replace(/\s+/g,'_'));
-    const col=name=>header.indexOf(name);
-    const idx={ title:col('title'), kw:col('keyword'), pins:col('pin_headlines'), ctx:col('extra_info'),
-      aud:col('audience'), cat:col('wp_category'), info:col('infographic_style'), vibe:col('pin_vibe'), dl:col('downloadable'),
-      feat:col('featured_keyword'), ref:col('ref_url'), refmode:col('ref_mode'), mode:col('article_mode') };
+    // Заголовок колонки может называться по-разному, поэтому принимаем несколько
+    // вариантов. Раньше подходило только точное «article_mode», и таблица с колонкой
+    // «mode» молча уезжала в games — понять это можно было только по результату.
+    const col=(...names)=>{ for(const n of names){ const i=header.indexOf(n); if(i>=0) return i; } return -1; };
+    const idx={ title:col('title'), kw:col('keyword','main_keyword','kw'), pins:col('pin_headlines'), ctx:col('extra_info','context'),
+      aud:col('audience','aud','age','age_band'), cat:col('wp_category','category'), vibe:col('pin_vibe'), dl:col('downloadable'),
+      feat:col('featured_keyword'), ref:col('ref_url','reference','reference_url'), refmode:col('ref_mode','reference_mode'),
+      mode:col('article_mode','mode','article_type','type') };
     if(idx.kw<0 && idx.title<0){ toast('CSV needs at least a "title" or "keyword" column','err'); return; }
+    const unknown={mode:new Set(),aud:new Set()};   // что не удалось распознать — покажем после импорта
     const rows=[];
     for(let i=1;i<table.length;i++){
       const c=table[i];
@@ -289,7 +316,9 @@ function importBatchCSV(e){
       const r=blankRow();
       r.title=get('title'); r.kw=get('kw')||get('title'); r.context=get('ctx');
       r.pinKW=get('pins');   // pin headlines already use | — same separator as the app fields
-      const aud=get('aud').toLowerCase(); r.aud=['adult','kids','mixed'].includes(aud)?aud:'adult';
+      const audRaw=get('aud'); const aud=normAudience(audRaw);
+      if(audRaw&&!aud) unknown.aud.add(audRaw);
+      r.aud=aud||'adult';
       // колонка infographic_style больше не читается: стиль печатных листов один,
       // различает статьи только палитра, и её задаёт тема
       const vibe=get('vibe'); r.vibe=normVibe(vibe)||'Auto';   // case-insensitive: "neutral" → "Neutral"
@@ -301,7 +330,9 @@ function importBatchCSV(e){
       // значение из панели пакета. Синонимы приняты, чтобы не спотыкаться о формулировку.
       const rm=get('refmode').toLowerCase().replace(/[^a-z]/g,'');
       r.refMode = /motif|character|bear/.test(rm) ? 'motifs' : /style|image/.test(rm) ? 'image' : '';
-      const md=get('mode').toLowerCase(); r.mode=['games','prompts','ideas','recipes'].includes(md)?md:'games';   // blank → games (old files keep working)
+      const mdRaw=get('mode'); const md=normArticleMode(mdRaw);
+      if(mdRaw&&!md) unknown.mode.add(mdRaw);
+      r.mode=md||'games';   // пусто → games, старые файлы продолжают работать
       // wp category: accept ID or name
       const cat=get('cat');
       if(cat){ if(/^\d+$/.test(cat)) r.wpCat=cat;
@@ -310,7 +341,21 @@ function importBatchCSV(e){
     }
     if(!rows.length){ toast('No rows found in CSV','err'); return; }
     ST.batch.rows=rows; saveBatch(); renderBatch();
-    toast('Imported '+rows.length+' articles from CSV','ok');
+    // Показываем, ЧТО именно распозналось. Молчаливый импорт стоил целой партии:
+    // строки уехали в games, и стало это ясно только по готовым статьям.
+    const byMode={};
+    rows.forEach(r=>{ byMode[r.mode]=(byMode[r.mode]||0)+1; });
+    const breakdown=Object.keys(byMode).sort().map(k=>byMode[k]+' '+k).join(', ');
+    const noModeCol=idx.mode<0;
+    if(unknown.mode.size||unknown.aud.size||noModeCol){
+      const bits=[];
+      if(noModeCol) bits.push('no article_mode column — everything is Games');
+      if(unknown.mode.size) bits.push('mode not understood: '+[...unknown.mode].slice(0,3).join(', '));
+      if(unknown.aud.size)  bits.push('audience not understood: '+[...unknown.aud].slice(0,3).join(', '));
+      toast(rows.length+' rows ('+breakdown+') — '+bits.join(' · '),'err');
+    } else {
+      toast('Imported '+rows.length+' articles: '+breakdown,'ok');
+    }
   };
   rd.readAsText(f); e.target.value='';
 }

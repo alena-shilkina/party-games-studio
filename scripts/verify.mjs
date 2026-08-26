@@ -195,6 +195,15 @@ group('Печатные листы');
   body.includes('id="bzCost"') && js.includes('batchCostLine()')
     ? ok('итог по пакету показывается') : fail('нет итога по пакету');
 
+  // Импорт CSV: режим и аудитория распознаются по смыслу, а не по точному совпадению,
+  // и нераспознанное не проходит молча.
+  js.includes('function normArticleMode(') && js.includes('function normAudience(')
+    ? ok('режим и аудитория из CSV разбираются по смыслу') : fail('разбор CSV снова требует точного совпадения');
+  js.includes('no article_mode column — everything is Games')
+    ? ok('импорт сообщает, если колонки режима нет') : fail('импорт снова молчит про пропущенный режим');
+  js.includes("col('article_mode','mode','article_type','type')")
+    ? ok('заголовок колонки режима принимается в нескольких вариантах') : fail('колонка режима ищется только по одному имени');
+
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
     .filter(fn => (js.match(new RegExp(fn.replace('(', '\\('), 'g')) || []).length >= 2);
