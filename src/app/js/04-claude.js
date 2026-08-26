@@ -1,4 +1,22 @@
 /* ---------- CLAUDE (plain + web_search loop, from fashion) ---------- */
+
+/* Раньше при сломанном JSON сообщение было одинаковым для двух разных бед: ответ
+   оборвался на полуслове или модель поставила неэкранированную кавычку внутри строки.
+   Лечатся они по-разному, а отличить их можно только по тексту в месте обрыва, поэтому
+   показываем его. Обрыв в самом конце документа значит «не дописала», обрыв в середине
+   при целом хвосте значит «испортила кавычку». */
+function jsonFailMessage(text,err){
+  const s=String(text||'');
+  const pos=parseInt((/position (\d+)/.exec(err&&err.message||'')||[])[1],10);
+  if(!isFinite(pos)) return 'Response wasn\'t valid JSON. '+(err&&err.message||'');
+  const near=s.slice(Math.max(0,pos-70),pos+70).replace(/\s+/g,' ');
+  const tail=s.length-pos;
+  const kind=tail<200
+    ? 'the answer stops here, it was cut off'
+    : 'the answer continues past this point, so something inside a string broke it (usually a raw double quote)';
+  return `Response wasn't valid JSON at ${pos} of ${s.length} (${kind}). Around it: ...${near}...`;
+}
+
 function extractJSON(txt){
   let t=(txt||'').trim().replace(/^```json\s*/i,'').replace(/```$/,'').trim();
   const a=t.indexOf('{');
@@ -28,7 +46,7 @@ function extractJSON(txt){
     // repair 2: strip trailing commas before } or ]
     let repaired=fixCtrl(t).replace(/,\s*([}\]])/g,'$1');
     try{ return JSON.parse(repaired); }
-    catch(e2){ throw new Error('Response wasn\'t valid JSON (likely truncated — try a smaller article or fewer games). '+e2.message); }
+    catch(e2){ throw new Error(jsonFailMessage(repaired,e2)); }
   }
 }
 /* ---------- ВЫБОР МОДЕЛИ ДЛЯ ТЕКСТА ----------

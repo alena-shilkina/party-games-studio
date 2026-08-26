@@ -285,6 +285,15 @@ function voteHTML(a,g,i){
     +`</div>`;
 }
 function stripYearSafe(x){ return String(x||'').replace(/20\d\d/g,'').replace(/--+/g,'-').replace(/^-|-$/g,''); }
+
+/* WordPress прогоняет содержимое поста через wpautop, а тот превращает переносы строк
+   в <br />, и делает это ВНУТРИ <script> и <style> тоже. Скрипт лайков приезжал на сайт
+   в виде «(function(){<br />  var EP=...» — синтаксис сломан, обработчик не вешается,
+   кнопки рисуются и не нажимаются, а CSS не применяется. Поэтому стили и скрипт уходят
+   одной строкой: тогда wpautop нечего ломать.
+   Комментариев вида // внутри VOTE_ASSETS нет намеренно: склейка в одну строку убила бы
+   всё, что стоит после такого комментария. */
+function oneLine(s){ return String(s||'').replace(/\s*\r?\n\s*/g,' ').trim(); }
 const VOTE_ASSETS=`<style>
 .rcg-vote{display:flex;align-items:center;justify-content:center;gap:8px;margin:6px 0 22px;flex-wrap:wrap}
 .rcg-vote-q{font-size:14px;color:#6b6b6b;margin-right:2px}
@@ -392,7 +401,7 @@ async function publish(status){
       const up=await wpSideload(site,ST.pins[i].img,ST.pins[i].file||('pin-'+(i+1)),pAlt,pCap);
       pinsHTML+=`<figure class="pgs-pin-fig" style="display:inline-block;margin:8px;text-align:center;max-width:340px"><img class="pgs-pin wp-image-${up.id}" src="${up.src}" alt="${esc(pAlt)}" style="display:block;width:100%;max-width:100%;height:auto;border-radius:8px;border:1px solid #eee"/><figcaption style="font-size:13px;color:#555;margin-top:4px">${esc(pCap)}</figcaption></figure>`;
     }catch(e){} } }
-    html+=VOTE_ASSETS;   // vote styles + script once per article (pins below are deliberately excluded)
+    html+=oneLine(VOTE_ASSETS);   // vote styles + script once per article (pins below are deliberately excluded)
     if(pinsHTML){ html+=`<h2 id="save-for-later">📌 Save These for Later</h2><p>Loved these? Pin your favorite image below so you can find this list again when you're planning.</p><div class="pgs-pins" style="text-align:center">${pinsHTML}</div>`; }
     prog(90,'📝 Creating post…');
     // last line of defence: the title we are about to send must still be the one we started with
