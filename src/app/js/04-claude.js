@@ -5,6 +5,26 @@
    Лечатся они по-разному, а отличить их можно только по тексту в месте обрыва, поэтому
    показываем его. Обрыв в самом конце документа значит «не дописала», обрыв в середине
    при целом хвосте значит «испортила кавычку». */
+/* Модель ставит сырую кавычку внутри значения: {"content":"she said "yes" to it"}.
+   Такая кавычка закрывает строку раньше времени, дальше разбор читает текст как имя
+   поля и падает на «Expected ':' after property name». Отличить настоящую закрывающую
+   кавычку от внутренней можно по тому, что стоит после неё: у настоящей это двоеточие,
+   запятая или закрывающая скобка. Всё прочее внутри строки экранируем. */
+function repairInnerQuotes(s){
+  const t=String(s||'');
+  let out='',inStr=false;
+  for(let i=0;i<t.length;i++){
+    const c=t[i];
+    if(!inStr){ out+=c; if(c==='"')inStr=true; continue; }
+    if(c==='\\'){ out+=c+(t[i+1]||''); i++; continue; }
+    if(c!=='"'){ out+=c; continue; }
+    let j=i+1; while(j<t.length&&/\s/.test(t[j])) j++;
+    if(':,}]'.includes(t[j])){ out+=c; inStr=false; }   // настоящий конец строки
+    else out+='\\"';                                    // внутренняя кавычка
+  }
+  return out;
+}
+
 function jsonFailMessage(text,err){
   const s=String(text||'');
   const pos=parseInt((/position (\d+)/.exec(err&&err.message||'')||[])[1],10);
@@ -46,7 +66,11 @@ function extractJSON(txt){
     // repair 2: strip trailing commas before } or ]
     let repaired=fixCtrl(t).replace(/,\s*([}\]])/g,'$1');
     try{ return JSON.parse(repaired); }
-    catch(e2){ throw new Error(jsonFailMessage(repaired,e2)); }
+    catch(e2){
+      // repair 3: сырые кавычки внутри значений — самая частая порча у слабых моделей
+      try{ return JSON.parse(repairInnerQuotes(repaired)); }
+      catch(e3){ throw new Error(jsonFailMessage(repaired,e2)); }
+    }
   }
 }
 /* ---------- ВЫБОР МОДЕЛИ ДЛЯ ТЕКСТА ----------

@@ -59,6 +59,36 @@ console.log('Склейка не портит осмысленный код');
   check('пустое остаётся пустым', oneLine('') === '');
 }
 
+console.log('\nСырые кавычки внутри значений чинятся');
+{
+  const claude = readFileSync('src/app/js/04-claude.js', 'utf8');
+  const a = claude.indexOf('function extractJSON(');
+  const b = claude.indexOf('\n}\n', claude.indexOf('function jsonFailMessage(')) + 2;
+  const head = claude.slice(claude.indexOf('function repairInnerQuotes('), a);
+  const { extractJSON, repairInnerQuotes } = new Function(
+    head + claude.slice(a, claude.indexOf('\nfunction textModel(')) +
+    '\nreturn {extractJSON,repairInnerQuotes};')();
+
+  check('внутренняя кавычка экранируется',
+    repairInnerQuotes('{"a":"she said "yes" to it"}') === '{"a":"she said \\"yes\\" to it"}');
+  check('правильный JSON не портится',
+    repairInnerQuotes('{"a":"plain","b":2}') === '{"a":"plain","b":2}');
+  check('уже экранированное не трогается',
+    repairInnerQuotes('{"a":"she said \\"yes\\""}') === '{"a":"she said \\"yes\\""}');
+
+  // то, на чём падала статья: ключ читался там, где на самом деле продолжалось значение
+  const broken = '{"title":"Baby Shower","games":[{"name":"Guess Who","content":"Ask them "who said it" and score."}]}';
+  let parsed = null;
+  try { parsed = extractJSON(broken); } catch (e) { console.log('    ' + e.message.slice(0, 90)); }
+  check('сломанная статья всё-таки разбирается', !!parsed);
+  check('текст сохранился целиком', !!parsed && /who said it/.test(parsed.games[0].content));
+  check('остальные поля на месте', !!parsed && parsed.title === 'Baby Shower');
+
+  // здоровый ответ проходит прежним путём
+  const good = extractJSON('{"title":"ok","games":[]}');
+  check('целый JSON разбирается как раньше', good.title === 'ok');
+}
+
 console.log('\nСообщение о сломанном JSON различает две беды');
 {
   const claude = readFileSync('src/app/js/04-claude.js', 'utf8');
