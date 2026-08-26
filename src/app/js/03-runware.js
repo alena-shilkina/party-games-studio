@@ -116,6 +116,7 @@ async function runwareGen(prompt,width,height,tries=3,refUri=null){
       if(d.errors?.length) throw new Error(d.errors[0].message||'Runware error');
       if(!r.ok) throw new Error('Runware '+r.status);
       const item=(d.data||[]).find(x=>x.imageURL);
+      if(item) costAddImage(item.cost);   // includeCost:true выше — цена приходит точной
       if(!item) throw new Error('No image returned — check Runware key, balance & GPT Image 2 access');
       return item.imageURL;
     }catch(e){

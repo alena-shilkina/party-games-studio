@@ -27,6 +27,7 @@ function pickInternalLinks(kw,title,limit=20){
 }
 
 async function generateArticle(){
+  costReset();   // счёт стоимости — на каждую статью свой
   ST.article=null;   // clear any previous article so a failure can't republish stale content
   const kw=v('mainKW'); if(!kw){toast('Enter a main keyword','err');return;}
   if(!keyReady('claude')){toast('Add your Claude key in Settings','err');openSettings();return;}

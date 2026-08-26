@@ -181,6 +181,16 @@ group('Печатные листы');
   js.includes("v('textModelId')||'openai:gpt@5.6-luna'")
     ? ok('идентификатор модели берётся из настроек') : fail('идентификатор модели зашит намертво');
 
+  // Стоимость статьи: картинки точные, текст — оценка по токенам.
+  js.includes('costAddImage(item.cost)') && js.includes('includeCost:true')
+    ? ok('точная цена картинок берётся из ответа Runware') : fail('цена картинок не считается');
+  (js.match(/costAddText\(/g) || []).length >= 3
+    ? ok('токены текста считаются у обеих моделей') : fail('токены текста считаются не везде');
+  (js.match(/r\.cost=costSummary\(\)/g) || []).length === 2
+    ? ok('стоимость запоминается и в пакете, и при пересборе строки') : fail('стоимость сохраняется не во всех путях');
+  body.includes('id="bzCost"') && js.includes('batchCostLine()')
+    ? ok('итог по пакету показывается') : fail('нет итога по пакету');
+
   js.includes('function promptBox(') ? ok('редактор промпта есть') : fail('редактора промпта нет');
   const wired = ['setGamePrompt(', 'setGameExtraPrompt(', 'reviewEditPrompt(', 'reviewEditExtraPrompt(']
     .filter(fn => (js.match(new RegExp(fn.replace('(', '\\('), 'g')) || []).length >= 2);

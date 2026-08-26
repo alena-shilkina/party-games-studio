@@ -80,6 +80,7 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
     }
     const choice=d&&d.choices&&d.choices[0];
     if(!choice) throw new Error(model+' returned an empty response');
+    costAddText(d.usage&&d.usage.prompt_tokens, d.usage&&d.usage.completion_tokens, d.cost);
     const txt=String((choice.message&&choice.message.content)||'');
     // упёрлись в потолок ответа — просим продолжить с того же места, как у Claude
     if(choice.finish_reason==='length' && contTries<3){
@@ -141,6 +142,7 @@ async function callClaude(system,content,useSearch,onStatus,maxTokens){
       throw new Error(m||('Claude '+status));
     }
     if(!d||!d.content) throw new Error('Claude returned an empty response');
+    costAddText(d.usage&&d.usage.input_tokens, d.usage&&d.usage.output_tokens);
     messages.push({role:'assistant',content:d.content});
     if(d.stop_reason==='tool_use'){
       const trs=d.content.filter(b=>b.type==='tool_use').map(b=>{

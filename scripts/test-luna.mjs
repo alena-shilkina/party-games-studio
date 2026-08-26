@@ -18,6 +18,7 @@ const make = (responses, fields = {}) => {
   const ctx = new Function('responses', 'calls', 'fields', `
     const v = id => (fields[id] || '');
     let batchStopped = false, batchAbort = null;
+    const costAddText = (a, b, c) => calls.usage = { in: a, out: b, exact: c };
     const fetch = async (url, opt) => { calls.push(JSON.parse(opt.body)); const r = responses.shift();
       return { ok: r.ok !== false, status: r.status || 200, json: async () => r.body }; };
     const setTimeout_ = setTimeout;
@@ -77,6 +78,15 @@ console.log('Свой идентификатор модели');
     { textModelId: 'openai:gpt@5.6-mini' });
   await callLuna('S', 'U', false);
   check('берётся из настроек', calls[0].model === 'openai:gpt@5.6-mini');
+}
+
+console.log('Токены уходят в счётчик стоимости');
+{
+  const { callLuna, calls } = make([{ body: {
+    choices: [{ finish_reason: 'stop', message: { content: 'x' } }],
+    usage: { prompt_tokens: 1234, completion_tokens: 567 } } }]);
+  await callLuna('S', 'U', false);
+  check('входные и выходные токены переданы', calls.usage && calls.usage.in === 1234 && calls.usage.out === 567);
 }
 
 console.log('Предупреждение про поиск');

@@ -2,7 +2,7 @@
 let ST={ refMode:'', paa:[], feat:null, csv:[], article:null, pins:[], refDataUri:null, styleBlock:'', baseRef:null, baseStyle:'', wpCats:[], pubCat:null, batch:null, review:[] };
 
 /* ---------- SETTINGS PERSISTENCE ---------- */
-const SKEYS=['claudeKey','runwareKey','pexelsKey','imgModel','imgQuality','refMode','textModel','textModelId','makePins','tone','relAnchor','relUrl'];
+const SKEYS=['claudeKey','runwareKey','pexelsKey','imgModel','imgQuality','refMode','textModel','textModelId','pxClaudeIn','pxClaudeOut','pxLunaIn','pxLunaOut','makePins','tone','relAnchor','relUrl'];
 function loadSettings(){
   try{
     const s=JSON.parse(localStorage.getItem('pgs_settings')||'{}');
@@ -24,6 +24,56 @@ document.addEventListener('change',e=>{
   const id=e.target&&e.target.id;
   if(id&&SKEYS.includes(id)) saveSettings();
 });
+
+/* ---------- СТОИМОСТЬ СТАТЬИ ----------
+   Картинки Runware возвращает с точной ценой (в запросе уже стоит includeCost), поэтому
+   по ним цифра настоящая, до копейки. Текст считается из токенов по ценам из Настроек —
+   это оценка, и в выводе она помечена тильдой. Если цены не заданы, показываем токены
+   и честно говорим, что стоимость текста не посчитана, вместо выдуманного числа. */
+function costReset(){ ST.cost={inTok:0,outTok:0,imgUsd:0,imgN:0,textUsd:0,textExact:false,model:textModel()}; }
+function costAddText(inTok,outTok,exactUsd){
+  if(!ST.cost) costReset();
+  ST.cost.inTok+=inTok||0; ST.cost.outTok+=outTok||0;
+  if(exactUsd!=null&&isFinite(exactUsd)){ ST.cost.textUsd+=exactUsd; ST.cost.textExact=true; }
+}
+function costAddImage(usd){
+  if(!ST.cost) costReset();
+  ST.cost.imgN++; if(usd!=null&&isFinite(usd)) ST.cost.imgUsd+=usd;
+}
+// цена за миллион токенов из Настроек; пусто или мусор → null, и текст не оцениваем
+function priceOf(id){ const n=parseFloat(v(id)); return isFinite(n)&&n>=0?n:null; }
+function costTextUsd(){
+  const c=ST.cost; if(!c) return null;
+  if(c.textExact) return c.textUsd;                       // провайдер прислал точную сумму
+  const pre=(c.model==='claude')?'pxClaude':'pxLuna';
+  const pin=priceOf(pre+'In'), pout=priceOf(pre+'Out');
+  if(pin==null||pout==null) return null;
+  return c.inTok/1e6*pin + c.outTok/1e6*pout;
+}
+const usd=x=>'$'+(x<0.1?x.toFixed(4):x.toFixed(3));
+const kTok=n=>n>=1000?Math.round(n/1000)+'k':String(n);
+// Короткая строка для строки пакета и для очереди ревью.
+function costSummary(){
+  const c=ST.cost; if(!c||(!c.inTok&&!c.imgN)) return '';
+  const t=costTextUsd();
+  const img=`${c.imgN} img ${usd(c.imgUsd)}`;
+  if(t==null) return `${img} · text ${kTok(c.inTok)}+${kTok(c.outTok)} tok (set prices in ⚙)`;
+  return `${usd(t+c.imgUsd)} · ${img} · text ${c.textExact?'':'~'}${usd(t)}`;
+}
+// Число для суммы по пакету. null, если стоимость текста посчитать нечем.
+function costTotalUsd(){
+  const c=ST.cost; if(!c) return null;
+  const t=costTextUsd(); if(t==null) return null;
+  return t+c.imgUsd;
+}
+// Итог по всему пакету — складываем то, что посчиталось по строкам.
+function batchCostLine(){
+  const rows=(ST.batch&&ST.batch.rows)||[];
+  const done=rows.filter(r=>typeof r.costUsd==='number');
+  if(!done.length) return '';
+  const sum=done.reduce((a,r)=>a+r.costUsd,0);
+  return `batch: ${usd(sum)} over ${done.length} article${done.length>1?'s':''} · ${usd(sum/done.length)} each`;
+}
 
 // Режим работы с референсом. У строки пакета может быть свой; если у строки пусто,
 // берём общий — тот, что стоит в панели пакета и в сайдбаре (это одно и то же поле).

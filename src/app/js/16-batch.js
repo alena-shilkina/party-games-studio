@@ -1,6 +1,6 @@
 /* ---------- BATCH WORK ZONE ---------- */
 function blankRow(){ return {id:crypto.randomUUID(),kw:'',title:'',mode:'games',aud:'adult',
-  wpCat:ST.pubCat||'',refMode:'',vibe:'Auto',downloadable:false,pinKW:'',context:'',featKW:'',styleBlock:'',refUrl:'',paa:[],paaSel:[],status:'',link:'',error:''}; }
+  wpCat:ST.pubCat||'',refMode:'',cost:'',costUsd:null,vibe:'Auto',downloadable:false,pinKW:'',context:'',featKW:'',styleBlock:'',refUrl:'',paa:[],paaSel:[],status:'',link:'',error:''}; }
 // auto-detect the article theme from the keyword (feeds the generation context)
 function detectTheme(kw){
   const s=(kw||'').toLowerCase();
@@ -94,7 +94,8 @@ function countOpts(val){ return optionList([{v:'0',l:'Auto 11–17'},{v:'10',l:'
 function wpCatOpts(val){ const c=(ST.wpCats||[]); if(!c.length)return `<option value="">— load in main screen —</option>`; return `<option value="">(site default)</option>`+optionList(c.map(x=>({v:x.id,l:x.name})),val); }
 function statusPill(r){
   const retry=`<button class="btn btn-ghost btn-sm" style="width:auto;font-size:11px;padding:3px 8px;margin-left:6px" onclick="retryRow('${r.id}')" title="Regenerate this article">↻ Retry</button>`;
-  if(r.status==='done')return `<span class="brow-status" style="color:var(--ok)">✅ ${r.link?`<a href="${r.link}" target="_blank" style="color:var(--ok)">open in WP</a>`:'done'}</span>${retry}`;
+  const price=r.cost?`<span style="font-size:11px;color:var(--muted);margin-left:8px" title="Images are billed exactly by Runware; text is estimated from tokens">${esc(r.cost)}</span>`:'';
+  if(r.status==='done')return `<span class="brow-status" style="color:var(--ok)">✅ ${r.link?`<a href="${r.link}" target="_blank" style="color:var(--ok)">open in WP</a>`:'done'}</span>${price}${retry}`;
   if(r.status==='running')return `<span class="brow-status" style="color:var(--plum)"><span class="spin"></span> working…</span>`;
   if(r.status==='error')return `<span class="brow-status" style="color:var(--warn)">⚠ ${esc(r.error||'error')}</span>${retry}`;
   return `<span class="brow-status" style="color:var(--muted)">queued</span>`;
@@ -119,6 +120,7 @@ async function retryRow(id){
     await applyFeatured(r.featKW||r.kw, !!r.featKW);
     await generateArticle();
     if(!ST.article) throw new Error('generation failed');
+    r.cost=costSummary(); r.costUsd=costTotalUsd();
     if(mode==='review'){ const rr=await stageForReview(status); if(rr&&rr.ok){ r.status='done'; r.link=''; } else throw new Error('staging failed'); }
     else { const res=await publish(status); if(res&&res.ok){ r.status='done'; r.link=res.link; } else throw new Error(res&&res.error||'publish failed'); }
     toast('Article regenerated','ok');
@@ -128,6 +130,7 @@ async function retryRow(id){
 }
 function renderBatch(){
   const rows=ST.batch.rows;
+  const bc=$('bzCost'); if(bc) bc.textContent=batchCostLine();
   $('bzCount').textContent=`(${rows.length}/50)`;
   $('bzRows').innerHTML=rows.map((r,i)=>`<div class="brow ${r.status}" id="brow-${r.id}">
     <div class="brow-head"><span class="brow-num">${i+1}</span>
@@ -319,6 +322,7 @@ async function runBatch(){
         try{
           await generateArticle();
           if(!ST.article) throw new Error('generation failed');
+          r.cost=costSummary(); r.costUsd=costTotalUsd();   // точная цена картинок + токены текста
           if(batchStopped){
             // Runware ran out mid-images: SAVE the finished text to Review (don't waste the Claude tokens), then stop
             if(runwareOut && ST.article){ try{ await stageForReview(ST.batch.status); r.status='done'; r.link='(images pending — top up Runware, then regenerate in Review)'; }catch(e){ r.status=''; } }
