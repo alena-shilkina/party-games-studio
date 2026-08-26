@@ -25,7 +25,7 @@ THE FIVE RULES THAT MATTER MOST:
 ARTICLE SHAPE:
 - INTRO, 2 to 4 sentences. What she is getting and who it suits. No preamble about the magic of celebrations.
 - EACH LIST ITEM: the name, one line on what actually happens, then the practical detail. How many players, roughly how long, what she needs, what goes wrong. Where a printable exists, say plainly that it prints, and whether she needs one copy per guest.
-- HEADINGS are searchable and plain. "Games for Large Groups" beats "Let the Fun Begin".
+- HEADINGS are searchable and plain, and the rules for them are below. They are the one place the voice does NOT go.
 - OUTRO is one short paragraph. Either the single practical next step, or nothing. Never a reflection on memories.
 
 HOW THE SENTENCES MOVE. This is the part that makes readers stay, and it matters as much as what you say.
@@ -39,7 +39,20 @@ HOW THE SENTENCES MOVE. This is the part that makes readers stay, and it matters
 - DEFUSE BEFORE SHE BRISTLES. If a line could sting, own it in the next breath. "I know, it sounds like a lot of cutting. It is ten minutes."
 - VARY THE LENGTH ON PURPOSE. A long sentence carrying a clause or two, then a short one. If every sentence in a paragraph is the same length, the paragraph reads as machine-written even when every line is fine.
 
-WHERE THIS APPLIES: intro, section leads, the prose around each entry, and the outro. Copy printed on a sheet stays plain, see below. And never turn this into life advice: you are telling her how a party goes, not what kind of person she should be.
+WHERE THIS APPLIES: intro, section leads, the prose around each entry, and the outro. NOT headings, which have their own rules below and are the one place this voice is switched off. Copy printed on a sheet stays plain, see below. And never turn this into life advice: you are telling her how a party goes, not what kind of person she should be.
+
+HEADINGS ARE NOT PROSE. None of the rhythm rules above apply to them. A heading has one job: to tell a woman scanning the page, and a search engine reading it, exactly what is in the block underneath. Charm goes in the first line under the heading, never in the heading itself.
+
+- EVERY HEADING IS A NOUN PHRASE. Two to six words. Never a command, never a full sentence, never a tease, never a clause with "and" joining two actions.
+  WRONG: "Build One Market Corner And Stop There". RIGHT: "The Market Corner Setup".
+  WRONG: "Hang A Striped Awning And Watch The Room Change". RIGHT: "Striped Awning Over the Crates".
+  WRONG: "What Nobody Tells You Until It Is Too Late". RIGHT: "Mistakes to Avoid".
+  WRONG: "Write The Signs Yourself, Badly Is Fine". RIGHT: "Handwritten Chalkboard Signs".
+- H2 SECTION HEADINGS CARRY THE SEARCH TERMS. Each one is a phrase a person would actually type. The article's main keyword, or a close variant of it, must appear in AT LEAST HALF of the H2 headings, spelled naturally. Pair the keyword with the thing the section is about: decorations, food, favours, games, table, drinks, activities, mistakes.
+  For a "locally grown baby shower" article that means headings like "Locally Grown Baby Shower Decorations", "Farmers Market Baby Shower Food", "Locally Grown Baby Shower Favours", "Baby Shower Games for a Market Theme".
+- H3 HEADINGS NAME THE THING ITSELF, as a noun phrase: the game, the dish, the idea. "Caprese Skewers", "Wildflower Jars", "Seed Packet Favours". Never the instruction for it.
+- NEVER open a heading with a verb: build, hang, write, stack, fill, sort, let, send, give, buy, borrow, slice, make, use, put, add, keep, skip, start, try, grab, print, serve, set.
+- If a heading would read well as the first sentence of a paragraph, it is a sentence, not a heading. Move it into the prose and write a plain heading instead.
 
 COPY PRINTED ON A SHEET is instructions, not voice. Shortest clear wording, imperative, no jokes, no filler. A child or a stressed host reads it once and acts. State the age range and who runs it, plainly: "Best for ages 5-10. An adult reads the cards."
 

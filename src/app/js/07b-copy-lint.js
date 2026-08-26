@@ -118,6 +118,32 @@ function copyFindings(art){
   if(drifted.length)
     notes.push({label:'фото не про свою идею',n:drifted.length,sample:drifted[0].name});
 
+  /* Заголовки. Правила ритма протекли в них, и вместо поисковых фраз получались команды
+     («Build One Market Corner And Stop There») и дразнилки («What Nobody Tells You»).
+     Ни в одном заголовке статьи не оказалось ключевого слова. */
+  const HEAD_VERBS=/^(build|hang|write|stack|fill|sort|let|send|give|buy|borrow|slice|make|use|put|add|keep|skip|start|try|grab|print|serve|set|choose|pick|turn|bring|show|find|get|do|don'?t)\b/i;
+  const heads=[]
+    .concat((art.sections||[]).map(s=>String((s&&s.heading)||'').trim()))
+    .concat((art.games||[]).map(g=>String((g&&g.name)||'').trim()))
+    .filter(Boolean);
+  const commands=heads.filter(h=>HEAD_VERBS.test(h));
+  if(commands.length)
+    notes.push({label:'заголовки-команды вместо поисковых фраз',n:commands.length,sample:commands[0]});
+  const longHeads=heads.filter(h=>h.split(/\s+/).length>6);
+  if(longHeads.length)
+    notes.push({label:'заголовки длиннее шести слов',n:longHeads.length,sample:longHeads[0]});
+
+  // ключевик должен стоять хотя бы в половине H2, иначе разделы не находятся поиском
+  const secHeads=(art.sections||[]).map(s=>String((s&&s.heading)||'').toLowerCase()).filter(Boolean);
+  const kwWords=String(art.focusKeyword||'').toLowerCase()
+    .replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>3);
+  if(secHeads.length&&kwWords.length){
+    const withKw=secHeads.filter(h=>kwWords.some(w=>h.includes(w))).length;
+    if(withKw*2<secHeads.length)
+      notes.push({label:'ключевик редко встречается в H2',n:secHeads.length-withKw,
+        sample:withKw+' из '+secHeads.length+' разделов'});
+  }
+
   const meta=(art.metaDescription||'').trim();
   if(meta&&(meta.length<150||meta.length>155))
     notes.push({label:'длина meta вне 150-155',n:1,sample:meta.length+' знаков'});

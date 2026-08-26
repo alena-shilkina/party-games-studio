@@ -111,6 +111,41 @@ console.log('\nЗамечания, которые правит человек');
   check('расхождение найдено', !!drift && drift.n === 1);
   check('названа именно та идея', !!drift && /Striped Canopy/.test(drift.sample));
   check('совпадающая идея не помечена', !!drift && !/Market Stall/.test(drift.sample));
+}
+{
+  // настоящие заголовки из опубликованной статьи: команды и ни одного ключевика
+  const art = {
+    focusKeyword: 'locally grown baby shower',
+    sections: [
+      { heading: 'Build One Market Corner And Stop There' },
+      { heading: 'What Nobody Tells You Until It Is Too Late' },
+      { heading: 'The Table Everyone Photographs' },
+    ],
+    games: [{ name: 'Hang A Striped Awning And Watch The Room Change' }],
+  };
+  const notes = copyFindings(art);
+  const has = l => notes.some(x => x.label.includes(l));
+  check('заголовки-команды найдены', has('заголовки-команды'));
+  check('слишком длинные заголовки найдены', has('длиннее шести слов'));
+  check('нехватка ключевика в H2 найдена', has('ключевик редко'));
+}
+{
+  // так должно быть: поисковые фразы с ключевиком, существительные
+  const art = {
+    focusKeyword: 'locally grown baby shower',
+    sections: [
+      { heading: 'Locally Grown Baby Shower Decorations' },
+      { heading: 'Farmers Market Baby Shower Food' },
+      { heading: 'Locally Grown Baby Shower Favours' },
+    ],
+    games: [{ name: 'Striped Awning Over the Crates' }],
+  };
+  const notes = copyFindings(art);
+  check('правильные заголовки замечаний не вызывают', notes.length === 0);
+}
+{
+  // строка-сводка для плашки собирается из непустого списка замечаний
+  const notes = copyFindings({ intro: 'A curated list!', metaDescription: 'x' });
   check('строка для интерфейса собирается', /^текст: \d+ замечани/.test(copyNotesLine(notes)));
 }
 {
