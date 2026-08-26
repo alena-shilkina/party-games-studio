@@ -66,6 +66,12 @@ export default {
       case '/api/claude':  return proxyClaude(request, env);
       case '/api/runware': return proxyRunware(request, env);
       case '/api/llm':     return proxyRunwareChat(request, env);
+      // список текстовых моделей аккаунта — чтобы не вводить идентификаторы руками
+      case '/api/llm/models': {
+        const key = env.RUNWARE_API_KEY || (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+        if (!key) return noKey('Runware');
+        return fetch('https://api.runware.ai/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+      }
       case '/api/pexels':  return proxyPexels(url, request, env);
       case '/api/wp':      return proxyToWordPress(request, url, env);
     }

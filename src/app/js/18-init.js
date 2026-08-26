@@ -17,6 +17,7 @@ renderVibes();
 renderWPCatSelect();
 loadSettings();
 loadServerKeys();
+loadTextModels();   // список текстовых моделей — из аккаунта Runware
 applyPinsSwitch();   // пины пока выключены — прячем их блок   // узнаём, какие ключи уже лежат на сервере
 loadBatch();
 loadReview();

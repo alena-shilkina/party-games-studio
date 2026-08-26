@@ -19,6 +19,7 @@ const make = (responses, fields = {}) => {
     const v = id => (fields[id] || '');
     let batchStopped = false, batchAbort = null;
     const costAddText = (a, b, c) => calls.usage = { in: a, out: b, exact: c };
+    const textModel = () => fields.textModelId || 'openai:gpt@5.6-luna';
     const fetch = async (url, opt) => { calls.push(JSON.parse(opt.body)); const r = responses.shift();
       return { ok: r.ok !== false, status: r.status || 200, json: async () => r.body }; };
     const setTimeout_ = setTimeout;

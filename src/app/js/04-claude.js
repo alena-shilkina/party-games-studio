@@ -31,9 +31,52 @@ function extractJSON(txt){
     catch(e2){ throw new Error('Response wasn\'t valid JSON (likely truncated — try a smaller article or fewer games). '+e2.message); }
   }
 }
-// Какая модель пишет текст статьи. Claude по умолчанию; вторая — для сравнения качества.
-// Обе идут через Worker, ключи в браузер не попадают.
-function textModel(){ return v('textModel')||'claude'; }
+/* ---------- ВЫБОР МОДЕЛИ ДЛЯ ТЕКСТА ----------
+   В списке 'claude' и идентификаторы моделей Runware. Список подтягивается из аккаунта,
+   чтобы не вводить идентификаторы руками: они выглядят как openai:gpt@5.6-luna и на слух
+   не запоминаются. Если список не отдаётся, остаётся известная модель плюс ручной ввод. */
+const FALLBACK_LLMS=[{id:'openai:gpt@5.6-luna',label:'GPT-5.6 Luna'}];
+function textModel(){
+  const sel=v('textModel')||'claude';
+  if(sel==='custom') return v('textModelId')||FALLBACK_LLMS[0].id;
+  return sel;
+}
+function toggleCustomModel(){
+  const row=$('textModelIdRow'); if(row) row.style.display=(v('textModel')==='custom')?'':'none';
+}
+async function loadTextModels(){
+  const sel=$('textModel'); if(!sel) return;
+  // Выбранное значение читаем из хранилища, а не из списка: loadSettings() отработал
+  // раньше, когда в списке была только строка Claude, и браузер просто отбросил
+  // сохранённый идентификатор как неизвестный.
+  let chosen='claude';
+  try{ chosen=(JSON.parse(localStorage.getItem('pgs_settings')||'{}').textModel)||'claude'; }catch(e){}
+  let list=[];
+  try{
+    const r=await fetch('/api/llm/models');
+    if(r.ok){
+      const d=await r.json();
+      const raw=Array.isArray(d)?d:(d.data||d.models||[]);
+      list=raw.map(m=>{
+        const id=typeof m==='string'?m:(m.id||m.model||m.air||m.airId||'');
+        const label=(typeof m==='object'&&(m.name||m.displayName))||id;
+        return {id,label};
+      }).filter(m=>m.id);
+    }
+  }catch(e){ /* нет списка — обойдёмся запасным */ }
+  if(!list.length) list=FALLBACK_LLMS;
+  sel.innerHTML='<option value="claude">Claude</option>'
+    +list.map(m=>`<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('')
+    +'<option value="custom">Other — type the id…</option>';
+  // Вернуть то, что было выбрано. Проверяем наличие явно, а не полагаемся на то, что
+  // <select> сам отбросит неизвестное значение. Если модели в списке больше нет —
+  // переключаемся на ручной ввод и подставляем прежний идентификатор, чтобы выбор
+  // не потерялся молча.
+  const known=chosen==='claude'||chosen==='custom'||list.some(m=>m.id===chosen);
+  sel.value=known?chosen:'custom';
+  if(!known){ const inp=$('textModelId'); if(inp&&!inp.value) inp.value=chosen; }
+  toggleCustomModel();
+}
 
 // GPT-5.6 Luna и другие текстовые модели Runware — через её OpenAI-совместимый эндпоинт.
 // Отличий от Claude два, и оба существенные:
@@ -42,7 +85,7 @@ function textModel(){ return v('textModel')||'claude'; }
 //   2) ответ приходит в формате OpenAI — choices[0].message.content вместо блоков.
 // Наружу функция отдаёт то же самое, что callClaude: склеенный текст.
 async function callLuna(system,content,useSearch,onStatus,maxTokens){
-  const model=v('textModelId')||'openai:gpt@5.6-luna';
+  const model=textModel();   // идентификатор из выпадающего списка
   let messages=[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}];
   let overloadTries=0, netTries=0, contTries=0, acc='';
   if(useSearch && onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');

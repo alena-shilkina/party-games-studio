@@ -178,8 +178,12 @@ group('Печатные листы');
     ? ok('модель текста переключается и её id правится') : fail('нет переключателя модели текста');
   js.includes('function callLuna(') && js.includes("textModel()!=='claude'")
     ? ok('вторая модель подключена к генерации статьи') : fail('вторая модель не вызывается');
-  js.includes("v('textModelId')||'openai:gpt@5.6-luna'")
-    ? ok('идентификатор модели берётся из настроек') : fail('идентификатор модели зашит намертво');
+  js.includes('function loadTextModels(') && js.includes("fetch('/api/llm/models')")
+    ? ok('список моделей подтягивается из аккаунта') : fail('список моделей не подтягивается');
+  js.includes('const FALLBACK_LLMS=') && js.includes("value=\"custom\">Other")
+    ? ok('без списка остаются известная модель и ручной ввод') : fail('нет запасного варианта для списка моделей');
+  !/<option value="luna"/.test(body)
+    ? ok('в разметке нет зашитых идентификаторов моделей') : fail('идентификатор модели снова зашит в разметку');
 
   // Стоимость статьи: картинки точные, текст — оценка по токенам.
   js.includes('costAddImage(item.cost)') && js.includes('includeCost:true')
