@@ -71,7 +71,7 @@ SEO RULES:
 - Use the keyword naturally 5-7 times across the article.
 
 AD-LAYOUT RULES (Mediavine), mandatory, revenue depends on them:
-- Every game's "content" is EXACTLY 3 substantial paragraphs (each its own <p>). Each paragraph carries information the previous one did not: (1) what actually happens when people play it, (2) the practical detail: how many players, roughly how long, what she needs, how to set it up, (3) what usually goes wrong and how to handle it, or a real variation she can swap in. NEVER a one-liner. Length comes from real detail, never from restating the same point in a second shape or from a paragraph about why the game is special.
+- Every game's "content" covers three things, each as its own <p> or its own short run of <p> blocks: (1) what actually happens when people play it, (2) the practical detail: how many players, roughly how long, what she needs, how to set it up, (3) what usually goes wrong and how to handle it, or a real variation she can swap in. MORE than three paragraphs is welcome, and a single strong line standing alone as its own paragraph is exactly right where it lands the point, as the rhythm rules in the VOICE section describe. What is never acceptable is covering fewer than those three things, or squashing them into one block. Length comes from real detail, never from restating the same point in a second shape or from a paragraph about why the game is special.
 - Keep HTML FLAT: only top-level <p>, <ul>/<ol>. No wrapper <div>s. (Headings and images are added by the app, not by you.)
 - Never stack images: one printable image per game max, always after its prose.
 
