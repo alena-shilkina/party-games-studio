@@ -265,7 +265,7 @@ function syncRecipeCards(art,mode){
 (0) THE CARD IS BUILT FROM FILLED PANELS ON A COLOURED GROUND, never black type floating on white. A full-bleed tinted or softly patterned background carries the whole card. Each block below sits inside its own rounded filled panel with a small label chip on its top edge, panels tinted in different strengths of the same palette so they read as one set. Decorative accents belong to THIS recipe's own subject and occasion, scattered in the margins and overlapping panel corners, never on top of any word. Leave no large dead area, but never shrink type to fill one.
 PALETTE AND MOTIFS COME FROM THE THEME OF THIS RECIPE, or from the attached style reference when there is one. Do NOT default to one house palette, and do not carry a palette over from an unrelated theme. The saturation should be confident and cheerful rather than pale and washed out, and the type stays the dark anchor of whatever palette you choose.
 (1) TITLE BLOCK at the very top: the recipe name set LARGE as a display headline, the biggest thing on the card by a wide margin, sitting on its own banner or ribbon, with a second weight or a second colour on one word so it has real typographic personality: "${clean(g.section||'')}". Under it one short tagline in small caps or a script face, drawn from the dish itself and never invented as a claim.
-(2) HERO PHOTO directly under the title, inside a rounded frame with a decorative accent overlapping one of its corners: one appetising photograph of the finished dish, filling the full width, about a third of the card's height. No people, no hands, no brand labels. PHOTOREALISM, this must look like a real photograph taken by a food photographer, not a render. CAMERA: shot on a 50mm lens at about f/2.8, from a natural eye-level or slight three-quarter angle; soft directional daylight from one side with gentle falloff and real, slightly soft shadows; shallow depth of field where the front of the food is sharp and the back genuinely falls out of focus. IMPERFECTION IS THE POINT: hand-made food is never identical. Every piece differs in size, angle and placement, some lean, one sits slightly apart, garnish lands unevenly. Include honest small mess: a few crumbs, a smear on the board, an oil pool that is not symmetrical, a herb leaf out of place, one piece already eaten or a bite taken. Real props show light wear, a scratched board, a linen napkin with creases, a fingerprint on a glass. REAL SURFACES: matte where food is matte (cheese, bread, meat), shine only where fat or glaze genuinely sits. No plastic or waxy sheen, no rubbery highlights, no uniform glossy coating over everything. FORBIDDEN AI LOOK: no HDR glow, no halo or rim-light around every item, no over-saturated candy colours, no perfect radial symmetry, no identical repeated objects cloned across the frame, no impossibly clean surfaces, no floating ingredients, no smooth airbrushed texture. Slight natural grain and true-to-life colour, as if straight out of camera with minimal editing.
+(2) HERO PHOTO directly under the title, inside a rounded frame with a decorative accent overlapping one of its corners: one appetising photograph of the finished dish, filling the full width, about a third of the card's height. No people, no hands, no brand labels. PHOTOREALISM, this must look like a real photograph taken by a food photographer, not a render. CAMERA: a 50mm at about f/4, from a natural eye-level or slight three-quarter angle, pulled back far enough that the dish sits in a real place: some of the table, the cloth, a glass or a serving spoon beside it. Not the dish cropped tight and filling the frame. Depth of field is gentle, the back softens but the setting still reads. LIGHT: bright daylight, and sunshine is welcome, a sun patch on the table or warm low afternoon sun from one side. It should look like a cheerful day, never grey or dim. IMPERFECTION IS THE POINT: hand-made food is never identical. Every piece differs in size, angle and placement, some lean, one sits slightly apart, garnish lands unevenly. Include honest small mess: a few crumbs, a smear on the board, an oil pool that is not symmetrical, a herb leaf out of place, one piece already eaten or a bite taken. Real props show light wear, a scratched board, a linen napkin with creases, a fingerprint on a glass. REAL SURFACES: matte where food is matte (cheese, bread, meat), shine only where fat or glaze genuinely sits. No plastic or waxy sheen, no rubbery highlights, no uniform glossy coating over everything. FORBIDDEN AI LOOK: no HDR glow, no halo or rim-light around every item, no over-saturated candy colours, no perfect radial symmetry, no identical repeated objects cloned across the frame, no impossibly clean surfaces, no floating ingredients, no smooth airbrushed texture. Slight natural grain and true-to-life colour, as if straight out of camera with minimal editing.
 (3) BADGE ROW: three pill-shaped badges side by side, each a filled rounded pill in its own tint carrying a simple icon and a short label, a clock reading "${clean(meta[0]||'')}", a level icon reading "${clean(meta[1]||'')}", a servings icon reading "${clean(meta[2]||'')}". Nothing else goes in these badges.
 (4) INGREDIENTS PANEL: a filled rounded panel with a label chip reading WHAT YOU NEED, holding the ingredients as SMALL HAND-PAINTED ILLUSTRATIONS (not a text list): each item drawn on its own, with its name and amount in small clean type underneath. Show EXACTLY these ${ing.length}, in this order, copied word for word: `
       + ing.map(x=>`[${clean(x)}]`).join(' ')
@@ -365,27 +365,45 @@ function applyInvitationSpec(art,mode,wantDl){
 // Раньше здесь лежал список мест на празднике — десертный стол, шары, стульчик для кормления —
 // и он навязывал СЮЖЕТ: статья про подарочные корзины получала фотографии чужой вечеринки.
 // Теперь ротация задаёт только КАДР, а что в кадре — решает абзац этой идеи.
+/* Диафрагма теперь стоит внутри каждого плана. Без неё общий план проигрывал: контракт
+   жёстко задавал f/2.8 с размытым фоном, а на f/2.8 «весь предмет в своей обстановке»
+   физически не снять, поэтому все кадры съезжали в крупный план. */
 const SHOT_FRAMINGS=[
-  'a wide establishing shot: the whole subject in its setting, straight on, with room to breathe around it',
-  'a close three-quarter view from slightly above, the front sharp and the background falling away',
-  'a flat lay looking straight down, the elements laid out across the surface',
-  'a tight detail crop of the part that matters most — texture, edge, fold, ribbon, surface',
-  'a low, near eye-level angle so the subject stands against the space behind it',
-  'the subject shown mid-use or mid-arrangement, as if someone stepped away a moment ago',
-  'an off-centre composition with the subject to one side and quiet negative space beside it',
-  'a slightly pulled-back view that includes the corner of the room or surface it lives on'
+  'a WIDE ESTABLISHING SHOT at about f/8, the whole subject in its setting with the room around it readable and sharp, straight on, with room to breathe',
+  'a three-quarter view from slightly above at about f/4, the front sharp and the background softening without dissolving',
+  'a flat lay looking straight down at about f/5.6, the elements laid out across the surface and all of them sharp',
+  'a tight detail crop at about f/2.8 of the part that matters most: texture, edge, fold, ribbon, surface',
+  'a low, near eye-level angle at about f/4 so the subject stands against the space behind it',
+  'the subject shown mid-use or mid-arrangement at about f/4, as if someone stepped away a moment ago',
+  'an off-centre composition at about f/4 with the subject to one side and quiet negative space beside it',
+  'a PULLED-BACK VIEW at about f/8 that includes the corner of the room the subject lives in, furniture, window and floor visible'
+];
+/* Света в контракте был ровно один: мягкий рассеянный из окна. Он и делал фотографии
+   несолнечными и непраздничными. Теперь свет крутится вместе с планом. */
+const SHOT_LIGHT=[
+  'bright direct sunlight through a window, with real sun patches on the surface and clean defined shadow edges',
+  'warm low afternoon sun raking across the scene from one side, long soft shadows, golden cast',
+  'an airy high-key room full of bounced daylight, light walls, almost no heavy shadow',
+  'clear midday daylight outdoors in open shade, colours clean and saturated, sky light from above',
+  'soft even daylight from a large window on an overcast day',
+  'sunlight dappled through leaves or a curtain, moving patches of light across the subject',
+  'bright daylight with a strong sunbeam crossing the frame and lighting dust or steam in the air',
+  'fresh morning light, cool-clean but bright, with crisp small highlights'
 ];
 function assignShotTypes(art,mode){
   if(mode!=='ideas') return art;
   const rnd=rng32(seedNum(art.focusKeyword||art.title||'x'));
-  const pool=SHOT_FRAMINGS.slice();
-  for(let i=pool.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  const shuffle=a=>{ const p=a.slice(); for(let i=p.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [p[i],p[j]]=[p[j],p[i]]; } return p; };
+  const pool=shuffle(SHOT_FRAMINGS);
+  const lights=shuffle(SHOT_LIGHT);
   let n=0, assigned=0;
   (art.games||[]).forEach(g=>{
     if(g.asset!=='illustration'||!g.imagePrompt) return;
-    const framing=pool[(n++)%pool.length];
+    const framing=pool[n%pool.length];
+    const light=lights[n%lights.length];
+    n++;
     g.imagePrompt=String(g.imagePrompt).replace(/\s*SHOT:[\s\S]*$/i,'').trim()
-      +` SHOT: ${framing}. The subject is whatever THIS idea's own paragraph describes, only the framing rotates, the subject never turns into generic party scenery. No people.`;
+      +` SHOT: ${framing}. LIGHT: ${light}. The framing and the light above override any camera default stated earlier in this prompt. The subject is whatever THIS idea's own paragraph describes, only the framing rotates, the subject never turns into generic party scenery. No people.`;
     g.extraImagePrompts=[];   // одна фотография на идею: дополнительные кадры отменены
     assigned++;
   });

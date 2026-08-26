@@ -319,6 +319,35 @@ group('Домашний стиль печаток');
   body.includes('pinVibe') ? fail('поле Pin vibe вернулось в разметку') : ok('поля Pin vibe в разметке нет');
 }
 
+group('Фотографии');
+{
+  // Контракт жёстко задавал 50mm f/2.8 с размытым фоном, и это перебивало ротацию планов:
+  // «весь предмет в своей обстановке» на f/2.8 не снимешь, поэтому все кадры выходили крупными.
+  js.includes('DEPTH OF FIELD FOLLOWS THE FRAMING')
+    ? ok('глубина резкости следует за планом') : fail('глубина резкости снова прибита к одному значению');
+  js.includes('override any camera default')
+    ? ok('план и свет перебивают дефолт камеры') : fail('дефолт камеры снова главнее плана');
+  const shots = js.slice(js.indexOf('const SHOT_FRAMINGS=['), js.indexOf('];', js.indexOf('const SHOT_FRAMINGS=[')));
+  const stops = [...shots.matchAll(/f\/([0-9.]+)/g)].map(m => m[1]);
+  stops.length >= 8 ? ok(`диафрагма задана во всех ${stops.length} планах`) : fail('не у всех планов есть диафрагма');
+  stops.filter(s => s === '2.8').length <= 1
+    ? ok('крупный план ровно один из восьми') : fail('крупных планов снова большинство');
+  stops.some(s => s === '8') ? ok('общий план стоит на f/8') : fail('общего плана с f/8 нет');
+  /WIDE ESTABLISHING SHOT/.test(js) && /PULLED-BACK VIEW/.test(js)
+    ? ok('общий и отъехавший планы на месте') : fail('планов с обстановкой нет');
+
+  // Света был ровно один: мягкий рассеянный из окна. Отсюда несолнечные и непраздничные кадры.
+  const light = js.slice(js.indexOf('const SHOT_LIGHT=['), js.indexOf('];', js.indexOf('const SHOT_LIGHT=[')));
+  (light.match(/sun/gi) || []).length >= 4
+    ? ok('солнце есть в нескольких вариантах света') : fail('солнца в ротации света почти нет');
+  (light.match(/overcast/gi) || []).length <= 1
+    ? ok('пасмурный свет только один вариант из восьми') : fail('пасмурный свет снова доминирует');
+  js.includes('Soft overcast light is ONE option among several, not the default')
+    ? ok('мягкий рассеянный больше не по умолчанию') : fail('мягкий рассеянный снова по умолчанию');
+  js.includes('A dim kitchen is the wrong picture')
+    ? ok('тусклая кухня в рецептах запрещена') : fail('домашний кухонный блок снова уводит в полумрак');
+}
+
 group('Интерфейс');
 {
   // Здесь однажды уже была поломка: функция панели существовала, а кнопки, которая её
