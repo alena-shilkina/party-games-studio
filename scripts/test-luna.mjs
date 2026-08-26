@@ -21,16 +21,7 @@ const make = (responses, fields = {}) => {
     const costAddText = (a, b, c) => calls.usage = { in: a, out: b, exact: c };
     const textModel = () => fields.textModelId || 'openai:gpt@5.6-luna';
     let LAST_TOKEN_FIELD = 'max_completion_tokens';
-    const LUNA_TEMP = 1.05, LUNA_TOP_P = 0.95;
-    let LUNA_SAMPLING = true, LUNA_SEARCH_OK = true;
-    const modelCan = () => true, modelCannot = () => {};
     ${readFileSync('src/app/js/04-claude.js', 'utf8').match(/function looksComplete\([\s\S]*?\n\}/)[0]}
-    // путь с веб-поиском подменяем: тест решает, отвечает он или падает
-    const lunaSearchOnce = async () => {
-      if (!fields.__search) throw new Error('native path unavailable');
-      calls.push({ __native: true });
-      return fields.__search;
-    };
     const fetch = async (url, opt) => { calls.push(JSON.parse(opt.body)); const r = responses.shift();
       return { ok: r.ok !== false, status: r.status || 200, json: async () => r.body }; };
     const setTimeout_ = setTimeout;
@@ -61,7 +52,6 @@ console.log('Обрезанный ответ продолжается');
   ]);
   const out = await callLuna('S', 'U', false);
   check('куски склеены', out === '{"title":"very long"}');
-  check('режим JSON запрошен', calls[0].response_format && calls[0].response_format.type === 'json_object');
   check('во втором запросе есть просьба продолжить', /Continue the JSON from exactly where you stopped/.test(calls[1].messages.at(-1).content));
   check('предыдущий кусок передан модели', calls[1].messages.some(m => m.role === 'assistant' && m.content === '{"title":"very '));
 }
@@ -143,14 +133,6 @@ console.log('Точная стоимость от провайдера');
   check('без cost остаются одни токены', calls.usage && calls.usage.exact === undefined);
 }
 
-console.log('Настройки сэмплинга уходят в запрос');
-{
-  const { callLuna, calls } = make([{ body: { choices: [{ finish_reason: 'stop', message: { content: 'x' } }] } }]);
-  await callLuna('S', 'U', false);
-  check('температура задана', calls[0].temperature === 1.05);
-  check('topP задан', calls[0].top_p === 0.95);
-}
-
 console.log('\nОбрыв без честного finish_reason');
 {
   // Luna отдаёт незакрытый JSON и говорит "stop" — именно на этом падала статья
@@ -175,52 +157,17 @@ console.log('\nОбрыв без честного finish_reason');
   const out = await callLuna('S', 'U', false);
   check('скобки внутри текста не путают счётчик', calls.length === 1);
 }
-
-console.log('\nМодель не умеет режим JSON');
 {
-  const { callLuna, calls } = make([
-    { ok: false, status: 400, body: { error: { message: "Unsupported parameter: 'response_format' is not supported." } } },
-    { body: { choices: [{ finish_reason: 'stop', message: { content: '{"a":1}' } }] } },
+  // Модель на просьбу дописать начала документ заново. Склейка давала задвоенный
+  // заголовок и обрывок абзаца перед ним, ровно то, что вылезло в статье.
+  const { callLuna } = make([
+    { body: { choices: [{ finish_reason: 'stop', message: { content: '{"h":"Chalkboard Signs","t":"Write short labels such as' } }] } },
+    { body: { choices: [{ finish_reason: 'stop', message: { content: '{"h":"Chalkboard Signs","t":"Write short labels such as Fresh from the garden."}' } }] } },
   ]);
   const out = await callLuna('S', 'U', false);
-  check('статья не падает', out === '{"a":1}');
-  check('повтор ушёл без response_format', !('response_format' in calls[1]));
-}
-
-console.log('\nМодель не принимает temperature');
-{
-  // дословная ошибка Luna из консоли
-  const msg = "Unsupported value: 'temperature' does not support 1.05 with this model. Only the default (1) value is supported.";
-  const { callLuna, calls } = make([
-    { ok: false, status: 400, body: { error: { message: msg } } },
-    { body: { choices: [{ finish_reason: 'stop', message: { content: 'ok' } }] } },
-  ]);
-  const out = await callLuna('S', 'U', false);
-  check('статья не падает, а повторяется', out === 'ok');
-  check('в первом запросе температура была', calls[0].temperature === 1.05);
-  check('во втором запроса температуры нет', !('temperature' in calls[1]));
-  check('и top_p тоже нет', !('top_p' in calls[1]));
-  check('потолок ответа остался на месте', 'max_completion_tokens' in calls[1]);
-}
-
-console.log('\nВеб-поиск и откат на обычный путь');
-{
-  // родной путь ответил — обычный запрос вообще не понадобился
-  const notes = [];
-  const { callLuna, calls } = make([], { __search: '{"title":"searched"}' });
-  const out = await callLuna('S', 'U', true, m => notes.push(m));
-  check('ответ пришёл из поиска', out === '{"title":"searched"}');
-  check('обычный путь не дёргали', calls.length === 1 && calls[0].__native);
-  check('пользователю сказано, что идёт поиск', notes.some(m => /ищет в вебе/.test(m)));
-}
-{
-  // родной путь недоступен — молча возвращаемся на проверенный
-  const notes = [];
-  const { callLuna, calls } = make([{ body: { choices: [{ finish_reason: 'stop', message: { content: 'ok' } }] } }]);
-  const out = await callLuna('S', 'U', true, m => notes.push(m));
-  check('статья всё равно написана', out === 'ok');
-  check('запрос ушёл обычным путём', calls.some(c => c.model));
-  check('предупредили, что поиска не было', notes.some(m => /без веб-поиска/.test(m)));
+  check('перезапуск заменяет обрывок, а не приклеивается',
+    out === '{"h":"Chalkboard Signs","t":"Write short labels such as Fresh from the garden."}');
+  check('заголовок не задвоился', (out.match(/Chalkboard Signs/g) || []).length === 1);
 }
 
 console.log(bad ? '\nЕСТЬ ПРОБЛЕМЫ' : '\nветка Runware-модели работает как задумано');

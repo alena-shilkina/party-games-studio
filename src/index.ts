@@ -66,7 +66,6 @@ export default {
       case '/api/claude':  return proxyClaude(request, env);
       case '/api/runware': return proxyRunware(request, env);
       case '/api/llm':     return proxyRunwareChat(request, env);
-      case '/api/llm/native': return proxyRunwareNative(request, env);
       // список текстовых моделей аккаунта — чтобы не вводить идентификаторы руками
       case '/api/llm/models': {
         const key = env.RUNWARE_API_KEY || (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
@@ -300,20 +299,6 @@ async function proxyRunwareChat(request: Request, env: Env): Promise<Response> {
   }), anthropicError);   // форма {error:{message}} совпадает, приложение её понимает
 }
 
-// Родной API Runware. Нужен ровно ради двух вещей, которых нет в OpenAI-совместимом
-// эндпоинте: встроенного веб-поиска (tools: [{type:'search'}]) и точной стоимости задачи.
-// Тело собирает приложение, здесь только подставляется ключ.
-async function proxyRunwareNative(request: Request, env: Env): Promise<Response> {
-  if (request.method !== 'POST') return notFound();
-  const fromClient = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-  const key = env.RUNWARE_API_KEY || fromClient;
-  if (!key) return noKey('Runware');
-  return slowSafe(fetch('https://api.runware.ai/v1', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: request.body,
-  }), anthropicError);
-}
 
 async function proxyRunware(request: Request, env: Env): Promise<Response> {
   if (request.method !== 'POST') return notFound();

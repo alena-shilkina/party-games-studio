@@ -88,17 +88,6 @@ async function loadTextModels(){
 //      эта модель пишет по своим знаниям, и ссылок в тексте не будет;
 //   2) ответ приходит в формате OpenAI — choices[0].message.content вместо блоков.
 // Наружу функция отдаёт то же самое, что callClaude: склеенный текст.
-/* Настройки сэмплинга для моделей Runware. До этого не отправлялось ни одной, и модель
-   работала на своём дефолте: текст выходил рубленый и ровный. Runware принимает
-   temperature 0-2 (по умолчанию 1) и topP 0-1 (по умолчанию 0.95). */
-const LUNA_TEMP=1.05, LUNA_TOP_P=0.95;
-// Умеет ли выбранная модель ручки сэмплинга. Выясняется по первой же ошибке и
-// запоминается на сессию, чтобы не платить за один и тот же отказ в каждой статье.
-let LUNA_SAMPLING=true;
-// Доступен ли веб-поиск через родной API. Первый отказ выключает его до перезагрузки:
-// иначе каждая статья пакета платит одним и тем же неудачным запросом.
-let LUNA_SEARCH_OK=true;
-
 /* Дописан ли JSON до конца. Считаем скобки вне строк: если открытых больше закрытых,
    ответ оборван, чем бы модель ни объяснила остановку. Нужно потому, что Luna отдаёт
    обрубленный документ с finish_reason "stop", и статья падала на разборе. */
@@ -116,48 +105,6 @@ function looksComplete(t){
   return !inStr && depth<=0;
 }
 
-/* Что модель умеет, выясняется по её же отказу, и запоминается НАВСЕГДА, а не на сессию.
-   Иначе после каждой перезагрузки первая статья снова упирается в тот же 400 и снова
-   сыплет в консоль ошибку, которая выглядит как поломка, хотя это просто выяснение. */
-function modelCan(what){
-  try{ return localStorage.getItem('pgs_no_'+what+'_'+textModel())!=='1'; }catch(e){ return true; }
-}
-function modelCannot(what){
-  try{ localStorage.setItem('pgs_no_'+what+'_'+textModel(),'1'); }catch(e){}
-}
-
-/* Веб-поиск у моделей Runware есть, но только в родном API: в OpenAI-совместимом
-   эндпоинте tools не передать. Формат идентификатора там тоже другой, без ':' и '@'.
-   Контракт родного API я знаю не целиком, поэтому этот путь всегда с откатом:
-   любая осечка возвращает генерацию на проверенный OpenAI-совместимый путь. */
-function nativeModelId(air){
-  return String(air||'').replace(/[:@]/g,'-').replace(/\./g,'-').replace(/-+/g,'-');
-}
-async function lunaSearchOnce(model,system,content,maxTokens){
-  const settings={maxTokens:maxTokens||16000};
-  if(LUNA_SAMPLING&&modelCan('temp')){ settings.temperature=LUNA_TEMP; settings.topP=LUNA_TOP_P; }
-  const task={taskType:'textInference',taskUUID:crypto.randomUUID(),model:nativeModelId(model),
-    messages:[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}],
-    settings, tools:[{type:'search'}], includeCost:true, deliveryMethod:'sync'};
-  const r=await fetch('/api/llm/native',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify([task]),signal:batchAbort?.signal});
-  // Читаем СНАЧАЛА как текст: тело ошибки может быть не-JSON, и тогда r.json() падал
-  // раньше, чем причина попадала в консоль, из-за чего сообщение вообще не появлялось.
-  const raw=await r.text();
-  let d=null; try{ d=JSON.parse(raw); }catch(e){}
-  if(!r.ok||!d||d.errors?.length||d.error){
-    const why=d?.errors?.[0]?.message||d?.error?.message||raw.slice(0,300)||('HTTP '+r.status);
-    console.warn('[PGS] веб-поиск недоступен, HTTP '+r.status+':',why);
-    throw new Error('web search unavailable (HTTP '+r.status+'): '+String(why).slice(0,160));
-  }
-  const item=(d&&Array.isArray(d.data))?d.data[0]:null;
-  const text=item&&typeof item.text==='string'?item.text:'';
-  // берём только целый ответ: обрезанный дешевле дописать на обычном пути, чем чинить здесь
-  if(!text||item.finishReason!=='stop') throw new Error('native path returned nothing usable');
-  costAddText(item.inputTokens,item.outputTokens,item.cost);
-  return text;
-}
-
 async function callLuna(system,content,useSearch,onStatus,maxTokens){
   const model=textModel();   // идентификатор из выпадающего списка
   let messages=[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}];
@@ -166,33 +113,12 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
   // max_completion_tokens, older — max_tokens. Начинаем с нового имени и переключаемся,
   // если модель попросит другое: гадать заранее нельзя, а падать из-за названия поля глупо.
   let tokenField=LAST_TOKEN_FIELD;
-  let sampling=LUNA_SAMPLING&&modelCan('temp');
-  let jsonMode=modelCan('json');
-  // Когда статье нужен поиск, сначала пробуем родной API с включённым поиском.
-  // Не вышло — молча возвращаемся на обычный путь, статья от этого не страдает.
-  // Один отказ на сессию: дальше не долбим родной эндпоинт в каждой статье пакета.
-  if(useSearch && LUNA_SEARCH_OK && modelCan('search')){
-    try{
-      if(onStatus) onStatus('🔎 '+model+' ищет в вебе…');
-      return await lunaSearchOnce(model,system,content,maxTokens);
-    }catch(e){
-      if(e.message==='__ABORT__'||batchStopped) throw e;
-      LUNA_SEARCH_OK=false; modelCannot('search');
-      if(onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');
-    }
-  }
+  if(useSearch && onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');
   for(let i=0;i<12;i++){
     if(batchStopped) throw new Error('__ABORT__');
     let r;
     try{
-      // Ручки сэмплинга есть не у всех моделей: документация Runware описывает
-      // temperature и topP для одних, а Luna принимает только дефолтную единицу и
-      // отвечает 400. Поэтому шлём их, пока модель не скажет, что не умеет.
       const body={model,messages};
-      if(sampling){ body.temperature=LUNA_TEMP; body.top_p=LUNA_TOP_P; }
-      // Просим сам режим JSON, а не надеемся на обещание в промпте: модель ставила
-      // неэкранированные кавычки внутри строк, и документ переставал разбираться.
-      if(jsonMode) body.response_format={type:'json_object'};
       body[tokenField]=maxTokens||16000;
       r=await fetch('/api/llm',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify(body),signal:batchAbort?.signal});
@@ -222,19 +148,6 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
         if(onStatus)onStatus('↻ '+model+' ждёт '+tokenField+' — повторяю');
         continue;
       }
-      // «'temperature' does not support 1.05 ... Only the default (1) value is supported»
-      // Модель не умеет ручки сэмплинга: убираем их и повторяем, а не роняем статью.
-      if(sampling && /\b(temperature|top_p|topP)\b/i.test(m) && /does not support|not supported|unsupported|only the default/i.test(m)){
-        sampling=false; LUNA_SAMPLING=false; modelCannot('temp');   // запомним навсегда
-        if(onStatus)onStatus('↻ '+model+' не принимает temperature — повторяю без неё');
-        continue;
-      }
-      // режим JSON поддерживают не все модели — отказ выключает его, а не роняет статью
-      if(jsonMode && /response_format|json_object/i.test(m)){
-        jsonMode=false; modelCannot('json');
-        if(onStatus)onStatus('↻ '+model+' не умеет режим JSON — повторяю без него');
-        continue;
-      }
       if((status===429||status===529||status>=500) && overloadTries<5){
         overloadTries++;
         const wait=Math.min(60000,4000*Math.pow(2,overloadTries-1));
@@ -251,7 +164,12 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
     // всегда считалась приблизительно, по ценникам из настроек.
     const u=d.usage||{};
     costAddText(u.prompt_tokens, u.completion_tokens, (u.cost!=null?u.cost:d.cost));
-    const txt=String((choice.message&&choice.message.content)||'');
+    let txt=String((choice.message&&choice.message.content)||'');
+    /* Просьбу дописать модель понимает не всегда: вместо продолжения она начинает
+       документ заново. Склеенные куски давали задвоенный заголовок и обрывок абзаца
+       перед ним. Признак прост: продолжение начинается с открывающей скобки, то есть
+       это целый новый документ. Тогда предыдущий кусок выбрасываем, а не приклеиваем. */
+    if(acc && /^\s*[{[]/.test(txt)){ acc=''; }
     // Обрыв не всегда честно помечен: Luna отдаёт незакрытый JSON и finish_reason "stop".
     // Тогда единственный признак — незакрытые скобки, и просить продолжить надо всё равно.
     const truncated=choice.finish_reason==='length'||!looksComplete(acc+txt);

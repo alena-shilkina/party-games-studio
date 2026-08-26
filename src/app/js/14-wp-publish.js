@@ -154,8 +154,19 @@ function plannerHTML(g,kw){
         +`</ul>`).join('')
     + `</div>`;
 }
+// Модель иногда копирует заглушки прямо из схемы вывода, и в блоке покупок выходило
+// три пункта «label» подряд, хотя ссылки за ними были настоящие. Заглушку отбрасываем,
+// а подпись берём из поискового запроса: он осмысленный даже там, где подписи нет.
+const SHOP_PLACEHOLDER=/^(label|item|query|name|title|text|todo|tbd|example|placeholder|string)$/i;
+function shopLabel(x){
+  const l=String((x&&x.label)||'').trim();
+  if(l&&!SHOP_PLACEHOLDER.test(l)) return l;
+  const q=String((x&&x.query)||'').trim();
+  return q?q.charAt(0).toUpperCase()+q.slice(1):'';
+}
 function sectionShopHTML(sec){
-  const list=(sec&&sec.shop||[]).filter(x=>x&&x.label&&x.query);
+  const list=(sec&&sec.shop||[]).filter(x=>x&&x.query&&shopLabel(x))
+    .map(x=>({query:x.query,label:shopLabel(x)}));
   if(!list.length) return '';
   return `<div class="pgs-shop" style="margin:18px 0 6px;border:1px solid #e4dcd0;border-radius:12px;background:#faf7f2;padding:14px 18px">`
     +`<p style="margin:0 0 8px;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#8a6d4b">🛍 Shopping guide</p>`

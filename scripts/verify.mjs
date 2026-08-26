@@ -123,20 +123,20 @@ group('Правила человеческого текста');
   stray === 0 ? ok('в промптах нет длинных тире') : fail(`длинных тире в промптах: ${stray}`);
 }
 
-group('Настройка модели Runware');
+group('Устойчивость ответа модели');
 {
-  // Не отправлялось ни одной ручки сэмплинга, модель работала на дефолте и писала ровно.
-  /const LUNA_TEMP=/.test(js) && js.includes('body.temperature=LUNA_TEMP')
-    ? ok('температура уходит в запрос') : fail('температура не задаётся');
-  js.includes('body.top_p=LUNA_TOP_P') ? ok('topP уходит в запрос') : fail('topP не задаётся');
-  // Luna отвечает 400 на любую temperature кроме единицы. Ручки обязаны отключаться сами.
-  /sampling=false; LUNA_SAMPLING=false;/.test(js)
-    ? ok('модель без ручек сэмплинга обслуживается повтором') : fail('отказ от temperature уронит статью');
-  /LUNA_SEARCH_OK=false;/.test(js)
-    ? ok('недоступный веб-поиск отключается на сессию') : fail('неудачный поиск будет повторяться в каждой статье');
-  // тело ошибки бывает не-JSON, и r.json() падал раньше, чем причина попадала в лог
-  js.includes('const raw=await r.text();')
-    ? ok('ответ родного пути читается как текст') : fail('не-JSON ошибка снова проглотится молча');
+  // Luna отдаёт незакрытый JSON и рапортует finish_reason "stop", а на просьбу дописать
+  // иногда начинает документ заново. Оба случая обязаны обрабатываться.
+  js.includes('function looksComplete(')
+    ? ok('обрыв ловится по незакрытым скобкам') : fail('обрыв определяется только по finish_reason');
+  js.includes("const truncated=choice.finish_reason==='length'||!looksComplete(acc+txt);")
+    ? ok('продолжение запрашивается и по скобкам тоже') : fail('оборванный ответ снова уйдёт в разбор');
+  js.includes("if(acc && /^\\s*[{[]/.test(txt)){ acc=''; }")
+    ? ok('перезапуск не склеивается с обрывком') : fail('перезапуск снова задвоит заголовки');
+
+  // Ручки, которых Luna не принимает, убраны: это они уронили генерацию.
+  ['temperature','top_p','response_format','/api/llm/native','lunaSearchOnce'].forEach(n =>
+    js.includes(n) ? fail(n+' вернулся в запрос') : ok(n+' в запросе нет'));
 
   // Причина падения должна доходить до строки пакета, а не жить в тосте на 2,6 секунды
   js.includes("ST.lastError=e.message||String(e);")
@@ -144,29 +144,11 @@ group('Настройка модели Runware');
   js.includes("throw new Error(ST.lastError||'generation failed')")
     ? ok('строка пакета показывает настоящую причину') : fail('строка пакета снова напишет generation failed');
 
-  // Luna отдавала оборванный JSON с finish_reason "stop", и статья падала на разборе
-  /function looksComplete\(/.test(js)
-    ? ok('обрыв ловится по незакрытым скобкам') : fail('обрыв определяется только по finish_reason');
-  js.includes("const truncated=choice.finish_reason==='length'||!looksComplete(acc+txt);")
-    ? ok('продолжение запрашивается и по скобкам тоже') : fail('оборванный ответ снова уйдёт в разбор');
-  js.includes("body.response_format={type:'json_object'}")
-    ? ok('режим JSON запрашивается') : fail('режим JSON не запрашивается');
-  /jsonMode=false; modelCannot\('json'\);/.test(js)
-    ? ok('отказ от режима JSON не роняет статью') : fail('отказ от response_format уронит статью');
-
-  // Веб-поиск есть только в родном API Runware, и путь к нему обязан быть с откатом.
-  js.includes("tools:[{type:'search'}]") ? ok('веб-поиск запрашивается') : fail('веб-поиск не запрашивается');
-  js.includes("fetch('/api/llm/native'") ? ok('родной путь подключён') : fail('родного пути нет');
-  /catch\(e\)\{[\s\S]{0,200}без веб-поиска/.test(js)
-    ? ok('осечка родного пути откатывается на обычный') : fail('нет отката, статья умрёт на осечке');
-
-  // Из-за списка запретов модель понимала задачу как «пиши короче».
-  js.includes('None of the rules above ask you to write LESS')
-    ? ok('в хвосте сказано, что короче писать не просили') : fail('хвост снова читается как просьба сократить');
-  js.includes('An opinion in every entry is required, not optional')
-    ? ok('мнение в каждом пункте обязательно') : fail('мнение снова необязательно');
-  js.includes('That is a rulebook, not a blog')
-    ? ok('назван сам провал: инструкция вместо текста') : fail('провал не назван');
+  // Модель копировала заглушки схемы, и в блоке покупок выходило три пункта «label»
+  /const SHOP_PLACEHOLDER=/.test(js)
+    ? ok('заглушки в блоке покупок отсекаются') : fail('«label» снова попадёт в блок покупок');
+  js.includes('function shopLabel(')
+    ? ok('подпись берётся из запроса, когда её нет') : fail('пункт без подписи исчезнет вместе со ссылкой');
 }
 
 group('Текст после генерации');
