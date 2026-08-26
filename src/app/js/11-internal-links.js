@@ -41,7 +41,11 @@ async function generateArticle(){
     const rel=(v('relAnchor')&&v('relUrl'))?`\n\nRELATED CTA LINK (optional, include ONLY if it is genuinely relevant to this article's topic; if it is off-topic, leave it out entirely): <a href='${v('relUrl')}'>${v('relAnchor')}</a>`:'';
     // count comes from the number in the Title (fallback: random 11–17)
     const givenTitle=v('titleInput');
-    const brief=v('context')||'';
+    // Бриф уходит в сообщение дословно и стоит ближе к задаче, чем весь системный промпт,
+    // поэтому его лексика и пунктуация копируются в статью охотнее любых правил. Механику
+    // чиним молча, штампы показываем: их правит человек, но знать о них надо до публикации.
+    const brief=cleanCopyText(v('context')||'');
+    const briefNotes=copyFindings({brief}).map(x=>({...x,label:'в брифе: '+x.label}));
     const mode=(v('articleMode')||'games');
     // games/printables use the small title number (5–30). prompts use a LARGE total, so parse up to 3 digits and don't cap at 30.
     const numMatch=givenTitle.match(mode==='prompts'?/\d{2,3}/:/\d{1,2}/);
@@ -105,7 +109,7 @@ async function generateArticle(){
     // механические правила голоса не обсуждаются с моделью: длинные тире, эмодзи и
     // фигурные кавычки убираются здесь, что бы модель ни прислала
     const fixed=cleanCopy(art);
-    ST.copyNotes=copyFindings(art);   // остальное показываем в ревью, правится руками
+    ST.copyNotes=briefNotes.concat(copyFindings(art));   // остальное показываем в ревью, правится руками
     if(fixed) console.log('вычищено строк: '+fixed);
     ST.article=art; ST.pins=[];
     renderPreview();

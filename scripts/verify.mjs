@@ -104,12 +104,18 @@ group('Текст после генерации');
     .forEach(f => js.includes(f) ? ok(`${f.slice(9, -1)}() на месте`) : fail(`нет ${f.slice(9, -1)}()`));
   js.includes('const fixed=cleanCopy(art);')
     ? ok('подчистка вызывается после разбора ответа') : fail('подчистка не вызывается при генерации');
-  js.includes('ST.copyNotes=copyFindings(art);')
-    ? ok('замечания собираются при генерации') : fail('замечания не собираются');
+  js.includes('ST.copyNotes=briefNotes.concat(copyFindings(art));')
+    ? ok('замечания по брифу и по статье собираются вместе') : fail('замечания не собираются');
   js.includes('${copyNotesHTML()}')
     ? ok('замечания видны в превью') : fail('замечания негде увидеть');
   js.includes("COPY_SKIP_KEYS=['url'")
     ? ok('ссылки и slug при подчистке не трогаются') : fail('подчистка может испортить ссылки');
+
+  // Бриф стоит в сообщении ближе к задаче, чем системный промпт, и копируется охотнее всего.
+  js.includes("const brief=cleanCopyText(v('context')||'');")
+    ? ok('бриф чистится перед подстановкой в промпт') : fail('бриф уходит в промпт как есть');
+  js.includes("copyFindings({brief}).map(") && js.includes("'в брифе: '")
+    ? ok('штампы в брифе видны отдельной строкой') : fail('штампы в брифе не проверяются');
 }
 
 group('Печатные листы');
