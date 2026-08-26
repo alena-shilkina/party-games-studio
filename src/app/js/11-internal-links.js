@@ -85,7 +85,7 @@ async function generateArticle(){
     const noFiller=`\n\nNO FILLER OR PLACEHOLDERS: every entry must be a real, complete, distinct item. NEVER output a placeholder, dummy, "guard", "duplicate detection", TODO or "should not appear" entry, and never pad the list with filler just to reach the number in the title. If you genuinely cannot produce that many distinct items, produce fewer REAL ones and set the number in the title to match the real count.`;
     const msg=`Write a complete ${label} article.\n\nMain keyword: ${kw}\nCategory: ${v('category')}\nAudience: ${v('audience')}\nContext: ${brief||'(none)'}${titleBlock}${modeBlock}${csvBlock}${paaBlock}${rel}${noFiller}${voiceReminder()}\n\nReturn the JSON only.`;
     const bigModes=['recipes','ideas','prompts'].includes(mode);
-    const txt=await callClaude(articleSystemPrompt(mode),msg,true,m=>prog(25,m),bigModes?64000:32000);
+    const txt=await callClaude(articleSystemPrompt(mode),msg,false,m=>prog(25,m),bigModes?64000:32000);
     prog(55,'📦 Parsing…');
     const art=extractJSON(txt);
     dropFiller(art);   // remove any padded placeholder/"guard" entry the model added to hit the title number

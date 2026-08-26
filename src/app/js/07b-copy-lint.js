@@ -92,6 +92,17 @@ function copyFindings(art){
   add('вода вместо слов',text.match(/\b(it'?s worth noting that|in order to|due to the fact that|that being said)\b/gi)||[]);
   add('концовка про воспоминания',text.match(/\b(possibilities are endless|memories that last|what makes it special|aren'?t planned)\b/gi)||[]);
 
+  // Главная находка: без веб-поиска модель придумывала URL, и все внешние ссылки в статье
+  // оказывались битыми. Свои ссылки (из CSV и на свой сайт) и Amazon не считаем.
+  const site=(typeof getSite==='function'&&getSite()&&getSite().url)||'';
+  const host=String(site).replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();
+  const hrefs=[...String(all).matchAll(/href=['"]([^'"]+)['"]/gi)].map(m=>m[1]);
+  const external=hrefs.filter(u=>/^https?:\/\//i.test(u))
+    .filter(u=>!/amazon\./i.test(u))
+    .filter(u=>!(host&&u.toLowerCase().includes(host)));
+  if(external.length)
+    notes.push({label:'внешние ссылки (скорее всего битые)',n:external.length,sample:external[0]});
+
   const meta=(art.metaDescription||'').trim();
   if(meta&&(meta.length<150||meta.length>155))
     notes.push({label:'длина meta вне 150-155',n:1,sample:meta.length+' знаков'});

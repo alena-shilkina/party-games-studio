@@ -5,8 +5,11 @@ import { readFileSync } from 'node:fs';
 
 const src = readFileSync('src/app/js/07b-copy-lint.js', 'utf8');
 const cut = src.slice(0, src.indexOf('// Плашка над статьёй'));   // без вёрстки: там нужен DOM
+// getSite живёт в модуле настроек: подсовываем свой сайт, чтобы проверить, что его
+// собственные ссылки не считаются чужими
 const { cleanCopyText, cleanCopy, copyFindings, copyNotesLine } = new Function(
-  cut + '\nreturn {cleanCopyText,cleanCopy,copyFindings,copyNotesLine};')();
+  'const getSite = () => ({ url: "https://redcheeksgirl.com" });\n'
+  + cut + '\nreturn {cleanCopyText,cleanCopy,copyFindings,copyNotesLine};')();
 
 let bad = 0;
 const check = (n, c) => { console.log((c ? '  ✓ ' : '  ✗ ') + n); if (!c) bad++; };
@@ -78,6 +81,19 @@ console.log('\nЗамечания, которые правит человек');
   check('восклицательный знак найден', has('восклицательные'));
   check('пустые усилители найдены', has('усилители'));
   check('длина meta проверена', has('длина meta'));
+}
+{
+  // ссылки наружу модель придумывала, и все оказались битыми: их надо видеть до публикации
+  const art = {
+    sections: [{ content: "Read more at <a href='https://www.brides.com/invented-page'>Brides</a> and " +
+      "<a href='https://redcheeksgirl.com/real-post'>our post</a> and " +
+      "<a href='https://www.amazon.com/s?k=cardstock'>cardstock</a>." }],
+  };
+  const notes = copyFindings(art);
+  const link = notes.find(x => x.label.includes('внешние ссылки'));
+  check('чужая ссылка найдена', !!link && link.n === 1);
+  check('своя ссылка не считается чужой', !!link && !String(link.sample).includes('redcheeksgirl'));
+  check('Amazon не считается чужой ссылкой', !!link && !String(link.sample).includes('amazon'));
   check('строка для интерфейса собирается', /^текст: \d+ замечани/.test(copyNotesLine(notes)));
 }
 {
@@ -106,15 +122,18 @@ console.log('\nСборка свода правил');
   const luna = build('openai:gpt@5.6-luna');
 
   check('голос стоит первым в своде', claude.rules.startsWith('VOICE: Red Cheeks Girl'));
-  check('запреты вошли в свод', claude.rules.includes('BANNED SENTENCE SHAPES'));
+  check('механические правила вошли в свод', claude.rules.includes('MECHANICAL RULES'));
   check('образцы вошли в свод', claude.rules.includes('WORKED EXAMPLES'));
-  // голос важнее запретов, и порядок это показывает
-  check('образцы идут раньше списка запретов',
-    claude.rules.indexOf('WORKED EXAMPLES') < claude.rules.indexOf('MACHINE TELLS'));
-  check('список запретов подан как проверочный лист, а не как стиль',
-    claude.rules.includes('This is a checklist, not a style'));
-  check('при споре побеждает голос',
-    claude.rules.includes('the voice wins'));
+  // голос важнее правил, и порядок это показывает
+  check('образцы идут раньше механических правил',
+    claude.rules.indexOf('WORKED EXAMPLES') < claude.rules.indexOf('MECHANICAL RULES'));
+  check('правила уступают голосу',
+    claude.rules.includes('the VOICE above decides how the text sounds'));
+  check('выдумывать ссылки запрещено',
+    claude.rules.includes('NEVER INVENT A FACT, AND NEVER INVENT A LINK'));
+  // длинные перечни убраны: они читались как «пиши меньше»
+  ['BANNED VOCABULARY', 'BANNED SENTENCE SHAPES', 'BANNED OPENERS']
+    .forEach(s => check(`перечня «${s}» нет`, !claude.rules.includes(s)));
   check('свод одинаков для обеих моделей', claude.rules === luna.rules);
   check('Клод не считается слабой моделью', claude.weak === false);
   check('модель Runware считается слабой', luna.weak === true);

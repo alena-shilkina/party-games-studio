@@ -8,8 +8,6 @@ ${tone}
 
 ${voiceRules()}
 
-${RESEARCH_RULE}
-
 ${YEAR_RULE}
 
 RECIPE RULES:

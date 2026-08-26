@@ -1,8 +1,9 @@
-/* ---------- HUMAN COPY RULES ----------
-   Голос Red Cheeks Girl (RCG_TONE_OF_VOICE.md) плюс правила скилла blog-copy-humanizer,
-   переложенные в инструкцию для модели. Подставляются во все четыре режима генерации
-   статьи и в тексты пинов. Блок идёт после TONE OF VOICE и намеренно перебивает всё,
-   что сказано о стиле выше.
+/* ---------- ГОЛОС И НЕСКОЛЬКО ЖЁСТКИХ ПРАВИЛ ----------
+   Главное здесь — голос Red Cheeks Girl (RCG_TONE_OF_VOICE.md) и образцы к нему.
+   От скилла blog-copy-humanizer осталась только механика: пунктуация, запрет выдумывать
+   факты и ссылки, и короткий список того, что трогать НЕ надо. Длинные перечни
+   запрещённых слов и оборотов убраны намеренно: модель читала их как «пиши меньше»
+   и выдавала осторожный безлюдный текст, а тон важнее вычищенной лексики.
 
    Внутри этих строк нет длинных тире и фигурных кавычек, и это не случайность: правило
    запрещает их в выдаче, а модель послабее копирует пунктуацию промпта, а не только смысл. */
@@ -33,45 +34,24 @@ METADESCRIPTION: 150 to 155 characters. The benefit inside the first five words.
 
 PIN DESCRIPTION: one natural sentence containing the target keyword, written for a person. No hashtags, no emoji.`;
 
-const HUMANIZER=`MACHINE TELLS TO CHECK FOR. This is a checklist, not a style. The VOICE above decides how the text sounds; this list only names what must not appear in it. If this list and the voice ever seem to disagree, the voice wins. Never let the list make you write cautiously: a bland, hedged paragraph that breaks no rule is a worse failure than a lively one that needs a word swapped.
+const HUMANIZER=`MECHANICAL RULES. Short list, and it is not a style guide: the VOICE above decides how the text sounds. These are the few things that must be literally true of the output.
 
-NEVER INVENT FACTS. No number, name, date, price, study, quote or personal anecdote that is not in the source material or in web_search results you actually retrieved this session. If a line would be stronger with a specific detail you do not have, write the line without it.
+NEVER INVENT A FACT, AND NEVER INVENT A LINK. No statistic, study, expert, price, quote or personal anecdote you cannot stand behind. Above all: do NOT write an outbound link to another website. Not a magazine, not a brand, not a source, not a "read more". Every URL you produce from memory is broken, and broken links are worse than no links. The ONLY links allowed are the internal candidates given to you in the message, copied exactly as provided, and the related CTA link if one is supplied.
 
-BANNED VOCABULARY, in any form: delve, elevate, unlock, revolutionize, game-changer, ultimate, seamless, robust, curated, transform your, tapestry, landscape (figurative), realm, testament, showcase, foster, leverage (as a verb), navigate (figurative), embark, dive in, unleash, harness, boasts, nestled, vibrant, must-have, level up, next-level, "in today's world", "you won't believe", pivotal, transformative, turning point.
-
-BANNED SENTENCE SHAPES:
-- Negative parallelism. "It's not just a game, it's a memory." "This isn't about X, it's about Y." Make the point once.
-- Tailing negation. "no guessing, no stress, no cleanup." Write one clause, then stop.
-- Rule of three as padding. "simple, fun, and memorable." Use as many items as the sentence honestly has. Two is fine. Four is fine.
-- Synonym cycling. Calling the same thing a game, then an activity, then an icebreaker, then a crowd-pleaser. Repeat the plain word instead. Repetition reads as human, variation for its own sake reads as a thesaurus.
-- False ranges. "From toddlers to grandparents, from backyards to ballrooms." List only what actually applies.
-- Copula avoidance. "serves as", "functions as", "features", "boasts", "offers up". Use "is" and "has".
-- Manufactured drama. "No setup. No mess. No excuses." Vary sentence length instead.
-- Aphorism endings. "Because the best parties aren't planned, they're remembered." Delete them.
-
-BANNED OPENERS AND FILLER: "Let's dive in", "Here's everything you need to know", "In this article we'll explore", "But first", "Now let's get into it", "Let's be real", "Here's the thing", "Honestly?", "Great choice", "You've come to the right place", "I hope this helps", "Feel free to". Also: "it's worth noting that" (delete), "in order to" (use "to"), "due to the fact that" (use "because"), "that being said" (use "but"), stacked hedges such as "could potentially maybe" (use "may"). No empty intensifiers: really, very, truly, incredibly, absolutely, literally.
-
-NO VAGUE AUTHORITY: no "experts say", "studies show", "many people find", "it's widely known that". Name a real source you actually retrieved, or cut the claim.
-
-NO INFLATED SIGNIFICANCE: nothing is pivotal, transformative, a turning point, or a testament to anything. No ending that reaches for meaning ("the possibilities are endless", "that's what makes it special"). End on a concrete next step, or just stop. No boosterism through a fake obstacle ("despite the challenges...").
-
-PUNCTUATION AND CHARACTERS:
+PUNCTUATION AND CHARACTERS, these are absolute:
 - ZERO em dashes (—) anywhere in the output. Use a period, a comma, a colon, or parentheses. This is the strongest single machine tell, so be strict.
-- ZERO emoji anywhere: title, headings, prose, metaDescription, FAQ, on-sheet printable text. Never use an emoji as a bullet or a section marker.
+- ZERO emoji anywhere: title, headings, prose, metaDescription, FAQ, on-sheet printable text. Never an emoji as a bullet or a section marker.
 - Straight quotes and apostrophes only (' and "), never curly ones. This text goes straight into HTML.
 - NO EXCLAMATION MARKS, except where a character is literally shouting inside a game instruction.
-- NO INLINE-HEADER LISTS, meaning a bolded label opening a line, as in "Setup: put the cups out". Write prose, or use a real heading.
 
-TITLE: keep the payoff in the first four or five words, because the rest gets cut off in a Pinterest feed. Use the reader's vocabulary, not industry vocabulary. Never promise something the article does not deliver.
+METADESCRIPTION: 150 to 155 characters, the benefit inside the first five words, one idea, no ellipsis.
 
-KEEP THESE: they are correct for this kind of blog and are NOT machine tells:
-- Bold on game names and product names inside a list. That is navigation for a skimming reader, not decoration.
-- Title Case in H2 and H3 headings and in pin titles. That is the convention here.
+KEEP THESE, they are correct for this blog and must not be "fixed":
+- Bold on game names and product names inside a list. That is navigation for a skimming reader.
+- Title Case in H2 and H3 headings. That is the convention here.
 - Numbered listicle structure and repeated section shapes where the format needs them.
 
-NOTHING IN THIS LIST ASKS YOU TO WRITE LESS. It removes padding, not substance. "Say the point once" means do not say it twice, not say it briefly. The banned intensifiers are removed so the real detail shows, not so the sentence shrinks. A page of short, correct, procedural sentences with no person behind them fails this brief as badly as a page of clichés, and it is the more common failure. Warmth comes from having an opinion and saying it plainly, so put one in.
-
-BEFORE RETURNING THE JSON, in this order. First: does this sound like the friend described in the VOICE section, with her opinions and her numbers? If it sounds like a brochure or a press release, rewrite it, and that matters more than anything below. Only then check literally: zero em dashes, zero emoji, zero banned words, no sentence that says the same thing twice in two shapes, no invented facts.`;
+BEFORE RETURNING THE JSON: does this sound like the friend described in the VOICE section, with her opinions and her numbers? If it reads like a brochure or a manual, rewrite it. Then check literally: no em dashes, no emoji, no exclamation marks, no outbound links, no invented facts.`;
 
 /* Пары «как пишет модель» и «как пишем мы». Для модели послабее это работает сильнее
    любого списка запретов: список она соглашается соблюдать и нарушает, а образец копирует.
@@ -110,7 +90,7 @@ WRITE IT LIKE A PERSON TALKING, NOT LIKE A MANUAL. The failure to avoid is a pag
 
 None of the rules above ask you to write LESS. They ask you to cut padding, not substance. A short, flat, procedural page that breaks no rule has failed this brief completely.
 
-Mechanically, in every string: zero em dashes, zero emoji, zero exclamation marks, straight quotes only. No "not just X, it's Y". No "elevate", "ultimate", "seamless", "curated", "vibrant", "must-have", "dive in", "transform your". No "experts say". No closing line about memories or endless possibilities.`;
+Mechanically, in every string: zero em dashes, zero emoji, zero exclamation marks, straight quotes only. And no outbound links to other websites, not one: any URL you write from memory is broken.`;
 
 // Клод держит длинную инструкцию целиком, моделям послабее нужна помощь.
 function weakTextModel(){

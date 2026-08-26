@@ -45,14 +45,9 @@ const YEAR_RULE=`CURRENT YEAR: today's year is ${CUR_YEAR}. Do NOT default to 20
 - This is mandatory for New Year / NYE and all seasonal content: never hard-code a year (no "2025", "2026", "the 2020s", "2025 in review") in a title, game, prompt, or on any printable sheet.
 - Only if a real, non-seasonal reason genuinely requires a concrete year, use ${CUR_YEAR}, never a year that has already passed.`;
 
-const RESEARCH_RULE=`RESEARCH & SOURCES: this article must read as reported, not invented.
-- USE THE web_search TOOL before writing. Research the actual topic: what is genuinely trending, what real venues/bakers/bartenders do, what the numbers are (typical costs, timings, quantities).
-- CITE INLINE. Weave 3-6 outbound links directly into the prose as <a href="URL" target="_blank" rel="noopener">natural anchor text</a>, placed on the sentence they support. No footnotes, no "Sources" list at the end.
-- ONLY AUTHORITATIVE SOURCES. Allowed: major editorial magazines and large portals, Brides, The Knot, Martha Stewart, Real Simple, Southern Living, Better Homes & Gardens, HGTV, Food & Wine, Bon Appetit, Serious Eats, Epicurious, Delish, Liquor.com, Food Network, Good Housekeeping, Vogue, Harper's Bazaar, Country Living, Architectural Digest, plus universities, museums, government and trade bodies where relevant.
-- NEVER link to: personal or hobby blogs, other party/printable/mommy bloggers, Pinterest, Etsy listings, Reddit, Quora, content farms, AI-generated round-up sites, or any site that competes with ours. If the only source for a claim is a blog like ours, drop the claim.
-- NEVER INVENT A URL. Every link must be a real page you actually saw in web_search results this session. If you did not retrieve it, do not link it. A fabricated or guessed URL is a critical failure, prefer fewer links.
-- Link the CLAIM, not the recipe: cite for facts, history, trends, expert guidance. Do not send readers to a competing round-up of the same thing.
-- Anchor text is descriptive prose, never "click here" or a bare URL.`;
+// Исследование убрано: без веб-поиска модель выдумывала URL, и все ссылки из статей
+// оказались битыми. Внешние ссылки теперь не запрашиваются вовсе; внутренние берутся
+// из твоего CSV, они настоящие.
 
 // modest square size for editorial illustrations — cheaper than the tall sheet format
 const SIZE_EDITORIAL={w:1024,h:1024};

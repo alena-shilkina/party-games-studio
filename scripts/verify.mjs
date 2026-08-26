@@ -72,10 +72,25 @@ group('Правила человеческого текста');
   // стоял вторым и объявлял себя главнее стиля, модель писала осторожно и никак.
   /return RCG_VOICE\+'\\n\\n'\+VOICE_EXAMPLES\+'\\n\\n'\+HUMANIZER;/.test(js)
     ? ok('порядок свода: голос, образцы, потом запреты') : fail('порядок свода снова ставит запреты перед образцами');
-  js.includes('this list and the voice ever seem to disagree, the voice wins')
-    ? ok('при споре запретов с голосом побеждает голос') : fail('список запретов снова объявляет себя главнее голоса');
+  js.includes('it is not a style guide: the VOICE above decides how the text sounds')
+    ? ok('механические правила уступают голосу') : fail('список правил снова объявляет себя стилем');
   !js.includes('these override any other style guidance')
     ? ok('запреты больше не перебивают стиль') : fail('запреты снова перебивают весь стиль');
+
+  // Длинные перечни запрещённых слов и оборотов убраны: модель читала их как «пиши меньше».
+  ['BANNED VOCABULARY', 'BANNED SENTENCE SHAPES', 'BANNED OPENERS', 'NO INFLATED SIGNIFICANCE',
+   'NO VAGUE AUTHORITY', 'Synonym cycling'].forEach(s =>
+    js.includes(s) ? fail(`перечень «${s}» вернулся в промпт`) : ok(`перечня «${s}» нет`));
+
+  // Ссылки наружу модель придумывала, и все они оказались битыми.
+  js.includes('NEVER INVENT A FACT, AND NEVER INVENT A LINK')
+    ? ok('выдумывать ссылки запрещено прямым текстом') : fail('запрета на выдуманные ссылки нет');
+  !js.includes('CITE INLINE') && !js.includes('RESEARCH & SOURCES')
+    ? ok('исследование с внешними ссылками убрано') : fail('промпт снова просит внешние ссылки');
+  js.includes('callClaude(articleSystemPrompt(mode),msg,false')
+    ? ok('веб-поиск при генерации статьи выключен') : fail('веб-поиск при генерации статьи снова включён');
+  js.includes('внешние ссылки (скорее всего битые)')
+    ? ok('внешние ссылки видны в замечаниях к статье') : fail('внешние ссылки нигде не показываются');
 
   // Голос стоит в начале, а схема JSON за тысячи токенов ниже, вплотную к выдаче.
   // Без возврата в самом конце модель пишет, глядя на формат, и голоса не видно.
