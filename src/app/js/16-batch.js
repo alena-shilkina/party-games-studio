@@ -146,7 +146,7 @@ function renderBatch(){
 
     ${PINS_ENABLED?`<div class="fg"><label>4 pin headlines (separated by | )</label><input placeholder="Headline 1 | Headline 2 | Headline 3 | Headline 4" value="${esc(r.pinKW)}" onchange="updRow('${r.id}','pinKW',this.value)"></div>`:''}
 
-    <div class="fg"><label>Extra info / context (optional)</label><input placeholder="angle, must-include games, notes" value="${esc(r.context)}" onchange="updRow('${r.id}','context',this.value)"></div>
+    <div class="fg brow-ctx"><label>Extra info / context (optional)</label><textarea rows="3" placeholder="angle, must-include games, notes" onchange="updRow('${r.id}','context',this.value)">${esc(r.context)}</textarea></div>
 
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <div class="fg" style="flex:1.4;min-width:200px"><label>Infographic reference</label>

@@ -34,7 +34,10 @@ h1,h2,h3,.disp{font-family:'Fraunces',Georgia,serif}
 .fg label{display:block;font-size:12px;font-weight:600;margin-bottom:4px}
 label[for]{cursor:pointer}
 .fg small{display:block;color:var(--muted);font-size:11px;margin-top:3px;line-height:1.4}
-input[type=text],input[type=password],input[type=number],textarea,select{
+/* input:not([type]) здесь не для красоты: у поля без указанного type селектор по атрибуту
+   не срабатывает, и оно рисовалось узким браузерным размером по умолчанию. Именно так
+   «Extra info / context» в строке пакета оказался маленьким окошком. */
+input:not([type]),input[type=text],input[type=password],input[type=number],textarea,select{
   width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:var(--rs);
   font-size:13px;font-family:inherit;background:var(--paper);color:var(--ink);outline:none;transition:.15s}
 input:focus,textarea:focus,select:focus{border-color:var(--plum);box-shadow:0 0 0 3px var(--plum-l);background:#fff}
@@ -199,3 +202,8 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .copy-notes summary{cursor:pointer;color:#c98214;font-weight:600}
 .copy-notes ul{margin:8px 0 2px;padding-left:18px;line-height:1.7}
 .copy-notes .cn-s{opacity:.7}
+/* ТЗ строки пакета читается взглядом, поэтому во всю ширину панели и в несколько строк,
+   а не однострочным окошком. Перенос по словам, чтобы длинный бриф был виден целиком. */
+.brow-ctx{width:100%}
+.brow-ctx textarea{width:100%;box-sizing:border-box;min-height:74px;line-height:1.5;
+  white-space:pre-wrap;overflow-wrap:anywhere;resize:vertical}
