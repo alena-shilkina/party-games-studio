@@ -48,6 +48,7 @@ function renderPreview(){
       <div class="r"><span class="k">Meta desc</span><textarea id="e_meta" rows="2">${esc(a.metaDescription)}</textarea></div>
       <div class="r"><span class="k">Focus KW</span><input id="e_fkw" value="${esc(a.focusKeyword)}"></div>
     </div>
+    ${copyNotesHTML()}
     <h1 class="title editable" contenteditable data-f="titleH" data-article-id="${esc(articleStamp(a))}">${esc(a.title)}</h1>
     <div class="editable" contenteditable data-f="intro">${a.intro||''}</div>
     ${toc}

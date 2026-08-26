@@ -55,11 +55,61 @@ group('Ключи не уходят в браузер');
 
 group('Правила человеческого текста');
 {
-  // блок должен попасть во все четыре режима генерации статьи
-  const n = (js.match(/\$\{HUMANIZER\}/g) || []).length;
-  n === 4 ? ok('HUMANIZER подставлен во все 4 режима') : fail(`HUMANIZER подставлен ${n} раз вместо 4`);
+  // свод должен попасть во все четыре режима генерации статьи
+  const n = (js.match(/\$\{voiceRules\(\)\}/g) || []).length;
+  n === 4 ? ok('свод правил подставлен во все 4 режима') : fail(`свод правил подставлен ${n} раз вместо 4`);
   js.includes('${HUMANIZER_SHORT}') ? ok('короткий свод есть в промпте пинов') : fail('в промпте пинов нет правил');
-  /const HUMANIZER=`/.test(js) ? ok('сам блок правил на месте') : fail('блок HUMANIZER не найден');
+  /const HUMANIZER=`/.test(js) ? ok('блок запретов на месте') : fail('блок HUMANIZER не найден');
+  /const RCG_VOICE=`/.test(js) ? ok('голос Red Cheeks Girl на месте') : fail('блок RCG_VOICE не найден');
+  /const VOICE_EXAMPLES=`/.test(js) ? ok('образцы «модель пишет / мы публикуем» на месте') : fail('образцов нет');
+  ['one woman planning one specific thing', 'GET TO THE SUBSTANCE IN TWO SENTENCES',
+   'BE SPECIFIC OR SAY NOTHING', 'NO EXCLAMATION MARKS', '150 to 155 characters']
+    .forEach(s => js.includes(s) ? ok(`правило «${s.slice(0, 34)}» дошло до промпта`)
+                                 : fail(`правило «${s.slice(0, 34)}» потерялось`));
+
+  // Хвост-напоминание нужен только моделям послабее: Клод держит инструкцию целиком.
+  js.includes('${voiceReminder()}')
+    ? ok('напоминание уходит в конец сообщения') : fail('напоминания в конце сообщения нет');
+  /function weakTextModel\(\)/.test(js) && js.includes("textModel()!=='claude'")
+    ? ok('напоминание включается только для не-Клода') : fail('нет условия по модели');
+
+  // Промпт запрещает длинные тире и сам не должен их содержать: модель послабее
+  // копирует пунктуацию образца, а не только его смысл. Считаем только текст внутри
+  // обратных кавычек в файлах промптов: в русских комментариях и в интерфейсе тире уместно,
+  // а «(—)» в самом запрете оставлено намеренно как пример символа.
+  const PROMPT_FILES = ['07-article-core.js', '07a-humanizer.js', '08-mode-ideas.js',
+    '09-mode-recipes.js', '10-mode-prompts.js', '11-internal-links.js', '12-images-pins.js'];
+  let stray = 0;
+  for (const f of PROMPT_FILES) {
+    const s = readFileSync('src/app/js/' + f, 'utf8');
+    let inTpl = false, inLine = false, inBlock = false;
+    for (let i = 0; i < s.length; i++) {
+      const c = s[i], n2 = s[i + 1];
+      if (c === '\n') { inLine = false; continue; }
+      if (inLine) continue;
+      if (inBlock) { if (c === '*' && n2 === '/') { inBlock = false; i++; } continue; }
+      if (!inTpl && c === '/' && n2 === '/') { inLine = true; i++; continue; }
+      if (!inTpl && c === '/' && n2 === '*') { inBlock = true; i++; continue; }
+      if (c === '`' && s[i - 1] !== '\\') { inTpl = !inTpl; continue; }
+      if (inTpl && c === '—' && !(s[i - 1] === '(' && s[i + 1] === ')')) stray++;
+    }
+  }
+  stray === 0 ? ok('в промптах нет длинных тире') : fail(`длинных тире в промптах: ${stray}`);
+}
+
+group('Текст после генерации');
+{
+  // Механические правила выполняются без модели, иначе они держатся на удаче.
+  ['function cleanCopyText(', 'function cleanCopy(', 'function copyFindings(']
+    .forEach(f => js.includes(f) ? ok(`${f.slice(9, -1)}() на месте`) : fail(`нет ${f.slice(9, -1)}()`));
+  js.includes('const fixed=cleanCopy(art);')
+    ? ok('подчистка вызывается после разбора ответа') : fail('подчистка не вызывается при генерации');
+  js.includes('ST.copyNotes=copyFindings(art);')
+    ? ok('замечания собираются при генерации') : fail('замечания не собираются');
+  js.includes('${copyNotesHTML()}')
+    ? ok('замечания видны в превью') : fail('замечания негде увидеть');
+  js.includes("COPY_SKIP_KEYS=['url'")
+    ? ok('ссылки и slug при подчистке не трогаются') : fail('подчистка может испортить ссылки');
 }
 
 group('Печатные листы');

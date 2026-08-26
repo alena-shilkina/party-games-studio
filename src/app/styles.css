@@ -193,3 +193,9 @@ textarea{resize:vertical;min-height:64px;line-height:1.5}
 .pw>summary:hover{color:var(--ink)}
 .pw textarea{width:100%;box-sizing:border-box;margin-top:6px;min-height:120px;font-family:ui-monospace,monospace;font-size:11px;line-height:1.5}
 .pw small{display:block;margin-top:4px;color:var(--muted);font-size:11px}
+/* Замечания к тексту над статьёй: не ошибка, а список того, что правится руками */
+.copy-notes{margin:10px 0 4px;padding:8px 12px;border-radius:8px;font-size:12px;
+  background:rgba(255,176,32,.10);border:1px solid rgba(255,176,32,.35)}
+.copy-notes summary{cursor:pointer;color:#c98214;font-weight:600}
+.copy-notes ul{margin:8px 0 2px;padding-left:18px;line-height:1.7}
+.copy-notes .cn-s{opacity:.7}

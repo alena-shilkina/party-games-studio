@@ -149,6 +149,7 @@ async function reviewRegenExtra(id,gi,k){
 }
 function loadSnapIntoState(s){
   ST.article=JSON.parse(JSON.stringify(s.article));
+  ST.copyNotes=copyFindings(ST.article);   // замечания считаем заново для снимка из очереди
   ST.pins=JSON.parse(JSON.stringify(s.pins||[]));
   ST.feat=s.feat?{url:s.feat.url,credit:s.feat.credit,mediaId:s.feat.mediaId}:null;
   ST.pubCat=s.pubCat||null;

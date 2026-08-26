@@ -35,17 +35,17 @@ function themeBG(){ return `a soft ${v('category').toLowerCase()} themed backgro
 // The user provides the exact pin HEADLINES. Claude only writes a CTA + two scenes per headline.
 async function writePinContent(headlines){
   const a=ST.article;
-  const sys=`You create Pinterest pin visuals. Every article offers a FREE printable download. You are given a fixed HEADLINE for each pin — do NOT change it. For each headline return three things:
+  const sys=`You create Pinterest pin visuals. Every article offers a FREE printable download. You are given a fixed HEADLINE for each pin, do NOT change it. For each headline return three things:
 - "cta": a very short call-to-action, 2-4 words, for a button on the pin pointing to the free printables (e.g. "Grab the Free Games", "Print These Tonight", "Get the Printables", "Free Download"). Vary them across the pins.
-- "sceneVector": a MODERN FLAT EDITORIAL ILLUSTRATION scene that fits THIS headline's meaning (contemporary vector art, matte muted colours, simple shapes, subtle grain, decorative background — NOT a Disney/Pixar cartoon), featuring ONE expressive character showing a STRONG positive emotion (surprise, big smile, delight). Pick a character/scene that suits the specific headline. Clearly illustrated, never photorealistic. No text.
-- "scenePhoto": a PHOTOREALISTIC flat-lay scene fitting THIS headline — an attractive real-photo arrangement of themed props and objects (NO people, NO faces, objects only), soft natural light. No text.
+- "sceneVector": a MODERN FLAT EDITORIAL ILLUSTRATION scene that fits THIS headline's meaning (contemporary vector art, matte muted colours, simple shapes, subtle grain, decorative background, NOT a Disney/Pixar cartoon), featuring ONE expressive character showing a STRONG positive emotion (surprise, big smile, delight). Pick a character/scene that suits the specific headline. Clearly illustrated, never photorealistic. No text.
+- "scenePhoto": a PHOTOREALISTIC flat-lay scene fitting THIS headline, an attractive real-photo arrangement of themed props and objects (NO people, NO faces, objects only), soft natural light. No text.
 Make the 4 scenes distinct from each other, matched to each headline's content. ${HUMANIZER_SHORT}
 
 Return ONLY raw JSON: {"pins":[{"cta":"","sceneVector":"","scenePhoto":""}, ...]} in the same order, no preamble.`;
   const vibeLine=isNeutralVibe()
     ? `\n\n${NO_SEASONAL}`
     : `\n\nVibe for every scene: ${resolvedVibeName()}.`;
-  const msg=`Article: ${a.title}\nTheme: ${v('category')} (${v('audience')})${vibeLine}\n\nPin headlines (write cta + scenes for each, in order — keep headlines unchanged):\n${headlines.map((t,i)=>`${i+1}. ${t}`).join('\n')}`;
+  const msg=`Article: ${a.title}\nTheme: ${v('category')} (${v('audience')})${vibeLine}\n\nPin headlines (write cta + scenes for each, in order, keep headlines unchanged):\n${headlines.map((t,i)=>`${i+1}. ${t}`).join('\n')}`;
   try{
     const txt=await callClaude(sys,msg,false);
     const d=extractJSON(txt);

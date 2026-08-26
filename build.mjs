@@ -14,7 +14,7 @@ const FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
 
 // все js-модули по алфавиту — они пронумерованы, так что это и есть нужный порядок
 const jsFiles = readdirSync('src/app/js').filter(f => f.endsWith('.js')).sort();
-if (jsFiles.length !== 21) throw new Error('ожидали 21 js-модуль, нашли ' + jsFiles.length);
+if (jsFiles.length !== 22) throw new Error('ожидали 22 js-модуля, нашли ' + jsFiles.length);
 const js = jsFiles.map(f => read('js/' + f)).join('\n');
 
 const html = `<!DOCTYPE html>

@@ -7,7 +7,7 @@
     "verify": "node build.mjs && node scripts/verify.mjs && npm test",
     "dev": "node build.mjs && wrangler dev",
     "deploy": "node build.mjs && node scripts/verify.mjs && npm test && wrangler deploy",
-    "test": "node scripts/test-cost.mjs && node scripts/test-csv.mjs && node scripts/test-luna.mjs && node scripts/test-models.mjs && node scripts/test-palette.mjs && node scripts/test-promptbox.mjs"
+    "test": "node scripts/test-copy.mjs && node scripts/test-cost.mjs && node scripts/test-csv.mjs && node scripts/test-luna.mjs && node scripts/test-models.mjs && node scripts/test-palette.mjs && node scripts/test-promptbox.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260820.1",

@@ -1,40 +1,40 @@
 // ── MODE: prompts — ONE game mechanic + a big organised bank of prompts + printable card decks ──
 function promptsSystemPrompt(){
   const tone=v('tone')||DEFAULT_TONE;
-  return `You are an expert party-content writer creating an SEO article built around ONE game mechanic and a BIG bank of ready-to-use prompts (e.g. Would You Rather, Truth or Dare, This or That, Never Have I Ever, charades ideas). This is NOT a listicle of different games and NOT a printable pack — it is ONE game + a large, well-organised list of prompts + printable card decks. Published on a WordPress blog monetized with display ads and Pinterest traffic; the card decks double as a Pinterest/Etsy freebie.
+  return `You are an expert party-content writer creating an SEO article built around ONE game mechanic and a BIG bank of ready-to-use prompts (e.g. Would You Rather, Truth or Dare, This or That, Never Have I Ever, charades ideas). This is NOT a listicle of different games and NOT a printable pack, it is ONE game + a large, well-organised list of prompts + printable card decks. Published on a WordPress blog monetized with display ads and Pinterest traffic; the card decks double as a Pinterest/Etsy freebie.
 
 TONE OF VOICE:
 ${tone}
 
-${HUMANIZER}
+${voiceRules()}
 
 ${YEAR_RULE}
 
-CONTENT SAFETY — MANDATORY, keeps the article Mediavine- and Pinterest-safe:
+CONTENT SAFETY: MANDATORY, keeps the article Mediavine- and Pinterest-safe:
 - PG-13 MAXIMUM. NEVER explicit sexual content, nudity, graphic, fetish or shock material.
-- Couples / date-night sub-themes: keep it flirty, romantic and sweet — suggestive at most, never explicit. Butterflies, not the bedroom.
+- Couples / date-night sub-themes: keep it flirty, romantic and sweet, suggestive at most, never explicit. Butterflies, not the bedroom.
 - Teen or kids audiences: strictly age-appropriate. NO alcohol, drugs, sex, adult-dating themes, or anything unsafe. Wholesome and fun only.
-- Truth-or-Dare and any dare-style prompts: every dare must be SAFE, doable indoors and harmless — no injury risk, no property damage, no humiliation, nothing illegal, nothing that pressures anyone. Never dares involving alcohol, heights, fire, strangers, or removing clothing.
+- Truth-or-Dare and any dare-style prompts: every dare must be SAFE, doable indoors and harmless, no injury risk, no property damage, no humiliation, nothing illegal, nothing that pressures anyone. Never dares involving alcohol, heights, fire, strangers, or removing clothing.
 - SAFE WORDING in the title and every heading: use "flirty" or "date night" (never "spicy"/"steamy"/"naughty"); "bold" or "for adults" (never "juicy"/"dirty"). Every heading must be brand-safe and ad-friendly. If a sub-theme cannot be made brand-safe, replace it with one that can.
 
 ARTICLE STRUCTURE:
-1. intro: 2-3 sentences — what the game is, who it's for, why it's great. Put the keyword in the first sentence.
+1. intro: 2-3 sentences, what the game is, who it's for, why it's great. Put the keyword in the first sentence.
 2. FIRST section = HOW TO PLAY: heading "How to Play", content = ONE short paragraph of simple rules (how a round works, players, how to use the lists or cards). This section has NO card deck and NO shop list.
-3. PROMPT-LIST sections — the CORE of the article and all its SEO length. Create 5-8 SUB-THEMES chosen for the "${v('audience')}" audience and this specific game (kids → food, animals, superpowers, school; couples → date night, how well do you know me, future & dreams; friends → funny, embarrassing, hypotheticals; and so on). Each sub-theme is a "section": heading = a searchable sub-theme name (e.g. "Funny Would You Rather Questions"), content = one short lead sentence then a NUMBERED <ol> of that sub-theme's prompts. The prompts ARE the value — write real, varied, genuinely fun ones. No filler, no near-duplicates, no repeats across sub-themes.
+3. PROMPT-LIST sections, the CORE of the article and all its SEO length. Create 5-8 SUB-THEMES chosen for the "${v('audience')}" audience and this specific game (kids → food, animals, superpowers, school; couples → date night, how well do you know me, future & dreams; friends → funny, embarrassing, hypotheticals; and so on). Each sub-theme is a "section": heading = a searchable sub-theme name (e.g. "Funny Would You Rather Questions"), content = one short lead sentence then a NUMBERED <ol> of that sub-theme's prompts. The prompts ARE the value, write real, varied, genuinely fun ones. No filler, no near-duplicates, no repeats across sub-themes.
 4. TITLE NUMBER = the TOTAL number of prompts across ALL sub-theme lists (e.g. "120 Would You Rather Questions"). The lists must actually add up to that number.
 
-PRINTABLE CARD DECKS — the Pinterest/Etsy value:
+PRINTABLE CARD DECKS: the Pinterest/Etsy value:
 - For EACH prompt-list sub-theme (NOT "How to Play"), output ONE card-deck sheet in the "games" array: {"name":"<Sub-theme> Cards","section":"<EXACT sub-theme heading>","asset":"printable","content":"","imagePrompt":"…"}.
-- THE DECK MUST MATCH THE TEXT. A sheet's cards always reproduce the FIRST 6 items of its own sub-theme's numbered list, word for word — never freshly invented prompts, never items from another sub-theme. For trivia and quizzes this is critical: a card showing a different question or a different answer than the list above it makes the printable wrong. Write the exact card wording into the imagePrompt.
-- TRIVIA ANSWERS: if a sub-theme is trivia/quiz style, write each list item in the article as "Question — Answer" so the pair stays together in the text. On the PRINTED sheets they must be separated: the question sheet shows ONLY the questions (never an answer, hint or solution anywhere on it), and a separate sheet named "<Sub-theme> Answer Key" carries the complete numbered answer list. Players hold the question cards, the host holds the key.
+- THE DECK MUST MATCH THE TEXT. A sheet's cards always reproduce the FIRST 6 items of its own sub-theme's numbered list, word for word, never freshly invented prompts, never items from another sub-theme. For trivia and quizzes this is critical: a card showing a different question or a different answer than the list above it makes the printable wrong. Write the exact card wording into the imagePrompt.
+- TRIVIA ANSWERS: if a sub-theme is trivia/quiz style, write each list item in the article as "Question, Answer" so the pair stays together in the text. On the PRINTED sheets they must be separated: the question sheet shows ONLY the questions (never an answer, hint or solution anywhere on it), and a separate sheet named "<Sub-theme> Answer Key" carries the complete numbered answer list. Players hold the question cards, the host holds the key.
 - The imagePrompt describes an A4 portrait card sheet: 6 DIFFERENT prompt cards (NOT identical copies) of equal size in a neat 2-columns-by-3-rows grid with thin cut lines and even margins; each card carries ONE SHORT prompt taken from that sub-theme plus a small deck label; perfectly spelled. Painted people, children and animals are allowed. Keep each card's text short so it renders cleanly.
-- Do NOT specify colours, fonts, borders or decoration inside imagePrompt — the app applies ONE shared style contract so every deck in the set matches. Describe only the layout and the card text.
-- Cards are shown as images only — never describe a card in the prose and never give a deck its own heading.
+- Do NOT specify colours, fonts, borders or decoration inside imagePrompt, the app applies ONE shared style contract so every deck in the set matches. Describe only the layout and the card text.
+- Cards are shown as images only, never describe a card in the prose and never give a deck its own heading.
 
-AMAZON — CARD-MAKING SUPPLIES:
-- Mention the supplies naturally in ONE light, non-salesy sentence in the relevant prose (printed on cardstock, laminated to last, held with a binder ring, kept in a little box or jar) — no links inside the sentence.
+AMAZON: CARD-MAKING SUPPLIES:
+- Mention the supplies naturally in ONE light, non-salesy sentence in the relevant prose (printed on cardstock, laminated to last, held with a binder ring, kept in a little box or jar), no links inside the sentence.
 - Provide the actual clickable list via a "shop" array on that section: 2-4 items, e.g. [{"label":"white cardstock","query":"cardstock"},{"label":"laminator","query":"laminator"},{"label":"binder rings","query":"binder rings"}]. "label" = the plain phrase the reader sees; "query" = a plain lowercase Amazon search phrase. NEVER invent brand names, prices or ASINs.
-- Put a "shop" list on only ONE or two sections where card-making is discussed — never on every section, never on "How to Play".
+- Put a "shop" list on only ONE or two sections where card-making is discussed, never on every section, never on "How to Play".
 
 ${BANNED_FORMATS}
 
@@ -42,7 +42,7 @@ ${ANSWER_KEY_RULE}
 
 AD-LAYOUT RULES (Mediavine):
 - Keep HTML FLAT: only top-level <p>, <ol>/<ul>, <li>. No wrapper <div>s. (Headings and images are added by the app, not by you.)
-- The numbered prompt lists create the scroll depth and qualifying ad slots — make them substantial.
+- The numbered prompt lists create the scroll depth and qualifying ad slots, make them substantial.
 
 SEO RULES:
 - Title: keyword near the front WITH the total number, under 65 chars.
@@ -51,7 +51,7 @@ SEO RULES:
 - focusKeyword: the exact main keyword, used naturally a few times.
 
 LINKS:
-- Internal links: if a candidate list is provided, choose 2-4 that are genuinely relevant to THIS article and weave them in as <a href='URL'>anchor</a> (single quotes). Skip any candidate that does not fit the topic — a forced link reads as spam. Place them in DIFFERENT parts of the body, spread across separate sections; never put one in the introduction, never two inside the same section, and never park them all in the same spot you used last time. The anchor text must be a natural phrase from the sentence, not the raw post title.
+- Internal links: if a candidate list is provided, choose 2-4 that are genuinely relevant to THIS article and weave them in as <a href='URL'>anchor</a> (single quotes). Skip any candidate that does not fit the topic, a forced link reads as spam. Place them in DIFFERENT parts of the body, spread across separate sections; never put one in the introduction, never two inside the same section, and never park them all in the same spot you used last time. The anchor text must be a natural phrase from the sentence, not the raw post title.
 - Related CTA link: only if the provided related anchor/url is genuinely on-topic for this article, mention it ONCE near the end. If it is unrelated to the subject, omit it completely rather than inventing a bridge to it.
 
 FAQ & CLOSING:
@@ -173,19 +173,19 @@ function syncCardsToText(art,mode){
       if(!qa.some(x=>x.a)) return;
       // keep EVERY position so answer #N always lines up with question #N
       const answers=qa.slice(0,LIST_SHEET_MAX).map(x=>x.a||x.q);
-      g.imagePrompt=base+` VERBATIM ANSWER KEY — print a COMPLETE answer key with all ${answers.length} numbered answers (1-${answers.length}), copied exactly as written, in this order, nothing added, skipped or reordered: `
+      g.imagePrompt=base+` VERBATIM ANSWER KEY: print a COMPLETE answer key with all ${answers.length} numbered answers (1-${answers.length}), copied exactly as written, in this order, nothing added, skipped or reordered: `
         + answers.map((a,i)=>`${i+1}. ${clean(a)}`).join('  ')
         + ` Numbers run continuously 1-${answers.length} and each number must match the same-numbered question on the question sheet. This is an ANSWER sheet: print the answers only, never the questions. Use a clean two-column numbered list if that is needed to fit all ${answers.length} lines legibly.`;
     } else if(isQA){
       const qs=qa.slice(0,LIST_SHEET_MAX).map(x=>x.q);
       if(!qs.length) return;
-      g.imagePrompt=base+` VERBATIM QUESTION LIST — this is a QUESTION SHEET laid out as ONE numbered list (not cards, no cut lines). Print all ${qs.length} questions (1-${qs.length}) exactly as written below, in this order, nothing added, skipped, reworded or reordered: `
+      g.imagePrompt=base+` VERBATIM QUESTION LIST: this is a QUESTION SHEET laid out as ONE numbered list (not cards, no cut lines). Print all ${qs.length} questions (1-${qs.length}) exactly as written below, in this order, nothing added, skipped, reworded or reordered: `
         + qs.map((q,i)=>`${i+1}. ${clean(q)}`).join('  ')
-        + ` CRITICAL: print the questions ONLY — never an answer, hint or solution anywhere on this sheet; the answers live on the separate answer key. Numbers run continuously 1-${qs.length}. Shrink the type or use two columns if needed so that every one of the ${qs.length} questions fits and stays readable.`;
+        + ` CRITICAL: print the questions ONLY, never an answer, hint or solution anywhere on this sheet; the answers live on the separate answer key. Numbers run continuously 1-${qs.length}. Shrink the type or use two columns if needed so that every one of the ${qs.length} questions fits and stays readable.`;
     } else {
       const take=qa.slice(0,CARDS_PER_SHEET).map(x=>x.q).filter(Boolean);
       if(!take.length) return;
-      g.imagePrompt=base+` VERBATIM CARD TEXT — this sheet has EXACTLY ${take.length} cards and they must show the following prompts word for word, in this order, copied exactly as written (do NOT rewrite, shorten, paraphrase, renumber or invent extras): `
+      g.imagePrompt=base+` VERBATIM CARD TEXT: this sheet has EXACTLY ${take.length} cards and they must show the following prompts word for word, in this order, copied exactly as written (do NOT rewrite, shorten, paraphrase, renumber or invent extras): `
         + take.map((t,i)=>`[Card ${i+1}] ${clean(t)}`).join('  ')
         + ` Render the text accurately and legibly; the article page shows these same prompts, so any difference is a mistake.`;
     }
@@ -259,16 +259,16 @@ function syncRecipeCards(art,mode){
     const clean=t=>String(t).replace(/["']/g,"'");
     let base=String(g.imagePrompt||'').replace(/\s*VISUAL RECIPE CARD[\s\S]*$/i,'').replace(/\s*VERBATIM RECIPE CARD[\s\S]*$/i,'').replace(/\s+/g,' ').trim();
 
-    g.imagePrompt=base+` VISUAL RECIPE CARD — a portrait card a reader understands AT A GLANCE. Follow these zones top to bottom, with clear space between them and NO small or cramped type anywhere:
+    g.imagePrompt=base+` VISUAL RECIPE CARD: a portrait card a reader understands AT A GLANCE. Follow these zones top to bottom, with clear space between them and NO small or cramped type anywhere:
 (1) TITLE at the very top, large and friendly: "${clean(g.section||'')}".
-(2) HERO PHOTO directly under the title: one appetising photograph of the finished dish, filling the full width, about a third of the card's height. No people, no hands, no brand labels. PHOTOREALISM — this must look like a real photograph taken by a food photographer, not a render. CAMERA: shot on a 50mm lens at about f/2.8, from a natural eye-level or slight three-quarter angle; soft directional daylight from one side with gentle falloff and real, slightly soft shadows; shallow depth of field where the front of the food is sharp and the back genuinely falls out of focus. IMPERFECTION IS THE POINT: hand-made food is never identical. Every piece differs in size, angle and placement — some lean, one sits slightly apart, garnish lands unevenly. Include honest small mess: a few crumbs, a smear on the board, an oil pool that is not symmetrical, a herb leaf out of place, one piece already eaten or a bite taken. Real props show light wear — a scratched board, a linen napkin with creases, a fingerprint on a glass. REAL SURFACES: matte where food is matte (cheese, bread, meat), shine only where fat or glaze genuinely sits. No plastic or waxy sheen, no rubbery highlights, no uniform glossy coating over everything. FORBIDDEN AI LOOK: no HDR glow, no halo or rim-light around every item, no over-saturated candy colours, no perfect radial symmetry, no identical repeated objects cloned across the frame, no impossibly clean surfaces, no floating ingredients, no smooth airbrushed texture. Slight natural grain and true-to-life colour, as if straight out of camera with minimal editing.
-(3) META ROW: three small line icons in a single row with a short label under each — a clock reading "${clean(meta[0]||'')}", a level icon reading "${clean(meta[1]||'')}", a servings icon reading "${clean(meta[2]||'')}".
+(2) HERO PHOTO directly under the title: one appetising photograph of the finished dish, filling the full width, about a third of the card's height. No people, no hands, no brand labels. PHOTOREALISM, this must look like a real photograph taken by a food photographer, not a render. CAMERA: shot on a 50mm lens at about f/2.8, from a natural eye-level or slight three-quarter angle; soft directional daylight from one side with gentle falloff and real, slightly soft shadows; shallow depth of field where the front of the food is sharp and the back genuinely falls out of focus. IMPERFECTION IS THE POINT: hand-made food is never identical. Every piece differs in size, angle and placement, some lean, one sits slightly apart, garnish lands unevenly. Include honest small mess: a few crumbs, a smear on the board, an oil pool that is not symmetrical, a herb leaf out of place, one piece already eaten or a bite taken. Real props show light wear, a scratched board, a linen napkin with creases, a fingerprint on a glass. REAL SURFACES: matte where food is matte (cheese, bread, meat), shine only where fat or glaze genuinely sits. No plastic or waxy sheen, no rubbery highlights, no uniform glossy coating over everything. FORBIDDEN AI LOOK: no HDR glow, no halo or rim-light around every item, no over-saturated candy colours, no perfect radial symmetry, no identical repeated objects cloned across the frame, no impossibly clean surfaces, no floating ingredients, no smooth airbrushed texture. Slight natural grain and true-to-life colour, as if straight out of camera with minimal editing.
+(3) META ROW: three small line icons in a single row with a short label under each, a clock reading "${clean(meta[0]||'')}", a level icon reading "${clean(meta[1]||'')}", a servings icon reading "${clean(meta[2]||'')}".
 (4) A thin accent rule with the centred label WHAT YOU NEED, then the ingredients shown as a ROW OF SMALL HAND-PAINTED ILLUSTRATIONS (not a text list): each item drawn on its own, with its name and amount in small clean type underneath. Show EXACTLY these ${ing.length}, in this order, copied word for word: `
       + ing.map(x=>`[${clean(x)}]`).join(' ')
       + (hidden?` Then one final illustrated item labelled "+ pantry basics" standing in for the remaining store-cupboard ingredients.`:'')
       + ` (5) A thin accent rule with the centred label STEP BY STEP, then EXACTLY ${steps.length} steps laid out as a clean row or grid. Each step is a SIMPLE SINGLE-LINE PICTOGRAM icon in the accent colour inside a small filled circle carrying the step number, with a short instruction underneath, copied word for word: `
       + steps.map((x,i)=>`[${i+1}. ${clean(x)}]`).join(' ')
-      + ` CRITICAL: every word above must be rendered exactly as given, spelled correctly and large enough to read comfortably at arm's length. This card is NEVER just a photo and never a wall of text — it is a picture-led card. The article text carries the full precise recipe, so the card shows only what is listed here.`;
+      + ` CRITICAL: every word above must be rendered exactly as given, spelled correctly and large enough to read comfortably at arm's length. This card is NEVER just a photo and never a wall of text, it is a picture-led card. The article text carries the full precise recipe, so the card shows only what is listed here.`;
     synced++;
   });
   if(synced) console.log('[PGS] visual recipe cards built for',synced,'recipes');
@@ -320,26 +320,26 @@ function redistributeIdeaProse(art,mode){
 
 // A printable invitation is a FORM first and a picture second: the layout, the field list and the
 // contrast floor are pinned down here so the model cannot centre labels over the writing lines.
-const INVITATION_SPEC=`INVITATION SHEET SPEC — follow this layout exactly; it overrides any conflicting layout wording above.
+const INVITATION_SPEC=`INVITATION SHEET SPEC: follow this layout exactly; it overrides any conflicting layout wording above.
 PAGE ZONES, top to bottom:
 1. ARTWORK + HEADLINE: the themed illustration and the design's title phrase. The headline may be script or playful, but it must be DARK and clearly readable.
-2. WARM INVITATION LINE: directly under the headline, before the fields, write 1-2 short warm sentences in real invitation language that match THIS design's theme and simply invite people to come and celebrate — for a bunny design something like "Hop on over and celebrate with us! Join us for cake, bubbles and a very happy afternoon." Warm, personal, the way a shop-bought invitation reads. Never a placeholder name, never a date, never "Lorem ipsum".
+2. WARM INVITATION LINE: directly under the headline, before the fields, write 1-2 short warm sentences in real invitation language that match THIS design's theme and simply invite people to come and celebrate, for a bunny design something like "Hop on over and celebrate with us! Join us for cake, bubbles and a very happy afternoon." Warm, personal, the way a shop-bought invitation reads. Never a placeholder name, never a date, never "Lorem ipsum".
    NO AGE IN THIS LINE: do not write "turning one", "1st birthday", "is turning 2", a number of years or a birthday-candle number here. This is simply an invitation to come and celebrate. (The design's theme name in the headline above may keep its own wordplay, e.g. "Mr. ONEderful".)
-3. FILL-IN BLOCK: exactly these five rows, in this order, and nothing else — Name, Date, Time, Address, RSVP.
+3. FILL-IN BLOCK: exactly these five rows, in this order, and nothing else, Name, Date, Time, Address, RSVP.
 
 FILL-IN BLOCK RULES (the most important part of the sheet):
 - Every label is LEFT-ALIGNED, all five starting at the SAME left margin, stacked vertically.
 - After each label comes ONE straight, unbroken, EMPTY writing line that runs to the right margin. The lines all start at the same x position (just past the longest label) so their left ends align in a clean column.
-- The label NEVER sits on the line, over the line, or centred above it. Nothing is printed on a writing line — no dots, no ornament, no sample text, no shading.
+- The label NEVER sits on the line, over the line, or centred above it. Nothing is printed on a writing line, no dots, no ornament, no sample text, no shading.
 - Generous vertical spacing between rows: each line needs about 1 cm of clear height so an adult can write on it by hand with a pen.
 - NO pre-filled values anywhere: no invented names, dates, times, addresses or phone numbers.
 - NO AGE AS A FIELD OR A STATED FACT: there is no "Age" label and no "Turning ONE" / "1st birthday" line anywhere in the copy. The five rows above are the only fillable rows.
-- EXCEPTION — the design's own theme name may keep its wordplay: headlines like "Mr. ONEderful", "Winter ONEderland" or "Wild One" are the NAME of the design, not an age statement, and should be printed as given. What is forbidden is a separate age row, an age sentence in the invitation copy, or a number-shaped balloon, candle or badge used as an age badge.
+- EXCEPTION: the design's own theme name may keep its wordplay: headlines like "Mr. ONEderful", "Winter ONEderland" or "Wild One" are the NAME of the design, not an age statement, and should be printed as given. What is forbidden is a separate age row, an age sentence in the invitation copy, or a number-shaped balloon, candle or badge used as an age badge.
 
 NEVER ON THE SHEET: a "Download & Print" button or any other button, a download or printer icon, a QR code, a link or any web-page interface element. That button belongs to the article page, not to the printed invitation.
 
 CONTRAST FLOOR (applies to every word on the sheet):
-- All text — headline, warm line, labels — must be a deep, saturated, clearly readable tone against the background: charcoal, deep ink, or a dark shade of the theme colour.
+- All text, headline, warm line, labels, must be a deep, saturated, clearly readable tone against the background: charcoal, deep ink, or a dark shade of the theme colour.
 - NEVER pale-on-pale: no pastel lavender on cream, no soft pink on blush, no light grey on white, no white text on a light background. If the palette is soft, the type must be the dark anchor of that palette.
 - Writing lines are a clear dark hairline, not a faint tint.`;
 function applyInvitationSpec(art,mode,wantDl){
@@ -380,7 +380,7 @@ function assignShotTypes(art,mode){
     if(g.asset!=='illustration'||!g.imagePrompt) return;
     const framing=pool[(n++)%pool.length];
     g.imagePrompt=String(g.imagePrompt).replace(/\s*SHOT:[\s\S]*$/i,'').trim()
-      +` SHOT: ${framing}. The subject is whatever THIS idea's own paragraph describes — only the framing rotates, the subject never turns into generic party scenery. No people.`;
+      +` SHOT: ${framing}. The subject is whatever THIS idea's own paragraph describes, only the framing rotates, the subject never turns into generic party scenery. No people.`;
     g.extraImagePrompts=[];   // одна фотография на идею: дополнительные кадры отменены
     assigned++;
   });
