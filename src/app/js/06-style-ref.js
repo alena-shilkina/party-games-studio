@@ -51,8 +51,32 @@ function sheetRef(){ return ST.refDataUri; }
 // карточкой рецепта. Запрет на тёплый грязно-белый и на голый белый остаётся, а сила
 // цвета теперь за темой: приглушённый лист и яркий одинаково допустимы.
 const BACKGROUND_RULE='BACKGROUND: the sheet must NOT sit on yellow, cream, ivory, beige, butter, sand, tan or any warm off-white ground; those read as cheap and dated. Plain white is also wrong. Use a tinted ground instead, at whatever strength the theme calls for, from a quiet wash to a fully saturated colour, and keep it identical across every sheet of this set.';
-// Стиль берётся ТОЛЬКО из референса. Нет референса — никакого стилевого контракта,
-// лист рисуется по описанию от Claude и решению генератора.
+/* Домашний стиль печаток. Применяется ТОЛЬКО когда референс не назначен, и только к
+   печатному материалу: фотографии уходят по ветке PHOTO_CONTRACT и его не видят.
+   Разобран с трёх образцов современной иллюстрации, присланных 26 августа 2026:
+   «Childhood Noel», «season food» и «Hand-drawn Quirky Christmas Whimsy». Общее у всех
+   трёх: светлая бумага с зерном, акварель и гуашь с настоящим поведением пигмента,
+   приглушённая палитра, много воздуха, рукописная типографика, полностью матовая печать.
+   Мотивы намеренно НЕ названы: их даёт тема листа, а не приложение. */
+const DEFAULT_SHEET_STYLE=`HOUSE ILLUSTRATION STYLE. No style reference is attached to this sheet, so draw it in the house style described here, and follow it as strictly as you would follow a reference image.
+
+MEDIUM: hand-painted watercolour and gouache with real pigment behaviour. Soft blooms where colour pools, edges that move from crisp to feathered inside one shape, visible brush direction, an occasional dry-brush break along an edge, granulation settling in the deeper washes. Thin pencil or fine ink linework only where a shape genuinely needs definition, never a uniform outline traced around everything. Flat matte shapes with no outline may sit alongside the painted pieces, and they stay equally matte.
+
+GROUND: pale paper with a faint tooth or speckle so it reads as real uncoated stock rather than a digital fill. Neutral to barely cool. NOT clinical pure white, and NOT yellow, butter, cream, ivory, sand or tan; the paper never carries a warm dirty tint.
+
+PALETTE: colours that look mixed with water. Dusty rose, sage and eucalyptus green, soft blue-grey, terracotta, muted mustard, warm brown, off-white. Two or three carry the sheet and the others support it. NEVER neon, NEVER candy-bright, NEVER glossy. Muted is not faded: the drawing is crisp, confident and contemporary, made by an illustrator working today, and the colour stays clean rather than greyed down or dusty-dulled.
+
+FINISH: completely matte, as if printed on uncoated paper. No gradients, no glow, no drop shadows, no bevels, no 3D rendering, no glossy highlights, no digital airbrush, no vector gloss.
+
+COMPOSITION: generous breathing space. Elements sit as separate spot illustrations with paper visible between them, never packed edge to edge.
+
+NO CORNER ORNAMENT, and this rule outranks any instinct you have about how a printable of this kind usually looks. Do NOT place a floral spray, a leafy sprig, a lavender stem, a eucalyptus branch, a botanical wreath, a laurel, a vine, a mirrored bouquet or any ornamental cluster in the corners or along the edges. Do NOT frame the sheet with a decorative border, and do NOT balance one corner against the opposite one. The corners of this sheet are empty paper. Every illustration on the sheet earns its place by being the SUBJECT the sheet is actually about, drawn where the layout needs it, never as decoration filling the margins.
+
+TYPE: hand-lettered in feel. A relaxed script or cursive for short supporting lines, and a light, generously letter-spaced serif or hand-drawn capitals for headings. Type sits directly on the paper rather than inside a heavy filled box.
+
+PEOPLE AND ANIMALS, where the sheet calls for them: painted in the same medium, soft and gentle, faces kept simple and calm rather than heavily detailed or cartoon-exaggerated.`;
+
+// Стиль берётся из референса, а если его нет, из домашнего стиля выше.
 function styleText(){
   return (v('styleBlock')||ST.styleBlock||'').trim();
 }
@@ -137,8 +161,16 @@ function withStyle(prompt,asset,styleOverride,footerOverride){
   // только вместе со стилевым контрактом: без него «полная декоративная система»
   // превращается в выдуманные веточки и вензеля по углам
   const rich=(sb && !minimal && ['prompts','ideas','recipes'].includes(v('articleMode')||'games'))?'\n\n'+RICH_SHEET:'';
-  // Без референса стиль не навязываем: лист рисуется по описанию от Claude и решению
-  // генератора. Единственное, что добавляем всегда, — запрет тёплого фона.
-  if(!sb) return prompt+rich+'\n\n'+BACKGROUND_RULE+foot;
+  // Без референса раньше стиль не навязывался вообще, и листы выходили какие придётся.
+  // Теперь есть домашний стиль по умолчанию, разобранный с трёх присланных образцов.
+  // Он задаёт свою бумагу, поэтому BACKGROUND_RULE здесь не нужен: тот требует
+  // подкрашенный фон и спорил бы со светлой бумагой.
+  // Референс, когда он есть, по-прежнему главнее: домашний стиль к нему не примешивается.
+  // RICH_SHEET сюда намеренно не идёт: он требует полную декоративную систему с рамками
+  // и лентами, а домашний стиль построен на воздухе и отдельно стоящих объектах.
+  // Карточки рецептов домашний стиль не трогает: у них свой вид, и он остаётся как есть.
+  if(!sb) return (v('articleMode')==='recipes')
+    ? prompt+'\n\n'+BACKGROUND_RULE+foot
+    : DEFAULT_SHEET_STYLE+'\n\n'+ORIGINALITY+'\n\nSHEET TO DRAW (content only, keep the style above unchanged):\n'+prompt+foot;
   return sb+'\n\n'+BACKGROUND_RULE+'\n\n'+originalityClause()+'\n\n'+STYLE_LOCK+rich+'\n\nSHEET TO DRAW (content only — keep the style above unchanged):\n'+prompt+'\n\n'+STYLE_LOCK+foot;
 }

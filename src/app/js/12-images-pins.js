@@ -42,10 +42,7 @@ async function writePinContent(headlines){
 Make the 4 scenes distinct from each other, matched to each headline's content. ${HUMANIZER_SHORT}
 
 Return ONLY raw JSON: {"pins":[{"cta":"","sceneVector":"","scenePhoto":""}, ...]} in the same order, no preamble.`;
-  const vibeLine=isNeutralVibe()
-    ? `\n\n${NO_SEASONAL}`
-    : `\n\nVibe for every scene: ${resolvedVibeName()}.`;
-  const msg=`Article: ${a.title}\nTheme: ${v('category')} (${v('audience')})${vibeLine}\n\nPin headlines (write cta + scenes for each, in order, keep headlines unchanged):\n${headlines.map((t,i)=>`${i+1}. ${t}`).join('\n')}`;
+  const msg=`Article: ${a.title}\nTheme: ${v('category')} (${v('audience')})\n\nPin headlines (write cta + scenes for each, in order, keep headlines unchanged):\n${headlines.map((t,i)=>`${i+1}. ${t}`).join('\n')}`;
   try{
     const txt=await callClaude(sys,msg,false);
     const d=extractJSON(txt);
@@ -53,15 +50,14 @@ Return ONLY raw JSON: {"pins":[{"cta":"","sceneVector":"","scenePhoto":""}, ...]
   }catch(e){ /* fall back */ }
   return headlines.map(()=>({cta:'Get the Free Printables',sceneVector:themeBG(),scenePhoto:themeBG()}));
 }
-function buildPinPrompt(headline,scene,layout,vibeBlock,cta,mode){
+function buildPinPrompt(headline,scene,layout,cta,mode){
   let p=layout.prompt
     .replace(/\{TITLE\}/g,headline)
     .replace(/\{SCENE\}/g,scene||themeBG())
-    .replace(/\{VIBE\}/g,vibeBlock||'')
+    .replace(/\{VIBE\}/g,'')
     .replace(/\{CTA\}/g,cta||'Free Download');
   p+=' '+(mode==='photo'?STYLE_PHOTO:STYLE_VECTOR);
-  if(!vibeIsFixed()) p+=' '+TAILWIND_PALETTE;   // holidays keep their own palette; others use the proven Tailwind palette
-  if(isNeutralVibe()) p+=' '+NO_SEASONAL;       // neutral pin_vibe → actively block holiday decor
+  p+=' '+TAILWIND_PALETTE;   // раньше палитра пропускалась для «праздничных» вайбов, теперь одна на всех
   p+=' '+NO_YELLOW;
   return p+siteFooter();
 }
@@ -80,7 +76,6 @@ async function generatePins(){
   ST.pins=headlines.map(k=>({title:k,headline:k,img:null,err:null}));  // title = the user's headline
   renderPins();
   const content=await writePinContent(headlines);
-  const vibe=currentVibeBlock();
   const layouts=[...PIN_LAYOUTS].sort(()=>Math.random()-0.5); // shuffle layouts
   const modes=['vector','vector','photo','photo'].sort(()=>Math.random()-0.5); // mix: 2 vector + 2 photo
   headlines.forEach((h,i)=>{
@@ -90,7 +85,7 @@ async function generatePins(){
     ST.pins[i].cta=content[i].cta||'';
     ST.pins[i].mode=mode;
     ST.pins[i].layout=layouts[i%layouts.length].id;
-    ST.pins[i].prompt=buildPinPrompt(h,scene,layouts[i%layouts.length],vibe,ST.pins[i].cta,mode);
+    ST.pins[i].prompt=buildPinPrompt(h,scene,layouts[i%layouts.length],ST.pins[i].cta,mode);
   });
   renderPins();
   await runPool(headlines.map((h,i)=>i), async (i)=>{

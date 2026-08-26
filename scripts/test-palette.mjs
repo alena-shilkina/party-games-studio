@@ -1,9 +1,11 @@
 // Проверка сборки промпта для печатного листа.
 //
-// Стиль задаётся ТОЛЬКО приложенным референсом: Claude разбирает его подробно —
-// техника, палитра, рамка, мотивы, шрифт. Своего встроенного стиля у приложения нет:
-// именно он приносил ботанику и вензеля по углам. Без референса лист рисуется
-// по описанию от Claude, и мы добавляем единственное — запрет тёплого фона.
+// Референс, когда он приложен, остаётся главным: Claude разбирает его подробно —
+// техника, палитра, рамка, мотивы, шрифт, — и домашний стиль к нему не примешивается.
+// Когда референса нет, раньше не подставлялось ничего, и генератор рисовал по своему
+// усмотрению: отсюда и брались акварельные цветы по углам, потому что для печатки такого
+// рода это его штамп по умолчанию. Теперь пустое место занимает домашний стиль, который
+// эти углы прямо запрещает. Карточки рецептов он не трогает: у них свой вид.
 //
 // Браузерная панель ненадёжна, поэтому гоняем настоящие функции в Node.
 import { readFileSync } from 'node:fs';
@@ -19,6 +21,7 @@ const grab = (text, start, end) => {
 const style6 = src('06-style-ref.js');
 const pieces = [
   grab(style6, 'const BACKGROUND_RULE=', "';"),
+  grab(style6, 'const DEFAULT_SHEET_STYLE=`', '`;'),
   grab(style6, 'const RICH_SHEET=',      "';"),
   grab(style6, 'const ORIGINALITY=',     "';"),
   grab(style6, 'const STYLE_LOCK=',      "anywhere else in this prompt.';"),
@@ -44,15 +47,43 @@ const build = fields => new Function('fields', `
 let bad = 0;
 const check = (n, c) => { console.log((c ? '  ✓ ' : '  ✗ ') + n); if (!c) bad++; };
 
-console.log('Без референса стиль не навязывается');
+console.log('Без референса работает домашний стиль');
 {
   const { styleText, withStyle } = build({ articleMode: 'ideas' });
   const out = withStyle('a bingo sheet with 16 squares', 'printable');
-  check('стилевого контракта нет', styleText() === '');
-  check('описание листа осталось первым', out.startsWith('a bingo sheet with 16 squares'));
-  check('запрет тёплого фона всё равно добавлен', out.includes('BACKGROUND:') && /NOT sit on yellow, cream, ivory/.test(out));
+  check('разобранного референса нет', styleText() === '');
+  check('домашний стиль стоит первым', out.startsWith('HOUSE ILLUSTRATION STYLE'));
+  check('светлая бумага с зерном задана', /pale paper with a faint tooth/.test(out));
+  check('акварель и гуашь названы', /watercolour and gouache/.test(out));
+  check('приглушённая палитра названа', /Dusty rose, sage and eucalyptus/.test(out));
+  check('жёлтый и кремовый фон запрещены', /NOT yellow, butter, cream, ivory/.test(out));
+  check('описание листа подано как содержимое', out.includes('SHEET TO DRAW (content only'));
   check('декоративная система не требуется', !out.includes('RICHNESS'));
   check('нет инструкции про приложенную картинку', !out.includes('REF_ORIGINALITY'));
+
+  // то самое, из-за чего всё затевалось
+  check('цветы по углам запрещены прямым текстом', /NO CORNER ORNAMENT/.test(out));
+  ['floral spray', 'leafy sprig', 'lavender stem', 'eucalyptus branch', 'botanical wreath', 'laurel', 'vine']
+    .forEach(w => check(`«${w}» назван в запрете`, out.includes(w)));
+  check('рамка по краю запрещена', /Do NOT frame the sheet with a decorative border/.test(out));
+  check('углы объявлены пустой бумагой', /corners of this sheet are empty paper/.test(out));
+}
+
+console.log('\nКарточки рецептов домашний стиль не трогает');
+{
+  const { withStyle } = build({ articleMode: 'recipes' });
+  const out = withStyle('a recipe card', 'printable');
+  check('домашнего стиля нет', !out.includes('HOUSE ILLUSTRATION STYLE'));
+  check('описание карточки осталось первым', out.startsWith('a recipe card'));
+  check('запрет тёплого фона на месте', out.includes('BACKGROUND:'));
+}
+
+console.log('\nРеференс главнее домашнего стиля');
+{
+  const { withStyle } = build({ articleMode: 'ideas', __vision: 'STYLE: bold flat vector.', __ref: 'x' });
+  const out = withStyle('a bingo sheet', 'printable');
+  check('домашний стиль не примешивается', !out.includes('HOUSE ILLUSTRATION STYLE'));
+  check('работает разобранный референс', out.startsWith('STYLE: bold flat vector'));
 }
 
 console.log('\nС референсом контракт работает целиком');

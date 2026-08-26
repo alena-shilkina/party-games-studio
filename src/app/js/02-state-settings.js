@@ -114,13 +114,6 @@ function toast(m,type=''){const t=$('toast');t.textContent=m;t.className='toast 
 function prog(pct,lbl){const p=$('prog');p.classList.add('on');$('progFill').style.width=pct+'%';if(lbl)$('progLbl').textContent=lbl;}
 function progDone(){setTimeout(()=>$('prog').classList.remove('on'),600);}
 
-/* ---------- PIN VIBE UI ---------- */
-function renderVibes(){
-  const sel=$('pinVibe'); if(!sel)return;
-  sel.innerHTML=Object.keys(PIN_VIBES).map(k=>`<option value="${k}">${k==='Auto'?'Auto (from keyword)':k}</option>`).join('');
-  sel.value=activeVibe;
-}
-
 /* ---------- FILENAME (from PCC buildImageFilename) ---------- */
 function buildFilename(keyword,sub,idx){
   const stop=['for','the','a','an','and','to','with','your','how','ideas','idea','games','game','party','of','best','fun'];

@@ -295,6 +295,30 @@ group('Печатные листы');
         .filter(f => !wired.includes(f)).join(', '));
 }
 
+group('Домашний стиль печаток');
+{
+  // Без референса раньше не подставлялось ничего, и генератор рисовал по своему штампу:
+  // акварельные цветы по углам. Домашний стиль занимает это место и прямо их запрещает.
+  /const DEFAULT_SHEET_STYLE=`/.test(js) ? ok('домашний стиль на месте') : fail('домашнего стиля нет');
+  js.includes('NO CORNER ORNAMENT')
+    ? ok('цветы по углам запрещены прямым текстом') : fail('запрета на углы нет, цветы вернутся');
+  ['floral spray', 'botanical wreath', 'eucalyptus branch', 'lavender stem'].forEach(w =>
+    js.includes(w) ? ok(`«${w}» назван в запрете`) : fail(`«${w}» из запрета пропал`));
+  js.includes('pale paper with a faint tooth')
+    ? ok('светлая бумага с зерном задана') : fail('бумага не описана');
+  js.includes('watercolour and gouache with real pigment behaviour')
+    ? ok('акварель и гуашь названы') : fail('техника не названа');
+  // фотографии этот стиль не касается: они уходят по ветке PHOTO_CONTRACT
+  /if\(asset==='illustration'\)\{/.test(js)
+    ? ok('фотографии по-прежнему идут своей веткой') : fail('фото могут получить стиль печаток');
+
+  // PIN_VIBES удалён целиком: это был старый костыль, которым не пользовались
+  ['PIN_VIBES', 'activeVibe', 'detectVibe', 'normVibe', 'isNeutralVibe', 'vibeIsFixed',
+   'resolvedVibeName', 'currentVibeBlock', 'renderVibes', 'NO_SEASONAL'].forEach(n =>
+    js.includes(n) ? fail(`${n} вернулся в код`) : ok(`${n} удалён`));
+  body.includes('pinVibe') ? fail('поле Pin vibe вернулось в разметку') : ok('поля Pin vibe в разметке нет');
+}
+
 group('Интерфейс');
 {
   // Здесь однажды уже была поломка: функция панели существовала, а кнопки, которая её

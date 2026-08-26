@@ -1,6 +1,6 @@
 /* ---------- BATCH WORK ZONE ---------- */
 function blankRow(){ return {id:crypto.randomUUID(),kw:'',title:'',mode:'games',aud:'adult',
-  wpCat:ST.pubCat||'',refMode:'',cost:'',costUsd:null,vibe:'Auto',downloadable:false,pinKW:'',context:'',featKW:'',styleBlock:'',refUrl:'',paa:[],paaSel:[],status:'',link:'',error:''}; }
+  wpCat:ST.pubCat||'',refMode:'',cost:'',costUsd:null,downloadable:false,pinKW:'',context:'',featKW:'',styleBlock:'',refUrl:'',paa:[],paaSel:[],status:'',link:'',error:''}; }
 // auto-detect the article theme from the keyword (feeds the generation context)
 function detectTheme(kw){
   const s=(kw||'').toLowerCase();
@@ -184,7 +184,7 @@ function applyRowToFields(r){
   $('mainKW').value=r.kw; $('category').value=detectTheme(`${r.kw} ${r.title||''} ${r.wpCat||''}`); $('audience').value=r.aud;
   $('titleInput').value=r.title||''; $('context').value=r.context||''; $('pinKW').value=r.pinKW||'';
   if($('articleMode')) $('articleMode').value=r.mode||'games';
-  activeVibe=r.vibe||'Auto'; ST.pubCat=r.wpCat||getSite()?.cat||null;
+  ST.pubCat=r.wpCat||getSite()?.cat||null;
   // per-row infographic reference: image from memory (if re-attached this session) + saved style block
   // Reference resolution, in strict priority order — never inherit the PREVIOUS row's style:
   //   1. the row's own reference (uploaded on the row, or ref_url from CSV)
@@ -238,9 +238,7 @@ const SIZE_HERO={w:1536,h:1024};   // 3:2 landscape for GPT Image; runwareGen re
 async function genFeaturedAI(kw){
   if(!keyReady('runware')) return;
   const theme=((featuredQuery(kw)||kw||'party').replace(/\bcelebration\b/,'').trim())||'party';
-  const vibeName=(typeof detectVibe==='function')?detectVibe(kw,v('category')):'';
-  const decor=(vibeName&&PIN_VIBES[vibeName]&&PIN_VIBES[vibeName].block)||'';
-  const prompt=`Wide landscape blog header illustration, modern flat editorial vector art — contemporary, matte muted colours, simple clean shapes, subtle grain, decorative background. NOT a Disney/Pixar cartoon, never photorealistic. Cheerful scene of a ${theme} celebration: friends having fun together, warm inviting festive mood with tasteful party props and confetti. ${decor} Balanced composition with comfortable open space. ABSOLUTELY NO text, no words, no letters, no numbers.`;
+  const prompt=`Wide landscape blog header illustration, modern flat editorial vector art — contemporary, matte muted colours, simple clean shapes, subtle grain, decorative background. NOT a Disney/Pixar cartoon, never photorealistic. Cheerful scene of a ${theme} celebration: friends having fun together, warm inviting festive mood with tasteful party props and confetti. $Balanced composition with comfortable open space. ABSOLUTELY NO text, no words, no letters, no numbers.`;
   try{
     const url=await runwareGen(prompt,SIZE_HERO.w,SIZE_HERO.h,3,null);
     if(url) ST.feat={url,credit:'',pexId:null,ai:true};

@@ -13,7 +13,6 @@ function newArticle(){
 }
 
 /* ---------- INIT ---------- */
-renderVibes();
 renderWPCatSelect();
 loadSettings();
 loadServerKeys();

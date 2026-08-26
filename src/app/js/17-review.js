@@ -305,7 +305,7 @@ function importBatchCSV(e){
     // «mode» молча уезжала в games — понять это можно было только по результату.
     const col=(...names)=>{ for(const n of names){ const i=header.indexOf(n); if(i>=0) return i; } return -1; };
     const idx={ title:col('title'), kw:col('keyword','main_keyword','kw'), pins:col('pin_headlines'), ctx:col('extra_info','context'),
-      aud:col('audience','aud','age','age_band'), cat:col('wp_category','category'), vibe:col('pin_vibe'), dl:col('downloadable'),
+      aud:col('audience','aud','age','age_band'), cat:col('wp_category','category'), dl:col('downloadable'),
       feat:col('featured_keyword'), ref:col('ref_url','reference','reference_url'), refmode:col('ref_mode','reference_mode'),
       mode:col('article_mode','mode','article_type','type') };
     if(idx.kw<0 && idx.title<0){ toast('CSV needs at least a "title" or "keyword" column','err'); return; }
@@ -322,7 +322,6 @@ function importBatchCSV(e){
       r.aud=aud||'adult';
       // колонка infographic_style больше не читается: стиль печатных листов один,
       // различает статьи только палитра, и её задаёт тема
-      const vibe=get('vibe'); r.vibe=normVibe(vibe)||'Auto';   // case-insensitive: "neutral" → "Neutral"
       r.downloadable=/^(y|yes|true|1|да)$/i.test(get('dl')||'');   // ideas mode: does this article include printable sheets?
       r.featKW=get('feat');
       r.refUrl=get('ref');   // remote reference image URL (fetched at run time)

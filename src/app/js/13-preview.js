@@ -222,7 +222,7 @@ function renderPins(){
   </div>`).join('');
 }
 async function regenPin(i){
-  const prompt=ST.pins[i].prompt || buildPinPrompt(ST.pins[i].headline||ST.pins[i].title, themeBG(), PIN_LAYOUTS[i%PIN_LAYOUTS.length], currentVibeBlock(), ST.pins[i].cta, ST.pins[i].mode);
+  const prompt=ST.pins[i].prompt || buildPinPrompt(ST.pins[i].headline||ST.pins[i].title, themeBG(), PIN_LAYOUTS[i%PIN_LAYOUTS.length], ST.pins[i].cta, ST.pins[i].mode);
   ST.pins[i].img=null;ST.pins[i].err=null;renderPins();
   try{ST.pins[i].img=await runwareGen(prompt,SIZE_PIN.w,SIZE_PIN.h);ST.pins[i].file=buildFilename(ST.pins[i].headline||ST.pins[i].title,'pin',i);}catch(e){ST.pins[i].err=e.message;}
   renderPins();
