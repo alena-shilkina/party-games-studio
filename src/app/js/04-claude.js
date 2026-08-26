@@ -92,6 +92,12 @@ async function loadTextModels(){
    работала на своём дефолте: текст выходил рубленый и ровный. Runware принимает
    temperature 0-2 (по умолчанию 1) и topP 0-1 (по умолчанию 0.95). */
 const LUNA_TEMP=1.05, LUNA_TOP_P=0.95;
+// Умеет ли выбранная модель ручки сэмплинга. Выясняется по первой же ошибке и
+// запоминается на сессию, чтобы не платить за один и тот же отказ в каждой статье.
+let LUNA_SAMPLING=true;
+// Доступен ли веб-поиск через родной API. Первый отказ выключает его до перезагрузки:
+// иначе каждая статья пакета платит одним и тем же неудачным запросом.
+let LUNA_SEARCH_OK=true;
 
 /* Веб-поиск у моделей Runware есть, но только в родном API: в OpenAI-совместимом
    эндпоинте tools не передать. Формат идентификатора там тоже другой, без ':' и '@'.
@@ -101,14 +107,21 @@ function nativeModelId(air){
   return String(air||'').replace(/[:@]/g,'-').replace(/\./g,'-').replace(/-+/g,'-');
 }
 async function lunaSearchOnce(model,system,content,maxTokens){
+  const settings={maxTokens:maxTokens||16000};
+  if(LUNA_SAMPLING){ settings.temperature=LUNA_TEMP; settings.topP=LUNA_TOP_P; }
   const task={taskType:'textInference',taskUUID:crypto.randomUUID(),model:nativeModelId(model),
     messages:[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}],
-    settings:{temperature:LUNA_TEMP,topP:LUNA_TOP_P,maxTokens:maxTokens||16000},
-    tools:[{type:'search'}], includeCost:true, deliveryMethod:'sync'};
+    settings, tools:[{type:'search'}], includeCost:true, deliveryMethod:'sync'};
   const r=await fetch('/api/llm/native',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify([task]),signal:batchAbort?.signal});
   const d=await r.json();
-  if(!r.ok||d?.errors?.length||d?.error) throw new Error('native path unavailable');
+  if(!r.ok||d?.errors?.length||d?.error){
+    // печатаем настоящую причину: контракт родного API задокументирован не целиком,
+    // и без текста ошибки чинить его придётся вслепую
+    const why=d?.errors?.[0]?.message||d?.error?.message||('HTTP '+r.status);
+    console.warn('[PGS] веб-поиск недоступен:',why,d);
+    throw new Error('native: '+why);
+  }
   const item=(d&&Array.isArray(d.data))?d.data[0]:null;
   const text=item&&typeof item.text==='string'?item.text:'';
   // берём только целый ответ: обрезанный дешевле дописать на обычном пути, чем чинить здесь
@@ -125,14 +138,17 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
   // max_completion_tokens, older — max_tokens. Начинаем с нового имени и переключаемся,
   // если модель попросит другое: гадать заранее нельзя, а падать из-за названия поля глупо.
   let tokenField=LAST_TOKEN_FIELD;
+  let sampling=LUNA_SAMPLING;
   // Когда статье нужен поиск, сначала пробуем родной API с включённым поиском.
   // Не вышло — молча возвращаемся на обычный путь, статья от этого не страдает.
-  if(useSearch){
+  // Один отказ на сессию: дальше не долбим родной эндпоинт в каждой статье пакета.
+  if(useSearch && LUNA_SEARCH_OK){
     try{
       if(onStatus) onStatus('🔎 '+model+' ищет в вебе…');
       return await lunaSearchOnce(model,system,content,maxTokens);
     }catch(e){
       if(e.message==='__ABORT__'||batchStopped) throw e;
+      LUNA_SEARCH_OK=false;
       if(onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');
     }
   }
@@ -140,10 +156,11 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
     if(batchStopped) throw new Error('__ABORT__');
     let r;
     try{
-      // Раньше не задавалось ничего, кроме потолка ответа, и модель писала на дефолте.
-      // Эти две ручки Runware принимает: temperature 0-2 и topP 0-1. Для статьи нужна
-      // не точность, а живость, поэтому температура выше середины.
-      const body={model,messages,temperature:LUNA_TEMP,top_p:LUNA_TOP_P};
+      // Ручки сэмплинга есть не у всех моделей: документация Runware описывает
+      // temperature и topP для одних, а Luna принимает только дефолтную единицу и
+      // отвечает 400. Поэтому шлём их, пока модель не скажет, что не умеет.
+      const body={model,messages};
+      if(sampling){ body.temperature=LUNA_TEMP; body.top_p=LUNA_TOP_P; }
       body[tokenField]=maxTokens||16000;
       r=await fetch('/api/llm',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify(body),signal:batchAbort?.signal});
@@ -171,6 +188,13 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
       if(wants&&wants[1]&&wants[1]!==tokenField){
         tokenField=wants[1]; LAST_TOKEN_FIELD=tokenField;   // запомним на следующие вызовы
         if(onStatus)onStatus('↻ '+model+' ждёт '+tokenField+' — повторяю');
+        continue;
+      }
+      // «'temperature' does not support 1.05 ... Only the default (1) value is supported»
+      // Модель не умеет ручки сэмплинга: убираем их и повторяем, а не роняем статью.
+      if(sampling && /\b(temperature|top_p|topP)\b/i.test(m) && /does not support|not supported|unsupported|only the default/i.test(m)){
+        sampling=false; LUNA_SAMPLING=false;   // запомним на следующие вызовы
+        if(onStatus)onStatus('↻ '+model+' не принимает temperature — повторяю без неё');
         continue;
       }
       if((status===429||status===529||status>=500) && overloadTries<5){

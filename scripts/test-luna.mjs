@@ -22,6 +22,7 @@ const make = (responses, fields = {}) => {
     const textModel = () => fields.textModelId || 'openai:gpt@5.6-luna';
     let LAST_TOKEN_FIELD = 'max_completion_tokens';
     const LUNA_TEMP = 1.05, LUNA_TOP_P = 0.95;
+    let LUNA_SAMPLING = true, LUNA_SEARCH_OK = true;
     // путь с веб-поиском подменяем: тест решает, отвечает он или падает
     const lunaSearchOnce = async () => {
       if (!fields.__search) throw new Error('native path unavailable');
@@ -145,6 +146,22 @@ console.log('Настройки сэмплинга уходят в запрос'
   await callLuna('S', 'U', false);
   check('температура задана', calls[0].temperature === 1.05);
   check('topP задан', calls[0].top_p === 0.95);
+}
+
+console.log('\nМодель не принимает temperature');
+{
+  // дословная ошибка Luna из консоли
+  const msg = "Unsupported value: 'temperature' does not support 1.05 with this model. Only the default (1) value is supported.";
+  const { callLuna, calls } = make([
+    { ok: false, status: 400, body: { error: { message: msg } } },
+    { body: { choices: [{ finish_reason: 'stop', message: { content: 'ok' } }] } },
+  ]);
+  const out = await callLuna('S', 'U', false);
+  check('статья не падает, а повторяется', out === 'ok');
+  check('в первом запросе температура была', calls[0].temperature === 1.05);
+  check('во втором запроса температуры нет', !('temperature' in calls[1]));
+  check('и top_p тоже нет', !('top_p' in calls[1]));
+  check('потолок ответа остался на месте', 'max_completion_tokens' in calls[1]);
 }
 
 console.log('\nВеб-поиск и откат на обычный путь');

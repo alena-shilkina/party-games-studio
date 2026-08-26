@@ -126,9 +126,14 @@ group('Правила человеческого текста');
 group('Настройка модели Runware');
 {
   // Не отправлялось ни одной ручки сэмплинга, модель работала на дефолте и писала ровно.
-  /const LUNA_TEMP=/.test(js) && js.includes('temperature:LUNA_TEMP')
+  /const LUNA_TEMP=/.test(js) && js.includes('body.temperature=LUNA_TEMP')
     ? ok('температура уходит в запрос') : fail('температура не задаётся');
-  js.includes('top_p:LUNA_TOP_P') ? ok('topP уходит в запрос') : fail('topP не задаётся');
+  js.includes('body.top_p=LUNA_TOP_P') ? ok('topP уходит в запрос') : fail('topP не задаётся');
+  // Luna отвечает 400 на любую temperature кроме единицы. Ручки обязаны отключаться сами.
+  /sampling=false; LUNA_SAMPLING=false;/.test(js)
+    ? ok('модель без ручек сэмплинга обслуживается повтором') : fail('отказ от temperature уронит статью');
+  /LUNA_SEARCH_OK=false;/.test(js)
+    ? ok('недоступный веб-поиск отключается на сессию') : fail('неудачный поиск будет повторяться в каждой статье');
 
   // Веб-поиск есть только в родном API Runware, и путь к нему обязан быть с откатом.
   js.includes("tools:[{type:'search'}]") ? ok('веб-поиск запрашивается') : fail('веб-поиск не запрашивается');
