@@ -47,7 +47,10 @@ function sheetRef(){ return ST.refDataUri; }
 // Единственное, что мы навязываем всегда — тёплый фон и чистый белый. Остальное решают
 // Claude в описании листа и генератор картинки. Свой встроенный стиль мы больше
 // не подсовываем: именно он приносил веточки и цветочки по углам.
-const BACKGROUND_RULE='BACKGROUND: the sheet must NOT sit on yellow, cream, ivory, beige, butter, sand, tan or any warm off-white ground; those read as cheap and dated. Plain white is also wrong. Use a soft tinted ground instead, and keep it identical across every sheet of this set.';
+// «soft tinted ground» здесь раньше ограничивало насыщенность и спорило с плотной
+// карточкой рецепта. Запрет на тёплый грязно-белый и на голый белый остаётся, а сила
+// цвета теперь за темой: приглушённый лист и яркий одинаково допустимы.
+const BACKGROUND_RULE='BACKGROUND: the sheet must NOT sit on yellow, cream, ivory, beige, butter, sand, tan or any warm off-white ground; those read as cheap and dated. Plain white is also wrong. Use a tinted ground instead, at whatever strength the theme calls for, from a quiet wash to a fully saturated colour, and keep it identical across every sheet of this set.';
 // Стиль берётся ТОЛЬКО из референса. Нет референса — никакого стилевого контракта,
 // лист рисуется по описанию от Claude и решению генератора.
 function styleText(){
