@@ -402,8 +402,15 @@ function assignShotTypes(art,mode){
     const framing=pool[n%pool.length];
     const light=lights[n%lights.length];
     n++;
-    g.imagePrompt=String(g.imagePrompt).replace(/\s*SHOT:[\s\S]*$/i,'').trim()
-      +` SHOT: ${framing}. LIGHT: ${light}. The framing and the light above override any camera default stated earlier in this prompt. The subject is whatever THIS idea's own paragraph describes, only the framing rotates, the subject never turns into generic party scenery. No people.`;
+    /* Тему кадра называем сами, названием самой идеи, и ставим её ПЕРВОЙ строкой.
+       Раньше промпт писала только модель, и он мог разойтись с собственным абзацем:
+       под заголовком про полосатый навес выходило фото с шарами и ящиком овощей.
+       Требование «снимай то, что описано в этом абзаце» стояло в конце и проигрывало
+       собственному тексту промпта, который шёл выше и был подробнее. */
+    const subject=String(g.name||'').trim();
+    const head=subject?`SUBJECT OF THIS PHOTOGRAPH: ${subject}. That object or arrangement must be the thing in focus and the reason the picture exists. If the description below drifts to anything else, the subject named here wins. `:'';
+    g.imagePrompt=head+String(g.imagePrompt).replace(/^SUBJECT OF THIS PHOTOGRAPH:[\s\S]*?wins\.\s*/i,'').replace(/\s*SHOT:[\s\S]*$/i,'').trim()
+      +` SHOT: ${framing}. LIGHT: ${light}. The framing and the light above override any camera default stated earlier in this prompt. The subject is the one named at the top of this prompt, only the framing rotates, and it never turns into generic party scenery. No people.`;
     g.extraImagePrompts=[];   // одна фотография на идею: дополнительные кадры отменены
     assigned++;
   });
