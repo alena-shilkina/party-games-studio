@@ -277,7 +277,7 @@ function syncRecipeCards(art,mode){
 THE CARD IS BUILT FROM FILLED PANELS ON A COLOURED GROUND, never black type floating on white. A full-bleed tinted or softly patterned background carries the whole card. Each block below sits inside its own rounded filled panel with a small label chip on its top edge, panels tinted in different strengths of the same palette so they read as one set. Decorative accents belong to THIS recipe's own subject and occasion, scattered in the margins and overlapping panel corners, never on top of any word. Leave no large dead area, but never shrink type to fill one.
 PALETTE AND MOTIFS COME FROM THE THEME OF THIS RECIPE, or from the attached style reference when there is one. Do NOT default to one house palette, and do not carry a palette over from an unrelated theme. The saturation should be confident and cheerful rather than pale and washed out, and the type stays the dark anchor of whatever palette you choose.
 (1) TITLE BLOCK at the very top: the recipe name set LARGE as a display headline, the biggest thing on the card by a wide margin, sitting on its own banner or ribbon, with a second weight or a second colour on one word so it has real typographic personality: "${clean(g.section||'')}". Under it one short tagline in small caps or a script face, drawn from the dish itself and never invented as a claim.
-(2) HERO PHOTO, AND IT IS THE FOUNDATION OF THE LAYOUT, NOT AN INSERT. The finished dish is the reason this card exists and it must dominate: give it roughly the top 40 to 45 per cent of the card. It BLEEDS to the left, right and top edges, or its subject is cut out from its own background and sits directly on the card's ground. What it must NEVER be is a small photograph centred inside a rounded rectangle with an even margin all around it, letterboxed like a picture in a slot: that reads as a placeholder and it is the single thing that makes these cards look cheap. The layout is built AROUND the photograph, not above and below it. Let the title banner or the badge row overlap its edge, let a painted motif cross the boundary, and let the panels below start against its lower edge rather than after a gap. One appetising photograph of the finished dish. No people, no hands, no brand labels. PHOTOREALISM, this must look like a real photograph taken by a food photographer, not a render. CAMERA: a 50mm at about f/4, from a natural eye-level or slight three-quarter angle, pulled back far enough that the dish sits in a real place: some of the table, the cloth, a glass or a serving spoon beside it. Not the dish cropped tight and filling the frame. Depth of field is gentle, the back softens but the setting still reads. LIGHT: bright daylight, and sunshine is welcome, a sun patch on the table or warm low afternoon sun from one side. It should look like a cheerful day, never grey or dim. IMPERFECTION IS THE POINT: hand-made food is never identical. Every piece differs in size, angle and placement, some lean, one sits slightly apart, garnish lands unevenly. Include honest small mess: a few crumbs, a smear on the board, an oil pool that is not symmetrical, a herb leaf out of place, one piece already eaten or a bite taken. Real props show light wear, a scratched board, a linen napkin with creases, a fingerprint on a glass. REAL SURFACES: matte where food is matte (cheese, bread, meat), shine only where fat or glaze genuinely sits. No plastic or waxy sheen, no rubbery highlights, no uniform glossy coating over everything. FORBIDDEN AI LOOK: no HDR glow, no halo or rim-light around every item, no over-saturated candy colours, no perfect radial symmetry, no identical repeated objects cloned across the frame, no impossibly clean surfaces, no floating ingredients, no smooth airbrushed texture. Slight natural grain and true-to-life colour, as if straight out of camera with minimal editing.
+(2) HERO PHOTO, AND IT IS THE FOUNDATION OF THE LAYOUT, NOT AN INSERT. The finished dish is the reason this card exists and it must dominate: give it roughly the top 40 to 45 per cent of the card. It BLEEDS to the left, right and top edges, or its subject is cut out from its own background and sits directly on the card's ground. What it must NEVER be is a small photograph centred inside a rounded rectangle with an even margin all around it, letterboxed like a picture in a slot: that reads as a placeholder and it is the single thing that makes these cards look cheap. The layout is built AROUND the photograph, not above and below it. Let the title banner or the badge row overlap its edge, let a painted motif cross the boundary, and let the panels below start against its lower edge rather than after a gap. One appetising photograph of the finished dish. No people, no hands, no brand labels. PHOTOREALISM, this must look like a real photograph taken by a food photographer, not a render. CAMERA: a 50mm at about f/4, from a natural eye-level or slight three-quarter angle, pulled back far enough that the dish sits in a real place: some of the table, the cloth, a glass or a serving spoon beside it. Not the dish cropped tight and filling the frame. Depth of field is gentle, the back softens but the setting still reads. LIGHT: bright daylight, and sunshine is welcome, a sun patch on the table or warm low afternoon sun from one side. It should look like a cheerful day, never grey or dim. ${NO_GOD_RAYS} ${NO_CLONING} ${DETAIL_RULE} IMPERFECTION IS THE POINT: hand-made food is never identical. Every piece differs in size, angle and placement, some lean, one sits slightly apart, garnish lands unevenly. Include honest small mess: a few crumbs, a smear on the board, an oil pool that is not symmetrical, a herb leaf out of place, one piece already eaten or a bite taken. Real props show light wear, a scratched board, a linen napkin with creases, a fingerprint on a glass. REAL SURFACES: matte where food is matte (cheese, bread, meat), shine only where fat or glaze genuinely sits. No plastic or waxy sheen, no rubbery highlights, no uniform glossy coating over everything. FORBIDDEN AI LOOK: no HDR glow, no halo or rim-light around every item, no over-saturated candy colours, no perfect radial symmetry, no identical repeated objects cloned across the frame, no impossibly clean surfaces, no floating ingredients, no smooth airbrushed texture. Slight natural grain and true-to-life colour, as if straight out of camera with minimal editing.
 (3) BADGE ROW: three pill-shaped badges side by side, each a filled rounded pill in its own tint carrying a simple icon and a short label, a clock reading "${clean(meta[0]||'')}", a level icon reading "${clean(meta[1]||'')}", a servings icon reading "${clean(meta[2]||'')}". Nothing else goes in these badges.
 (4) INGREDIENTS PANEL: a filled rounded panel with a label chip reading WHAT YOU NEED, holding the ingredients as SMALL HAND-PAINTED ILLUSTRATIONS (not a text list): each item drawn on its own, with its name and amount in small clean type underneath. Show EXACTLY these ${ing.length}, in this order, copied word for word: `
       + ing.map(x=>`[${clean(x)}]`).join(' ')
@@ -395,16 +395,33 @@ const SHOT_FRAMINGS=[
 ];
 /* Света в контракте был ровно один: мягкий рассеянный из окна. Он и делал фотографии
    несолнечными и непраздничными. Теперь свет крутится вместе с планом. */
+/* Два варианта просили «луч через кадр, подсвечивающий пыль» и «пятна света сквозь
+   листву» — оба дают объёмные столбы света и дымку, и кадр читается как съёмка в храме.
+   Убраны. Солнце осталось, но оно освещает предметы, а не рисует лучи в воздухе. */
 const SHOT_LIGHT=[
-  'bright direct sunlight through a window, with real sun patches on the surface and clean defined shadow edges',
-  'warm low afternoon sun raking across the scene from one side, long soft shadows, golden cast',
-  'an airy high-key room full of bounced daylight, light walls, almost no heavy shadow',
-  'clear midday daylight outdoors in open shade, colours clean and saturated, sky light from above',
-  'soft even daylight from a large window on an overcast day',
-  'sunlight dappled through leaves or a curtain, moving patches of light across the subject',
-  'bright daylight with a strong sunbeam crossing the frame and lighting dust or steam in the air',
-  'fresh morning light, cool-clean but bright, with crisp small highlights'
+  'bright direct sunlight through a window, lying in clear patches ON the surfaces and objects, with crisp shadow edges and nothing glowing in the air',
+  'warm late-afternoon sun coming in low from one side, gentle golden cast on the objects themselves, shadows soft at their edges',
+  'an airy bright room full of bounced daylight, light walls, almost no heavy shadow',
+  'clear midday sunlight outdoors in open shade, colours clean and saturated, light coming from the sky above',
+  'soft even daylight from a large window on a bright overcast day',
+  'sunlight from a window on one side and a pale wall bouncing it back on the other, both landing on the objects',
+  'crisp bright sunlight with small sharp highlights on glass and glaze, nothing hazy',
+  'fresh morning sun, cool-clean but bright, everything easy to read'
 ];
+/* Тот самый «церковный» вид. Он берётся не из плана, а из атмосферных эффектов,
+   поэтому запрещаем их отдельно и рядом со светом, а не в общем контракте. */
+/* Главный признак сгенерированного кадра на твоих фото: восемь одинаковых кружек
+   ровной сеткой, ряды одинаковых горшков, лимоны цепочкой через равные промежутки.
+   В жизни так не стоит ничего. Запрет на клонирование в контракте был, но общий,
+   поэтому здесь он подробный и с примерами. */
+/* Промпты выходили общими: «корзина подгузников на столе». Требуем назвать материалы,
+   поверхность, соседние предметы и следы использования, потому что именно из них
+   складывается ощущение настоящего кадра, а не из слова «realistic». */
+const DETAIL_RULE='NAME THE SPECIFICS, DO NOT SETTLE FOR THE CATEGORY. A generated photograph looks generic because the prompt was generic. Say what the thing is actually made of and what it sits on: the grain and colour of the wood, whether the cloth is washed linen or waxed cotton, whether the ceramic is matte stoneware or glossy porcelain, whether the metal is warm brass or brushed steel. Name two or three ordinary neighbouring objects that would genuinely be there and would not be tidied away, and say where they sit in relation to the subject. Include at least two honest traces of use: a crumb, a water ring, a crease in the cloth, a smudge on glass, a leaf that has dropped, a lid set down beside its jar rather than on it. Nothing in the frame is brand new, perfectly aligned or freshly unpacked unless the idea is about exactly that.';
+
+const NO_CLONING='REPEATED OBJECTS ARE THE THING THAT GIVES A GENERATED PHOTO AWAY, so this rule matters more than any other detail. Where the scene needs several of the same thing, mugs, jars, pots, favours, glasses, plates, they are NEVER identical copies on an even grid. Real ones differ: heights and spacing are uneven, one sits closer than the rest, one is turned so its handle points the other way, one is slightly behind another and partly hidden, one is a shade off in colour or has a chip, one is upside down or already used. Rows are never perfectly straight and gaps are never equal. Prefer an awkward number, seven or nine rather than a tidy eight, and let a couple of them cluster while another stands apart. The same applies to anything that repeats along a line, fruit on a runner, jars on a shelf, chairs at a table: break the rhythm, never stamp the same object at even intervals. If any two objects in the frame could be the same object copied and moved, the photograph has failed.';
+
+const NO_GOD_RAYS='LIGHT IS ORDINARY ROOM LIGHT, NOT AN EFFECT. No visible beams or shafts of light crossing the room, no god rays, no light columns from a window, no glowing haze, no mist, no dust or particles lit up in the air, no smoke, no bloom or glow around bright areas, no heavy vignette, no dramatic chiaroscuro. If the picture looks like a cathedral interior or a perfume advert, the light is wrong. Daylight simply falls on the things and stops.';
 function assignShotTypes(art,mode){
   if(mode!=='ideas') return art;
   const rnd=rng32(seedNum(art.focusKeyword||art.title||'x'));
@@ -412,13 +429,29 @@ function assignShotTypes(art,mode){
   const pool=shuffle(SHOT_FRAMINGS);
   const lights=shuffle(SHOT_LIGHT);
   let n=0, assigned=0;
+  // тема статьи целиком: без неё каждый кадр жил сам по себе и не складывался в набор
+  const kw=String(art.focusKeyword||art.title||'').trim();
+  const cat=(typeof v==='function'&&v('category'))||'';
+  const theme=kw
+    ? `THE ARTICLE THIS PHOTOGRAPH BELONGS TO: "${kw}"${cat?` (${cat})`:''}. Every prop, surface, colour and detail in the frame has to belong to THAT occasion and read as part of one set with the other photographs in the article. A picture that would sit equally well in an unrelated article is the wrong picture: the theme has to be visible in the objects themselves, not just in the caption.`
+    : '';
   (art.games||[]).forEach(g=>{
     if(g.asset!=='illustration'||!g.imagePrompt) return;
     const framing=pool[n%pool.length];
     const light=lights[n%lights.length];
     n++;
-    g.imagePrompt=String(g.imagePrompt).replace(/\s*SHOT:[\s\S]*$/i,'').trim()
-      +` SHOT: ${framing}. LIGHT: ${light}. The framing and the light above override any camera default stated earlier in this prompt. The subject is whatever THIS idea's own paragraph describes, only the framing rotates, the subject never turns into generic party scenery. No people.`;
+    /* Кадр держится на двух вещах сразу: на своей идее и на теме всей статьи.
+       Без темы выходил ровно тот кадр, что описан в абзаце, но живущий сам по себе:
+       корзина подгузников, которая подошла бы любой статье про детей. */
+    const subject=String(g.name||'').trim();
+    const head=subject
+      ? `SUBJECT OF THIS PHOTOGRAPH: ${subject}. That is what the picture is of and why it exists. ${theme} `
+      : theme+' ';
+    g.imagePrompt=head+String(g.imagePrompt)
+        .replace(/^SUBJECT OF THIS PHOTOGRAPH:[\s\S]*?exists\.\s*/i,'')
+        .replace(/\s*SHOT:[\s\S]*$/i,'').trim()
+      +` ${DETAIL_RULE} ${NO_CLONING} ${NO_GOD_RAYS}`
+      +` SHOT: ${framing}. LIGHT: ${light}. The framing and the light above override any camera default stated earlier in this prompt. The subject is the one named at the top, only the framing rotates, and it never turns into generic party scenery. No people.`;
     g.extraImagePrompts=[];   // одна фотография на идею: дополнительные кадры отменены
     assigned++;
   });
