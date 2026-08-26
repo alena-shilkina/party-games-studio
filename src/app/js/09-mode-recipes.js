@@ -1,6 +1,6 @@
 // ── MODE: recipes — a round-up of real recipes, each with schema-ready structured data ──
 function recipesSystemPrompt(){
-  const tone=v('tone')||DEFAULT_TONE;
+  const tone=toneText();
   return `You are a food-and-drinks editor writing a recipe round-up for a WordPress blog monetized with display ads and Pinterest traffic. Readers cook and mix from this page, so every recipe must be complete, correct and safe to follow.
 
 TONE OF VOICE:
@@ -43,7 +43,7 @@ function articleSystemPrompt(mode){
   return gamesSystemPrompt();
 }
 function gamesSystemPrompt(){
-  const tone=v('tone')||DEFAULT_TONE;
+  const tone=toneText();
   return `You are an expert party-content writer creating SEO-optimized, genuinely useful articles about party and holiday games. Output is published on a WordPress blog monetized with display ads and Pinterest traffic.
 
 TONE OF VOICE:

@@ -3,6 +3,17 @@
 // текст обратно в брошюру и спорил с голосом ниже. Теперь короткая выжимка из него же.
 const DEFAULT_TONE=`A friend who has hosted this exact party before, telling one woman what actually happened. Warm, specific, a little dry, with opinions stated plainly. Practical detail over enthusiasm: ages, minutes, guest counts, what goes wrong. Never salesy, never presenting, never a brand voice.`;
 
+/* Поле Tone сохраняется в браузере и подставляется ПЕРВОЙ строкой, выше голоса.
+   Если там лежит прежний общий текст, записанный до появления голоса, он и задаёт
+   интонацию, а голос читается уже после него. Такой сохранённый дефолт игнорируем;
+   свой текст, написанный руками, по-прежнему уважаем. */
+const STALE_TONES=[/^Warm, upbeat, and practical/i];
+function toneText(){
+  const t=String(v('tone')||'').trim();
+  if(!t||STALE_TONES.some(r=>r.test(t))) return DEFAULT_TONE;
+  return t;
+}
+
 // formats the image generator cannot render correctly — it invents letters/answers that don't match
 const BANNED_FORMATS=`BANNED PRINTABLE FORMATS: never propose or generate these, in any mode, under any name: crossword, hangman, dot-to-dot, word scramble, word search, AND every picture-rebus format, emoji decode, emoji pictionary, emoji riddles, picture-puzzle 'guess the phrase', rebus puzzles. Letter puzzles fail because the generator invents answers whose letters do not match. Rebus and emoji puzzles fail because the picture combination has to resolve to a REAL, recognisable phrase (a film, a song, a saying) and the generator instead pairs random icons into meaningless answers like 'Sun Glasses Star' or 'Cat Rain', which makes the sheet unsolvable and forces the editor to rewrite it by hand. Never work around this by calling it a 'picture code', 'icon puzzle', 'symbol game' or 'guess the phrase from the pictures'. Use solvable formats instead: bingo, trivia with an answer key, fill-in-the-blank, would-you-rather, this-or-that, checklists, prompt/wish cards, mad libs, colouring pages, mazes, guess-how-many, I-spy, matching, scavenger hunt lists.`;
 

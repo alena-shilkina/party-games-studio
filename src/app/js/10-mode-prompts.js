@@ -1,6 +1,6 @@
 // ── MODE: prompts — ONE game mechanic + a big organised bank of prompts + printable card decks ──
 function promptsSystemPrompt(){
-  const tone=v('tone')||DEFAULT_TONE;
+  const tone=toneText();
   return `You are an expert party-content writer creating an SEO article built around ONE game mechanic and a BIG bank of ready-to-use prompts (e.g. Would You Rather, Truth or Dare, This or That, Never Have I Ever, charades ideas). This is NOT a listicle of different games and NOT a printable pack, it is ONE game + a large, well-organised list of prompts + printable card decks. Published on a WordPress blog monetized with display ads and Pinterest traffic; the card decks double as a Pinterest/Etsy freebie.
 
 TONE OF VOICE:

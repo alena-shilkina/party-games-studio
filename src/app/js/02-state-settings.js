@@ -60,12 +60,24 @@ function costTextUsd(){
 const usd=x=>'$'+(x<0.1?x.toFixed(4):x.toFixed(3));
 const kTok=n=>n>=1000?Math.round(n/1000)+'k':String(n);
 // Короткая строка для строки пакета и для очереди ревью.
+// Какой моделью написан текст. Раньше это нигде не сохранялось, и по готовой статье
+// уже нельзя было понять, сработало ли переключение модели.
+// Идентификаторы приходят в двух видах: openai:gpt@5.6-luna и openai-gpt-5-6-luna.
+// Показываем без имени поставщика и с заглавной, чтобы строка читалась взглядом.
+const MODEL_VENDORS=/^(openai|google|anthropic|meta|mistral|xai|minimax|moonshotai|zai|deepseek|qwen|alibaba)[:/-]/i;
+function modelShort(id){
+  const s=String(id||'').trim();
+  if(!s||s==='claude') return 'Claude';
+  const bare=s.replace(MODEL_VENDORS,'').replace(/@/g,' ').replace(/[-_]/g,' ').replace(/\s+/g,' ').trim();
+  return bare?bare.charAt(0).toUpperCase()+bare.slice(1):s;
+}
 function costSummary(){
   const c=ST.cost; if(!c||(!c.inTok&&!c.imgN)) return '';
   const t=costTextUsd();
   const img=`${c.imgN} img ${usd(c.imgUsd)}`;
-  if(t==null) return `${img} · text ${kTok(c.inTok)}+${kTok(c.outTok)} tok (set prices in ⚙)`;
-  return `${usd(t+c.imgUsd)} · ${img} · text ${c.textExact?'':'~'}${usd(t)}`;
+  const who=modelShort(c.model);
+  if(t==null) return `${who} · ${img} · text ${kTok(c.inTok)}+${kTok(c.outTok)} tok (set prices in ⚙)`;
+  return `${who} · ${usd(t+c.imgUsd)} · ${img} · text ${c.textExact?'':'~'}${usd(t)}`;
 }
 // Число для суммы по пакету. null, если стоимость текста посчитать нечем.
 function costTotalUsd(){

@@ -1,6 +1,6 @@
 // ── MODE: ideas — an editorial round-up of visual ideas (cakes, invitations, arches, tablescapes) ──
 function ideasSystemPrompt(){
-  const tone=v('tone')||DEFAULT_TONE;
+  const tone=toneText();
   return `You are a seasoned party-and-celebration editor writing a visual ideas round-up for a WordPress blog monetized with display ads and Pinterest traffic. The reader is a woman planning the event herself and looking for ideas she can actually copy.
 
 TONE OF VOICE:

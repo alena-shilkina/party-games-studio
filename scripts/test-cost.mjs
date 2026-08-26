@@ -33,8 +33,26 @@ console.log('Цены заданы');
   // точную строку итога не проверяем: 0.2155 округляется вниз из-за плавающей точки,
   // и тест ломался бы на ровном месте. Смотрим состав.
   const line = k.costSummary();
-  check('в строке есть итог, картинки и текст',
-    /^\$0\.2\d\d · 3 img \$0\.0085 · text ~\$0\.207$/.test(line));
+  // строка начинается с модели: без этого по готовой статье нельзя было понять,
+  // сработало ли переключение текстовой модели
+  check('в строке есть модель, итог, картинки и текст',
+    /^Claude · \$0\.2\d\d · 3 img \$0\.0085 · text ~\$0\.207$/.test(line));
+}
+
+console.log('Модель видна в строке');
+{
+  const k = build({ textModel: 'openai:gpt@5.6-luna' });
+  k.costReset();                       // именно здесь модель попадает в счётчик
+  k.costAddText(1000, 500);
+  const line = k.costSummary();
+  check('модель названа в начале строки', /^Gpt 5\.6 luna · /.test(line));
+  check('префикс поставщика убран', !/openai/i.test(line));
+}
+{
+  const k = build({ textModel: 'google:gemini@3.1-pro' });
+  k.costReset();
+  k.costAddText(1000, 500);
+  check('Gemini тоже виден', /^Gemini 3\.1 pro · /.test(k.costSummary()));
 }
 
 console.log('Цены не заданы');
