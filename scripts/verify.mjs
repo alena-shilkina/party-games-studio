@@ -404,59 +404,16 @@ group('Домашний стиль печаток');
 
 group('Фотографии');
 {
-  // Контракт жёстко задавал 50mm f/2.8 с размытым фоном, и это перебивало ротацию планов:
-  // «весь предмет в своей обстановке» на f/2.8 не снимешь, поэтому все кадры выходили крупными.
-  js.includes('DEPTH OF FIELD FOLLOWS THE FRAMING')
-    ? ok('глубина резкости следует за планом') : fail('глубина резкости снова прибита к одному значению');
-  js.includes('override any camera default')
-    ? ok('план и свет перебивают дефолт камеры') : fail('дефолт камеры снова главнее плана');
-  const shots = js.slice(js.indexOf('const SHOT_FRAMINGS=['), js.indexOf('];', js.indexOf('const SHOT_FRAMINGS=[')));
-  const stops = [...shots.matchAll(/f\/([0-9.]+)/g)].map(m => m[1]);
-  stops.length >= 8 ? ok(`диафрагма задана во всех ${stops.length} планах`) : fail('не у всех планов есть диафрагма');
-  stops.filter(s => s === '2.8').length <= 1
-    ? ok('крупный план ровно один из восьми') : fail('крупных планов снова большинство');
-  stops.some(s => s === '8') ? ok('общий план стоит на f/8') : fail('общего плана с f/8 нет');
-  /WIDE ESTABLISHING SHOT/.test(js) && /PULLED-BACK VIEW/.test(js)
-    ? ok('общий и отъехавший планы на месте') : fail('планов с обстановкой нет');
-
-  // Света был ровно один: мягкий рассеянный из окна. Отсюда несолнечные и непраздничные кадры.
-  const light = js.slice(js.indexOf('const SHOT_LIGHT=['), js.indexOf('];', js.indexOf('const SHOT_LIGHT=[')));
-  (light.match(/sun/gi) || []).length >= 4
-    ? ok('солнце есть в нескольких вариантах света') : fail('солнца в ротации света почти нет');
-  (light.match(/overcast/gi) || []).length <= 1
-    ? ok('пасмурный свет только один вариант из восьми') : fail('пасмурный свет снова доминирует');
-  js.includes('Soft overcast light is ONE option among several, not the default')
-    ? ok('мягкий рассеянный больше не по умолчанию') : fail('мягкий рассеянный снова по умолчанию');
-  js.includes('A dim kitchen is the wrong picture')
-    ? ok('тусклая кухня в рецептах запрещена') : fail('домашний кухонный блок снова уводит в полумрак');
-}
-
-group('Фотографии');
-{
-  // «Церковный» свет шёл из двух вариантов ротации: луч через кадр, подсвечивающий пыль,
-  // и пятна сквозь листву. Оба дают объёмные столбы света.
+  // Промпт разросся до трёх абзацев с развёрнутыми критериями. Сжат до одной строки:
+  // современное фото, естественный свет, без сетки одинаковых предметов и без столбов света.
+  js.includes('Modern editorial photograph in natural light')
+    ? ok('фото описано одной короткой строкой') : fail('короткой строки про фото нет');
+  ['NAME THE SPECIFICS','REPEATED OBJECTS ARE THE THING','cathedral interior','copied and moved'].forEach(s =>
+    js.includes(s) ? fail('многоэтажный блок вернулся: '+s) : ok('нет блока: '+s.slice(0,26)));
   !js.includes('dust or steam in the air') && !js.includes('dappled through leaves')
-    ? ok('атмосферные эффекты убраны из ротации света') : fail('свет снова даст столбы и дымку');
-  js.includes('no god rays, no light columns')
-    ? ok('световые столбы запрещены прямо') : fail('запрета на световые столбы нет');
-  js.includes('cathedral interior or a perfume advert')
-    ? ok('нужный вид назван от противного') : fail('провал по свету не назван');
-
-  // Повторяющиеся одинаковые предметы: восемь кружек сеткой, ряды одинаковых горшков.
-  js.includes('REPEATED OBJECTS ARE THE THING THAT GIVES A GENERATED PHOTO AWAY')
-    ? ok('запрет клонирования подробный') : fail('клоны снова выдадут генерацию');
-  js.includes('seven or nine rather than a tidy eight')
-    ? ok('нечётное число предпочтительнее ровного') : fail('предметы снова встанут ровной сеткой');
-
-  // Промпты были общими, и кадр не был привязан к теме статьи.
-  js.includes('NAME THE SPECIFICS, DO NOT SETTLE FOR THE CATEGORY')
-    ? ok('требуется конкретика материалов и следов') : fail('промпт снова будет общим');
-  js.includes('THE ARTICLE THIS PHOTOGRAPH BELONGS TO')
-    ? ok('кадр привязан к теме всей статьи') : fail('кадр снова живёт сам по себе');
-  js.includes('part of one set with the other photographs')
-    ? ok('кадры собираются в один набор') : fail('связи между кадрами статьи нет');
-  js.includes('SUBJECT OF THIS PHOTOGRAPH:')
-    ? ok('кадр привязан к своей идее') : fail('тему кадра снова решает только модель');
+    ? ok('атмосферных эффектов в свете нет') : fail('свет снова даст столбы и дымку');
+  js.includes('Part of an article about')
+    ? ok('тема статьи названа одной фразой') : fail('привязки к теме нет');
 }
 
 group('Карточка рецепта');
