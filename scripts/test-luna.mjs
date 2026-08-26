@@ -24,6 +24,7 @@ const make = (responses, fields = {}) => {
     const LUNA_TEMP = 1.05, LUNA_TOP_P = 0.95;
     let LUNA_SAMPLING = true, LUNA_SEARCH_OK = true;
     const modelCan = () => true, modelCannot = () => {};
+    ${readFileSync('src/app/js/04-claude.js', 'utf8').match(/function looksComplete\([\s\S]*?\n\}/)[0]}
     // путь с веб-поиском подменяем: тест решает, отвечает он или падает
     const lunaSearchOnce = async () => {
       if (!fields.__search) throw new Error('native path unavailable');
@@ -60,6 +61,7 @@ console.log('Обрезанный ответ продолжается');
   ]);
   const out = await callLuna('S', 'U', false);
   check('куски склеены', out === '{"title":"very long"}');
+  check('режим JSON запрошен', calls[0].response_format && calls[0].response_format.type === 'json_object');
   check('во втором запросе есть просьба продолжить', /Continue the JSON from exactly where you stopped/.test(calls[1].messages.at(-1).content));
   check('предыдущий кусок передан модели', calls[1].messages.some(m => m.role === 'assistant' && m.content === '{"title":"very '));
 }
@@ -147,6 +149,42 @@ console.log('Настройки сэмплинга уходят в запрос'
   await callLuna('S', 'U', false);
   check('температура задана', calls[0].temperature === 1.05);
   check('topP задан', calls[0].top_p === 0.95);
+}
+
+console.log('\nОбрыв без честного finish_reason');
+{
+  // Luna отдаёт незакрытый JSON и говорит "stop" — именно на этом падала статья
+  const { callLuna, calls } = make([
+    { body: { choices: [{ finish_reason: 'stop', message: { content: '{"title":"a","games":[{"name":"x"' } }] } },
+    { body: { choices: [{ finish_reason: 'stop', message: { content: '}]}' } }] } },
+  ]);
+  const out = await callLuna('S', 'U', false);
+  check('незакрытые скобки распознаны как обрыв', out === '{"title":"a","games":[{"name":"x"}]}');
+  check('продолжение было запрошено', calls.length === 2);
+  check('результат разбирается', (() => { try { JSON.parse(out); return true; } catch (e) { return false; } })());
+}
+{
+  // закрытый документ продолжать не надо
+  const { callLuna, calls } = make([{ body: { choices: [{ finish_reason: 'stop', message: { content: '{"title":"a"}' } }] } }]);
+  const out = await callLuna('S', 'U', false);
+  check('целый ответ не продолжается', out === '{"title":"a"}' && calls.length === 1);
+}
+{
+  // скобка внутри строки не считается структурной
+  const { callLuna, calls } = make([{ body: { choices: [{ finish_reason: 'stop', message: { content: '{"t":"a { b [ c"}' } }] } }]);
+  const out = await callLuna('S', 'U', false);
+  check('скобки внутри текста не путают счётчик', calls.length === 1);
+}
+
+console.log('\nМодель не умеет режим JSON');
+{
+  const { callLuna, calls } = make([
+    { ok: false, status: 400, body: { error: { message: "Unsupported parameter: 'response_format' is not supported." } } },
+    { body: { choices: [{ finish_reason: 'stop', message: { content: '{"a":1}' } }] } },
+  ]);
+  const out = await callLuna('S', 'U', false);
+  check('статья не падает', out === '{"a":1}');
+  check('повтор ушёл без response_format', !('response_format' in calls[1]));
 }
 
 console.log('\nМодель не принимает temperature');

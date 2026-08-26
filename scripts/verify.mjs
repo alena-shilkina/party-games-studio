@@ -144,6 +144,16 @@ group('Настройка модели Runware');
   js.includes("throw new Error(ST.lastError||'generation failed')")
     ? ok('строка пакета показывает настоящую причину') : fail('строка пакета снова напишет generation failed');
 
+  // Luna отдавала оборванный JSON с finish_reason "stop", и статья падала на разборе
+  /function looksComplete\(/.test(js)
+    ? ok('обрыв ловится по незакрытым скобкам') : fail('обрыв определяется только по finish_reason');
+  js.includes("const truncated=choice.finish_reason==='length'||!looksComplete(acc+txt);")
+    ? ok('продолжение запрашивается и по скобкам тоже') : fail('оборванный ответ снова уйдёт в разбор');
+  js.includes("body.response_format={type:'json_object'}")
+    ? ok('режим JSON запрашивается') : fail('режим JSON не запрашивается');
+  /jsonMode=false; modelCannot\('json'\);/.test(js)
+    ? ok('отказ от режима JSON не роняет статью') : fail('отказ от response_format уронит статью');
+
   // Веб-поиск есть только в родном API Runware, и путь к нему обязан быть с откатом.
   js.includes("tools:[{type:'search'}]") ? ok('веб-поиск запрашивается') : fail('веб-поиск не запрашивается');
   js.includes("fetch('/api/llm/native'") ? ok('родной путь подключён') : fail('родного пути нет');

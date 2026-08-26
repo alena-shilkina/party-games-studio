@@ -99,6 +99,23 @@ let LUNA_SAMPLING=true;
 // иначе каждая статья пакета платит одним и тем же неудачным запросом.
 let LUNA_SEARCH_OK=true;
 
+/* Дописан ли JSON до конца. Считаем скобки вне строк: если открытых больше закрытых,
+   ответ оборван, чем бы модель ни объяснила остановку. Нужно потому, что Luna отдаёт
+   обрубленный документ с finish_reason "stop", и статья падала на разборе. */
+function looksComplete(t){
+  const s=String(t||'').trim();
+  if(!s) return false;
+  let depth=0,inStr=false,esc=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inStr){ if(esc)esc=false; else if(c==='\\')esc=true; else if(c==='"')inStr=false; continue; }
+    if(c==='"')inStr=true;
+    else if(c==='{'||c==='[')depth++;
+    else if(c==='}'||c===']')depth--;
+  }
+  return !inStr && depth<=0;
+}
+
 /* Что модель умеет, выясняется по её же отказу, и запоминается НАВСЕГДА, а не на сессию.
    Иначе после каждой перезагрузки первая статья снова упирается в тот же 400 и снова
    сыплет в консоль ошибку, которая выглядит как поломка, хотя это просто выяснение. */
@@ -150,6 +167,7 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
   // если модель попросит другое: гадать заранее нельзя, а падать из-за названия поля глупо.
   let tokenField=LAST_TOKEN_FIELD;
   let sampling=LUNA_SAMPLING&&modelCan('temp');
+  let jsonMode=modelCan('json');
   // Когда статье нужен поиск, сначала пробуем родной API с включённым поиском.
   // Не вышло — молча возвращаемся на обычный путь, статья от этого не страдает.
   // Один отказ на сессию: дальше не долбим родной эндпоинт в каждой статье пакета.
@@ -172,6 +190,9 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
       // отвечает 400. Поэтому шлём их, пока модель не скажет, что не умеет.
       const body={model,messages};
       if(sampling){ body.temperature=LUNA_TEMP; body.top_p=LUNA_TOP_P; }
+      // Просим сам режим JSON, а не надеемся на обещание в промпте: модель ставила
+      // неэкранированные кавычки внутри строк, и документ переставал разбираться.
+      if(jsonMode) body.response_format={type:'json_object'};
       body[tokenField]=maxTokens||16000;
       r=await fetch('/api/llm',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify(body),signal:batchAbort?.signal});
@@ -208,6 +229,12 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
         if(onStatus)onStatus('↻ '+model+' не принимает temperature — повторяю без неё');
         continue;
       }
+      // режим JSON поддерживают не все модели — отказ выключает его, а не роняет статью
+      if(jsonMode && /response_format|json_object/i.test(m)){
+        jsonMode=false; modelCannot('json');
+        if(onStatus)onStatus('↻ '+model+' не умеет режим JSON — повторяю без него');
+        continue;
+      }
       if((status===429||status===529||status>=500) && overloadTries<5){
         overloadTries++;
         const wait=Math.min(60000,4000*Math.pow(2,overloadTries-1));
@@ -225,8 +252,10 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
     const u=d.usage||{};
     costAddText(u.prompt_tokens, u.completion_tokens, (u.cost!=null?u.cost:d.cost));
     const txt=String((choice.message&&choice.message.content)||'');
-    // упёрлись в потолок ответа — просим продолжить с того же места, как у Claude
-    if(choice.finish_reason==='length' && contTries<3){
+    // Обрыв не всегда честно помечен: Luna отдаёт незакрытый JSON и finish_reason "stop".
+    // Тогда единственный признак — незакрытые скобки, и просить продолжить надо всё равно.
+    const truncated=choice.finish_reason==='length'||!looksComplete(acc+txt);
+    if(truncated && contTries<3){
       contTries++; acc+=txt;
       if(onStatus)onStatus(`✍️ Long article — continuing (${contTries}/3)…`);
       messages.push({role:'assistant',content:txt});
