@@ -380,64 +380,22 @@ function applyInvitationSpec(art,mode,wantDl){
 // Раньше здесь лежал список мест на празднике — десертный стол, шары, стульчик для кормления —
 // и он навязывал СЮЖЕТ: статья про подарочные корзины получала фотографии чужой вечеринки.
 // Теперь ротация задаёт только КАДР, а что в кадре — решает абзац этой идеи.
-/* Диафрагма теперь стоит внутри каждого плана. Без неё общий план проигрывал: контракт
-   жёстко задавал f/2.8 с размытым фоном, а на f/2.8 «весь предмет в своей обстановке»
-   физически не снять, поэтому все кадры съезжали в крупный план. */
-const SHOT_FRAMINGS=[
-  'a WIDE ESTABLISHING SHOT at about f/8, the whole subject in its setting with the room around it readable and sharp, straight on, with room to breathe',
-  'a three-quarter view from slightly above at about f/4, the front sharp and the background softening without dissolving',
-  'a flat lay looking straight down at about f/5.6, the elements laid out across the surface and all of them sharp',
-  'a tight detail crop at about f/2.8 of the part that matters most: texture, edge, fold, ribbon, surface',
-  'a low, near eye-level angle at about f/4 so the subject stands against the space behind it',
-  'the subject shown mid-use or mid-arrangement at about f/4, as if someone stepped away a moment ago',
-  'an off-centre composition at about f/4 with the subject to one side and quiet negative space beside it',
-  'a PULLED-BACK VIEW at about f/8 that includes the corner of the room the subject lives in, furniture, window and floor visible'
-];
-/* Света в контракте был ровно один: мягкий рассеянный из окна. Он и делал фотографии
-   несолнечными и непраздничными. Теперь свет крутится вместе с планом. */
-/* Два варианта просили «луч через кадр, подсвечивающий пыль» и «пятна света сквозь
-   листву» — оба дают объёмные столбы света и дымку, и кадр читается как съёмка в храме.
-   Убраны. Солнце осталось, но оно освещает предметы, а не рисует лучи в воздухе. */
-const SHOT_LIGHT=[
-  'bright direct sunlight through a window, lying in clear patches ON the surfaces and objects, with crisp shadow edges and nothing glowing in the air',
-  'warm late-afternoon sun coming in low from one side, gentle golden cast on the objects themselves, shadows soft at their edges',
-  'an airy bright room full of bounced daylight, light walls, almost no heavy shadow',
-  'clear midday sunlight outdoors in open shade, colours clean and saturated, light coming from the sky above',
-  'soft even daylight from a large window on a bright overcast day',
-  'sunlight from a window on one side and a pale wall bouncing it back on the other, both landing on the objects',
-  'crisp bright sunlight with small sharp highlights on glass and glaze, nothing hazy',
-  'fresh morning sun, cool-clean but bright, everything easy to read'
-];
-/* Тот самый «церковный» вид. Он берётся не из плана, а из атмосферных эффектов,
-   поэтому запрещаем их отдельно и рядом со светом, а не в общем контракте. */
-/* Главный признак сгенерированного кадра на твоих фото: восемь одинаковых кружек
-   ровной сеткой, ряды одинаковых горшков, лимоны цепочкой через равные промежутки.
-   В жизни так не стоит ничего. Запрет на клонирование в контракте был, но общий,
-   поэтому здесь он подробный и с примерами. */
-/* Одна короткая строка вместо трёх абзацев. Развёрнутые критерии («похоже на
-   интерьер собора», «предмет скопирован и сдвинут») убраны: они раздували промпт,
-   а работу делают эти же слова в сжатом виде. */
-const PHOTO_PLAIN='Modern editorial photograph in natural light. Nothing staged into a grid: repeated objects differ in size, angle and spacing. No light beams, haze or glow in the air, daylight simply falls on the things.';
+/* Ротации ракурсов и света больше нет. Восемь планов с диафрагмами и восемь схем
+   освещения давали случайные и порой невозможные кадры: висящий занавес снимали
+   сверху, а простой предмет получал крупный каталожный план. Вместо машинерии одна
+   строка: реалистичное фото при естественном свете. Ракурс решает сам генератор,
+   исходя из того, что снимает. */
+const PHOTO_PLAIN='Realistic editorial photograph in natural daylight. Nothing staged into a grid: where several of the same thing appear, they differ in size, angle and spacing. No light beams, haze or glow in the air. Not a product shot, not a catalogue, not a studio: this is a real room someone decorated.';
 
 function assignShotTypes(art,mode){
   if(mode!=='ideas') return art;
-  const rnd=rng32(seedNum(art.focusKeyword||art.title||'x'));
-  const shuffle=a=>{ const p=a.slice(); for(let i=p.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [p[i],p[j]]=[p[j],p[i]]; } return p; };
-  const pool=shuffle(SHOT_FRAMINGS);
-  const lights=shuffle(SHOT_LIGHT);
-  let n=0, assigned=0;
   // тема статьи целиком: без неё каждый кадр жил сам по себе и не складывался в набор
   const kw=String(art.focusKeyword||art.title||'').trim();
   const cat=(typeof v==='function'&&v('category'))||'';
   const theme=kw?`Part of an article about ${kw}${cat?' ('+cat+')':''}, so the props belong to that occasion.`:'';
+  let assigned=0;
   (art.games||[]).forEach(g=>{
     if(g.asset!=='illustration'||!g.imagePrompt) return;
-    const framing=pool[n%pool.length];
-    const light=lights[n%lights.length];
-    n++;
-    /* Кадр держится на двух вещах сразу: на своей идее и на теме всей статьи.
-       Без темы выходил ровно тот кадр, что описан в абзаце, но живущий сам по себе:
-       корзина подгузников, которая подошла бы любой статье про детей. */
     const subject=String(g.name||'').trim();
     const head=subject
       ? `SUBJECT OF THIS PHOTOGRAPH: ${subject}. That is what the picture is of and why it exists. ${theme} `
@@ -445,11 +403,11 @@ function assignShotTypes(art,mode){
     g.imagePrompt=head+String(g.imagePrompt)
         .replace(/^SUBJECT OF THIS PHOTOGRAPH:[\s\S]*?exists\.\s*/i,'')
         .replace(/\s*SHOT:[\s\S]*$/i,'').trim()
-      +` ${PHOTO_PLAIN}`
-      +` SHOT: ${framing}. LIGHT: ${light}. The framing and the light above override any camera default stated earlier in this prompt. The subject is the one named at the top, only the framing rotates, and it never turns into generic party scenery. No people.`;
+      +` ${PHOTO_PLAIN} No people.`;
     g.extraImagePrompts=[];   // одна фотография на идею: дополнительные кадры отменены
     assigned++;
   });
-  if(assigned) console.log('[PGS] framings rotated across',assigned,'ideas');
+  if(assigned) console.log('[PGS] photo prompts prepared for',assigned,'ideas');
   return art;
 }
+
