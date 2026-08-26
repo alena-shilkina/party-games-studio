@@ -108,6 +108,30 @@ console.log('Токены уходят в счётчик стоимости');
   check('входные и выходные токены переданы', calls.usage && calls.usage.in === 1234 && calls.usage.out === 567);
 }
 
+console.log('Точная стоимость от провайдера');
+{
+  // Runware кладёт cost внутрь usage; раньше читали только верхний уровень и теряли её
+  const { callLuna, calls } = make([{ body: {
+    choices: [{ finish_reason: 'stop', message: { content: 'x' } }],
+    usage: { prompt_tokens: 51, completion_tokens: 38, cost: 0.000134 } } }]);
+  await callLuna('S', 'U', false);
+  check('cost из usage подхвачен', calls.usage && calls.usage.exact === 0.000134);
+}
+{
+  const { callLuna, calls } = make([{ body: {
+    choices: [{ finish_reason: 'stop', message: { content: 'x' } }],
+    usage: { prompt_tokens: 51, completion_tokens: 38 }, cost: 0.000222 } }]);
+  await callLuna('S', 'U', false);
+  check('cost с верхнего уровня тоже подхвачен', calls.usage && calls.usage.exact === 0.000222);
+}
+{
+  const { callLuna, calls } = make([{ body: {
+    choices: [{ finish_reason: 'stop', message: { content: 'x' } }],
+    usage: { prompt_tokens: 51, completion_tokens: 38 } } }]);
+  await callLuna('S', 'U', false);
+  check('без cost остаются одни токены', calls.usage && calls.usage.exact === undefined);
+}
+
 console.log('Предупреждение про поиск');
 {
   const notes = [];

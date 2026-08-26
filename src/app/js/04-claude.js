@@ -141,7 +141,11 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
     }
     const choice=d&&d.choices&&d.choices[0];
     if(!choice) throw new Error(model+' returned an empty response');
-    costAddText(d.usage&&d.usage.prompt_tokens, d.usage&&d.usage.completion_tokens, d.cost);
+    // Runware кладёт точную стоимость в usage.cost, а не на верхний уровень. Читали
+    // только d.cost, поэтому точная цена никогда не подхватывалась и стоимость текста
+    // всегда считалась приблизительно, по ценникам из настроек.
+    const u=d.usage||{};
+    costAddText(u.prompt_tokens, u.completion_tokens, (u.cost!=null?u.cost:d.cost));
     const txt=String((choice.message&&choice.message.content)||'');
     // упёрлись в потолок ответа — просим продолжить с того же места, как у Claude
     if(choice.finish_reason==='length' && contTries<3){

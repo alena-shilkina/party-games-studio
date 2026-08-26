@@ -3,10 +3,17 @@ let ST={ refMode:'', paa:[], feat:null, csv:[], article:null, pins:[], refDataUr
 
 /* ---------- SETTINGS PERSISTENCE ---------- */
 const SKEYS=['claudeKey','runwareKey','pexelsKey','imgModel','imgQuality','refMode','textModel','textModelId','pxClaudeIn','pxClaudeOut','pxLunaIn','pxLunaOut','makePins','tone','relAnchor','relUrl'];
+/* Цена Claude Sonnet 4.6 на 26 августа 2026: 3 доллара за миллион входных токенов и 15
+   за миллион выходных. Подставляется только в пустое поле, поэтому правка руками
+   переживает обновление приложения. Цены меняются, сверяй со счетами.
+   Для моделей Runware ценника здесь намеренно нет: их ответ несёт точную стоимость
+   в usage.cost, и она показывается как есть, без пересчёта по ставке. */
+const PRICE_DEFAULTS={pxClaudeIn:'3',pxClaudeOut:'15'};
 function loadSettings(){
   try{
     const s=JSON.parse(localStorage.getItem('pgs_settings')||'{}');
     SKEYS.forEach(k=>{ if($(k)&&s[k]!=null) $(k).value=s[k]; });
+    Object.keys(PRICE_DEFAULTS).forEach(k=>{ if($(k)&&!$(k).value) $(k).value=PRICE_DEFAULTS[k]; });
     ST.sites=s.sites||[]; ST.activeSite=s.activeSite||0;
     if(s.csv){ST.csv=s.csv; $('csvInfo').textContent=ST.csv.length+' internal links loaded.';}
   }catch(e){ ST.sites=[]; }
