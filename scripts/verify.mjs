@@ -439,6 +439,45 @@ group('Фотографии');
     ? ok('тусклая кухня в рецептах запрещена') : fail('домашний кухонный блок снова уводит в полумрак');
 }
 
+group('Карточка рецепта');
+{
+  // Фото выходило пластмассовым: карточка рисуется одной генерацией, где почти всё
+  // рисованное, и модель применяла ту же логику к фотографии.
+  js.includes('TWO DIFFERENT MEDIA SIT ON THIS ONE CARD')
+    ? ok('два материала на карточке разделены') : fail('фото снова сольётся с рисунком');
+  js.includes('seam between the photograph and the painted layout')
+    ? ok('шов между фото и вёрсткой назван') : fail('шов не назван, выйдет однородный рендер');
+
+  // Фото сидело в скруглённой полосе, у референсов оно основа макета.
+  js.includes('IT IS THE FOUNDATION OF THE LAYOUT, NOT AN INSERT')
+    ? ok('фото объявлено основой макета') : fail('фото снова окажется вставкой');
+  js.includes('letterboxed like a picture in a slot')
+    ? ok('рамка-полоса запрещена прямо') : fail('запрета на рамку-полосу нет');
+  js.includes('The layout is built AROUND the photograph')
+    ? ok('панели строятся вокруг фото') : fail('панели снова встанут над и под фото');
+
+  // Вёрстка была одинаковой полосой сверху вниз, у референсов она разная.
+  js.includes('three visibly DIFFERENT container shapes')
+    ? ok('панели обязаны отличаться формой') : fail('карточка снова станет стопкой одинаковых полос');
+  js.includes('Three faces at most')
+    ? ok('типографика описана') : fail('типографики в промпте нет');
+
+  // Панель совета только при настоящем совете, иначе это выдуманная вода.
+  js.includes('(6) TIP BOX')
+    ? ok('панель совета есть') : fail('панели совета нет');
+  js.includes('Do not add one, and do not invent a tip')
+    ? ok('без совета выдумывать запрещено') : fail('модель придумает «pro tip»');
+  js.includes('ONE short practical line for the card')
+    ? ok('поле совета описано в схеме') : fail('схема не просит совет');
+
+  // «1/2 cup lemon juice» печаталось как «lemonjuice juli»
+  js.includes('LEGIBILITY BEATS FITTING MORE IN')
+    ? ok('читаемость важнее вместимости') : fail('подписи снова смажутся');
+  // обрезка подписей кодом делала из «butterfly pea flowers» просто «butterfly»
+  !/split\(\/s\+\//.test(js)
+    ? ok('подписи не режутся по букве s') : fail('обрезка подписей сломана экранированием');
+}
+
 group('Публикация на сайт');
 {
   // wpautop вставлял <br /> внутрь <script> и <style>, скрипт лайков ломался,
