@@ -227,6 +227,18 @@ group('Интерфейс');
     ? fail('обработчики без функции: ' + undefinedFns.join(', '))
     : ok(`${called.length} обработчиков в разметке, все функции определены`);
 
+  // Шапка пакетной панели: два ряда, и они не должны раздуваться.
+  // Колонка с flex-wrap:wrap раскладывала ряды по вертикали и растягивала панель
+  // с 190 до 414 пикселей на узком экране; сетка без align-content:start делала то же
+  // с рядами внутри. Оба раза внешне это выглядело как «кнопки расплылись по панели».
+  const css = readFileSync('src/app/styles.css', 'utf8');
+  /.bz-top.stacked{[^}]*flex-wrap:nowrap/.test(css)
+    ? ok('шапка-колонка не переносит ряды') : fail('у .bz-top.stacked снова нет flex-wrap:nowrap — шапка растянется');
+  /.bz-row-ctl{[^}]*align-content:start/.test(css)
+    ? ok('сетка управления не растягивает ряды') : fail('у .bz-row-ctl нет align-content:start — ряды сетки растянутся');
+  ['bz-row-main', 'bz-row-ctl'].forEach(cl =>
+    body.includes(cl) ? ok(`ряд .${cl} на месте`) : fail(`ряда .${cl} нет в разметке`));
+
   ['openReview', 'openBatch', 'openSettings'].forEach(fn =>
     body.includes(fn + '()') ? ok(`${fn}() доступен из интерфейса`) : fail(`до ${fn}() нельзя добраться из интерфейса`));
 }

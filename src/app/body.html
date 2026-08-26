@@ -240,9 +240,18 @@
 
 <!-- ══════════ BATCH WORK ZONE (full screen) ══════════ -->
 <div class="batch-zone" id="batchZone">
-  <div class="bz-top">
+  <div class="bz-top stacked">
+    <div class="bz-row bz-row-main">
     <div class="bz-title">📚 Batch <span id="bzCount" class="bz-count"></span></div>
     <span class="badge print" id="bzSite">No site</span>
+      <span class="sp"></span>
+    <span id="bzSave" class="bz-save">saved</span>
+    <button class="btn btn-primary btn-sm" style="width:auto;min-width:92px" id="bzRun" onclick="runBatch()">▶️ Start</button>
+    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:92px;display:none" id="bzPause" onclick="pauseBatch()">⏸ Pause</button>
+    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:80px;display:none;color:var(--warn)" id="bzStop" onclick="stopBatch()">⏹ Stop</button>
+    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:104px" onclick="closeBatch()" title="Open the single-article workspace">✎ Single</button>
+    </div>
+    <div class="bz-row bz-row-ctl">
     <label class="bz-ctl">Mode
       <select id="bzMode"><option value="review">Review first</option><option value="publish">Publish now</option></select></label>
     <label class="bz-ctl">as
@@ -252,12 +261,7 @@
     <label class="bz-ctl" title="Which model writes the article text. Claude searches the web for sources; the Runware model does not.">Text:&nbsp;<select id="textModel" onchange="toggleCustomModel()" style="margin-left:2px;padding:2px 5px;border-radius:6px"><option value="claude">Claude</option></select></label>
     <label class="btn btn-ghost btn-sm" style="width:auto;cursor:pointer;min-width:96px">⤒ Load CSV<input type="file" accept=".csv" style="display:none" onchange="importBatchCSV(event)"></label>
     <button class="btn btn-ghost btn-sm" style="width:auto;min-width:104px" onclick="openReview()">👀 Review (<span id="bzReviewCount">0</span>)</button>
-    <span class="sp"></span>
-    <span id="bzSave" class="bz-save">saved</span>
-    <button class="btn btn-primary btn-sm" style="width:auto;min-width:92px" id="bzRun" onclick="runBatch()">▶️ Start</button>
-    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:92px;display:none" id="bzPause" onclick="pauseBatch()">⏸ Pause</button>
-    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:80px;display:none;color:var(--warn)" id="bzStop" onclick="stopBatch()">⏹ Stop</button>
-    <button class="btn btn-ghost btn-sm" style="width:auto;min-width:104px" onclick="closeBatch()" title="Open the single-article workspace">✎ Single</button>
+    </div>
   </div>
   <div class="bz-progwrap"><div class="prog-bar"><div class="prog-fill" id="bzFill"></div></div><span id="bzProgLbl" class="bz-proglbl"></span></div>
   <div class="bz-body" id="bzRows"></div>

@@ -36,6 +36,10 @@ function extractJSON(txt){
    чтобы не вводить идентификаторы руками: они выглядят как openai:gpt@5.6-luna и на слух
    не запоминаются. Если список не отдаётся, остаётся известная модель плюс ручной ввод. */
 const FALLBACK_LLMS=[{id:'openai:gpt@5.6-luna',label:'GPT-5.6 Luna'}];
+// Как называется потолок ответа у выбранной модели. Новые модели ждут
+// max_completion_tokens, старые — max_tokens. Определяется по первой же ошибке
+// и запоминается, чтобы следующие статьи в пакете не спотыкались о то же самое.
+let LAST_TOKEN_FIELD='max_completion_tokens';
 function textModel(){
   const sel=v('textModel')||'claude';
   if(sel==='custom') return v('textModelId')||FALLBACK_LLMS[0].id;
@@ -88,13 +92,18 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
   const model=textModel();   // идентификатор из выпадающего списка
   let messages=[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}];
   let overloadTries=0, netTries=0, contTries=0, acc='';
+  // Потолок ответа у разных моделей называется по-разному: новые ждут
+  // max_completion_tokens, older — max_tokens. Начинаем с нового имени и переключаемся,
+  // если модель попросит другое: гадать заранее нельзя, а падать из-за названия поля глупо.
+  let tokenField=LAST_TOKEN_FIELD;
   if(useSearch && onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');
   for(let i=0;i<12;i++){
     if(batchStopped) throw new Error('__ABORT__');
     let r;
     try{
+      const body={model,messages}; body[tokenField]=maxTokens||16000;
       r=await fetch('/api/llm',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model,max_tokens:maxTokens||16000,messages}),signal:batchAbort?.signal});
+        body:JSON.stringify(body),signal:batchAbort?.signal});
     }catch(netErr){
       if(netErr.name==='AbortError'||batchStopped) throw new Error('__ABORT__');
       if(netTries<6){ netTries++;
@@ -112,6 +121,15 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
     else if(d&&d.error){ err=d.error; d=null; }
     if(err){
       const m=err.message||''; status=err.status||status;
+      // модель прямо говорит, как называется её поле — переключаемся и повторяем
+      const wants=/'?(max_completion_tokens|max_tokens)'?\s*(instead|is supported)/i.exec(m)
+               || (/max_tokens.*not supported/i.test(m)?[null,'max_completion_tokens']:null)
+               || (/max_completion_tokens.*not supported/i.test(m)?[null,'max_tokens']:null);
+      if(wants&&wants[1]&&wants[1]!==tokenField){
+        tokenField=wants[1]; LAST_TOKEN_FIELD=tokenField;   // запомним на следующие вызовы
+        if(onStatus)onStatus('↻ '+model+' ждёт '+tokenField+' — повторяю');
+        continue;
+      }
       if((status===429||status===529||status>=500) && overloadTries<5){
         overloadTries++;
         const wait=Math.min(60000,4000*Math.pow(2,overloadTries-1));

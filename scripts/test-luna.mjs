@@ -20,6 +20,7 @@ const make = (responses, fields = {}) => {
     let batchStopped = false, batchAbort = null;
     const costAddText = (a, b, c) => calls.usage = { in: a, out: b, exact: c };
     const textModel = () => fields.textModelId || 'openai:gpt@5.6-luna';
+    let LAST_TOKEN_FIELD = 'max_completion_tokens';
     const fetch = async (url, opt) => { calls.push(JSON.parse(opt.body)); const r = responses.shift();
       return { ok: r.ok !== false, status: r.status || 200, json: async () => r.body }; };
     const setTimeout_ = setTimeout;
@@ -70,6 +71,23 @@ console.log('Ошибки');
   const { callLuna } = make([{ body: { choices: [] } }]);
   let msg = ''; try { await callLuna('S', 'U', false); } catch (e) { msg = e.message; }
   check('пустой ответ не притворяется успехом', /empty response/.test(msg));
+}
+
+console.log('Имя поля с потолком ответа');
+{
+  const { callLuna, calls } = make([{ body: { choices: [{ finish_reason: 'stop', message: { content: 'x' } }] } }]);
+  await callLuna('S', 'U', false);
+  check('по умолчанию max_completion_tokens', 'max_completion_tokens' in calls[0] && !('max_tokens' in calls[0]));
+}
+{
+  // модель отвечает 400 и прямо называет нужное поле — должны переключиться и повторить
+  const { callLuna, calls } = make([
+    { ok: false, status: 400, body: { error: { message: "Unsupported parameter: 'max_completion_tokens' is not supported with this model. Use 'max_tokens' instead." } } },
+    { body: { choices: [{ finish_reason: 'stop', message: { content: 'ok' } }] } },
+  ]);
+  const out = await callLuna('S', 'U', false);
+  check('повтор произошёл, ответ получен', out === 'ok');
+  check('второй запрос ушёл с max_tokens', 'max_tokens' in calls[1] && !('max_tokens' in calls[1] && 'max_completion_tokens' in calls[1]));
 }
 
 console.log('Свой идентификатор модели');
