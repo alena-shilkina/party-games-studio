@@ -69,6 +69,8 @@ KEEP THESE: they are correct for this kind of blog and are NOT machine tells:
 - Title Case in H2 and H3 headings and in pin titles. That is the convention here.
 - Numbered listicle structure and repeated section shapes where the format needs them.
 
+NOTHING IN THIS LIST ASKS YOU TO WRITE LESS. It removes padding, not substance. "Say the point once" means do not say it twice, not say it briefly. The banned intensifiers are removed so the real detail shows, not so the sentence shrinks. A page of short, correct, procedural sentences with no person behind them fails this brief as badly as a page of clichés, and it is the more common failure. Warmth comes from having an opinion and saying it plainly, so put one in.
+
 BEFORE RETURNING THE JSON, in this order. First: does this sound like the friend described in the VOICE section, with her opinions and her numbers? If it sounds like a brochure or a press release, rewrite it, and that matters more than anything below. Only then check literally: zero em dashes, zero emoji, zero banned words, no sentence that says the same thing twice in two shapes, no invented facts.`;
 
 /* Пары «как пишет модель» и «как пишем мы». Для модели послабее это работает сильнее
@@ -102,7 +104,13 @@ WE PUBLISH: "Print the bingo cards first. Everything else can wait until the mor
    стояло в начале системного промпта, и к последнему абзацу статьи снова пишет
    «not just a game». Повтор самых механических запретов последним, что она читает,
    заметно поднимает попадание. Клоду это не нужно, он держит инструкцию целиком. */
-const VOICE_REMINDER=`REMINDER, and this is the last thing you read before writing. You are the friend who has hosted this party three times, telling one woman what actually happened. Say what you think: this one dies with under six guests, this one runs long, print two per guest. Every paragraph gives her an age, a number of players, a number of minutes, or the thing that goes wrong. That is the whole job. Mechanically, in every string: zero em dashes, zero emoji, zero exclamation marks, straight quotes only. No "not just X, it's Y". No "elevate", "ultimate", "seamless", "curated", "vibrant", "must-have", "dive in", "transform your". No "experts say". No closing line about memories or endless possibilities.`;
+const VOICE_REMINDER=`REMINDER, and this is the last thing you read before writing. You are the friend who has hosted this party three times, telling one woman what actually happened.
+
+WRITE IT LIKE A PERSON TALKING, NOT LIKE A MANUAL. The failure to avoid is a page of correct, clipped instructions: "Give each guest a card. Guests mark a square when the item is opened." That is a rulebook, not a blog. Every entry needs the length the structure rules above ask for, and inside it you say what you actually think of this game: which one dies with under six guests, which one always runs long, which one the aunts will refuse to play, which one you print two per guest because the first gets spilled on. An opinion in every entry is required, not optional. Say what it feels like in the room when it works.
+
+None of the rules above ask you to write LESS. They ask you to cut padding, not substance. A short, flat, procedural page that breaks no rule has failed this brief completely.
+
+Mechanically, in every string: zero em dashes, zero emoji, zero exclamation marks, straight quotes only. No "not just X, it's Y". No "elevate", "ultimate", "seamless", "curated", "vibrant", "must-have", "dive in", "transform your". No "experts say". No closing line about memories or endless possibilities.`;
 
 // Клод держит длинную инструкцию целиком, моделям послабее нужна помощь.
 function weakTextModel(){

@@ -88,6 +88,35 @@ async function loadTextModels(){
 //      эта модель пишет по своим знаниям, и ссылок в тексте не будет;
 //   2) ответ приходит в формате OpenAI — choices[0].message.content вместо блоков.
 // Наружу функция отдаёт то же самое, что callClaude: склеенный текст.
+/* Настройки сэмплинга для моделей Runware. До этого не отправлялось ни одной, и модель
+   работала на своём дефолте: текст выходил рубленый и ровный. Runware принимает
+   temperature 0-2 (по умолчанию 1) и topP 0-1 (по умолчанию 0.95). */
+const LUNA_TEMP=1.05, LUNA_TOP_P=0.95;
+
+/* Веб-поиск у моделей Runware есть, но только в родном API: в OpenAI-совместимом
+   эндпоинте tools не передать. Формат идентификатора там тоже другой, без ':' и '@'.
+   Контракт родного API я знаю не целиком, поэтому этот путь всегда с откатом:
+   любая осечка возвращает генерацию на проверенный OpenAI-совместимый путь. */
+function nativeModelId(air){
+  return String(air||'').replace(/[:@]/g,'-').replace(/\./g,'-').replace(/-+/g,'-');
+}
+async function lunaSearchOnce(model,system,content,maxTokens){
+  const task={taskType:'textInference',taskUUID:crypto.randomUUID(),model:nativeModelId(model),
+    messages:[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}],
+    settings:{temperature:LUNA_TEMP,topP:LUNA_TOP_P,maxTokens:maxTokens||16000},
+    tools:[{type:'search'}], includeCost:true, deliveryMethod:'sync'};
+  const r=await fetch('/api/llm/native',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify([task]),signal:batchAbort?.signal});
+  const d=await r.json();
+  if(!r.ok||d?.errors?.length||d?.error) throw new Error('native path unavailable');
+  const item=(d&&Array.isArray(d.data))?d.data[0]:null;
+  const text=item&&typeof item.text==='string'?item.text:'';
+  // берём только целый ответ: обрезанный дешевле дописать на обычном пути, чем чинить здесь
+  if(!text||item.finishReason!=='stop') throw new Error('native path returned nothing usable');
+  costAddText(item.inputTokens,item.outputTokens,item.cost);
+  return text;
+}
+
 async function callLuna(system,content,useSearch,onStatus,maxTokens){
   const model=textModel();   // идентификатор из выпадающего списка
   let messages=[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}];
@@ -96,12 +125,26 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
   // max_completion_tokens, older — max_tokens. Начинаем с нового имени и переключаемся,
   // если модель попросит другое: гадать заранее нельзя, а падать из-за названия поля глупо.
   let tokenField=LAST_TOKEN_FIELD;
-  if(useSearch && onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');
+  // Когда статье нужен поиск, сначала пробуем родной API с включённым поиском.
+  // Не вышло — молча возвращаемся на обычный путь, статья от этого не страдает.
+  if(useSearch){
+    try{
+      if(onStatus) onStatus('🔎 '+model+' ищет в вебе…');
+      return await lunaSearchOnce(model,system,content,maxTokens);
+    }catch(e){
+      if(e.message==='__ABORT__'||batchStopped) throw e;
+      if(onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');
+    }
+  }
   for(let i=0;i<12;i++){
     if(batchStopped) throw new Error('__ABORT__');
     let r;
     try{
-      const body={model,messages}; body[tokenField]=maxTokens||16000;
+      // Раньше не задавалось ничего, кроме потолка ответа, и модель писала на дефолте.
+      // Эти две ручки Runware принимает: temperature 0-2 и topP 0-1. Для статьи нужна
+      // не точность, а живость, поэтому температура выше середины.
+      const body={model,messages,temperature:LUNA_TEMP,top_p:LUNA_TOP_P};
+      body[tokenField]=maxTokens||16000;
       r=await fetch('/api/llm',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify(body),signal:batchAbort?.signal});
     }catch(netErr){
