@@ -96,23 +96,6 @@ console.log('\nЗамечания, которые правит человек');
   check('Amazon не считается чужой ссылкой', !!link && !String(link.sample).includes('amazon'));
 }
 {
-  // фото не про свою идею: ровно случай с полосатым навесом и фотографией шаров
-  const art = {
-    games: [
-      { asset: 'illustration', name: 'Hang a Striped Canopy Over the Crates',
-        imagePrompt: 'A cluster of balloons beside a wooden crate of vegetables and a gift bag.' },
-      { asset: 'illustration', name: 'Wooden Crate Market Stall',
-        imagePrompt: 'A wooden crate stacked with produce on a market stall table.' },
-      { asset: 'printable', name: 'Bingo Sheet', imagePrompt: 'A printable bingo sheet.' },
-    ],
-  };
-  const notes = copyFindings(art);
-  const drift = notes.find(x => x.label.includes('фото не про свою идею'));
-  check('расхождение найдено', !!drift && drift.n === 1);
-  check('названа именно та идея', !!drift && /Striped Canopy/.test(drift.sample));
-  check('совпадающая идея не помечена', !!drift && !/Market Stall/.test(drift.sample));
-}
-{
   // настоящие заголовки из опубликованной статьи: команды и ни одного ключевика
   const art = {
     focusKeyword: 'locally grown baby shower',

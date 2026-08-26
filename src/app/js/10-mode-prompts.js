@@ -405,19 +405,6 @@ const SHOT_LIGHT=[
   'bright daylight with a strong sunbeam crossing the frame and lighting dust or steam in the air',
   'fresh morning light, cool-clean but bright, with crisp small highlights'
 ];
-/* Планы раздавались по кругу, не глядя на предмет, и висящему на карнизе занавесу
-   достался «flat lay, взгляд строго сверху». Снять такое нельзя, поэтому генератор
-   разложил занавес на полу. Вещи, которые висят, нельзя снимать сверху и нельзя
-   раскладывать: для них исключаем ракурсы, требующие горизонтальной поверхности. */
-const HANGS_ON_WALL=/\b(curtain|backdrop|back-drop|banner|bunting|garland|arch|archway|streamer|drape|drapery|canopy|awning|valance|wreath|mobile|hanging|wall|tapestry|sign|signage|photo booth|photobooth|balloon wall)\b/i;
-const NEEDS_FLAT_SURFACE=/flat lay|looking straight down/i;
-function framingsFor(subject,pool){
-  const list=pool||SHOT_FRAMINGS;
-  if(!HANGS_ON_WALL.test(String(subject||''))) return list;
-  const ok=list.filter(f=>!NEEDS_FLAT_SURFACE.test(f));
-  return ok.length?ok:list;   // на случай, если фильтр однажды выкосит всё
-}
-
 function assignShotTypes(art,mode){
   if(mode!=='ideas') return art;
   const rnd=rng32(seedNum(art.focusKeyword||art.title||'x'));
@@ -427,21 +414,11 @@ function assignShotTypes(art,mode){
   let n=0, assigned=0;
   (art.games||[]).forEach(g=>{
     if(g.asset!=='illustration'||!g.imagePrompt) return;
-    // план выбираем из тех, что вообще возможны для этого предмета
-    const allowed=framingsFor(g.name+' '+g.imagePrompt,pool);
-    const framing=allowed[n%allowed.length];
+    const framing=pool[n%pool.length];
     const light=lights[n%lights.length];
     n++;
-    /* Тему кадра называем сами, названием самой идеи, и ставим её ПЕРВОЙ строкой.
-       Раньше промпт писала только модель, и он мог разойтись с собственным абзацем:
-       под заголовком про полосатый навес выходило фото с шарами и ящиком овощей.
-       Требование «снимай то, что описано в этом абзаце» стояло в конце и проигрывало
-       собственному тексту промпта, который шёл выше и был подробнее. */
-    const subject=String(g.name||'').trim();
-    const head=subject?`SUBJECT OF THIS PHOTOGRAPH: ${subject}. That object or arrangement must be the thing in focus and the reason the picture exists. If the description below drifts to anything else, the subject named here wins. `:'';
-    g.imagePrompt=head+String(g.imagePrompt).replace(/^SUBJECT OF THIS PHOTOGRAPH:[\s\S]*?wins\.\s*/i,'').replace(/\s*SHOT:[\s\S]*$/i,'').trim()
-      +` SHOT: ${framing}. LIGHT: ${light}. The framing and the light above override any camera default stated earlier in this prompt. The subject is the one named at the top of this prompt, only the framing rotates, and it never turns into generic party scenery. No people.
-BUT THE SUBJECT OUTRANKS THE FRAMING, ALWAYS. If that framing is physically impossible for this particular subject, ignore it and shoot the subject the way it would really be seen. A thing that hangs, a curtain, a backdrop, a garland, a banner, an arch, is photographed facing it or from slightly below, NEVER from straight above and NEVER laid out flat on the floor or a table: laying a hanging decoration down to fit the camera angle is a ruined photograph. A thing that lies on a surface is not photographed from below. Choose the natural angle and keep the light.`;
+    g.imagePrompt=String(g.imagePrompt).replace(/\s*SHOT:[\s\S]*$/i,'').trim()
+      +` SHOT: ${framing}. LIGHT: ${light}. The framing and the light above override any camera default stated earlier in this prompt. The subject is whatever THIS idea's own paragraph describes, only the framing rotates, the subject never turns into generic party scenery. No people.`;
     g.extraImagePrompts=[];   // одна фотография на идею: дополнительные кадры отменены
     assigned++;
   });

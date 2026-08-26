@@ -103,21 +103,6 @@ function copyFindings(art){
   if(external.length)
     notes.push({label:'внешние ссылки (скорее всего битые)',n:external.length,sample:external[0]});
 
-  // Фото не про свою идею: промпт кадра не делит с названием ни одного значимого слова.
-  // Именно так под заголовком про полосатый навес оказалось фото шаров и ящика овощей.
-  const STOP=new Set(['the','and','for','with','your','you','a','an','of','to','in','on','it','that','this','are','is','be','make','use','some','into','from','up','out','one','two','all','how','what','when','party','idea','ideas']);
-  const sigWords=s=>new Set(String(s||'').toLowerCase().replace(/<[^>]*>/g,' ')
-    .replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>3&&!STOP.has(w)));
-  const drifted=(art.games||[]).filter(g=>{
-    if(!g||g.asset!=='illustration'||!g.imagePrompt||!g.name) return false;
-    const a=sigWords(g.name); if(!a.size) return false;
-    const b=sigWords(g.imagePrompt);
-    for(const w of a) if(b.has(w)) return false;
-    return true;
-  });
-  if(drifted.length)
-    notes.push({label:'фото не про свою идею',n:drifted.length,sample:drifted[0].name});
-
   /* Заголовки. Правила ритма протекли в них, и вместо поисковых фраз получались команды
      («Build One Market Corner And Stop There») и дразнилки («What Nobody Tells You»).
      Ни в одном заголовке статьи не оказалось ключевого слова. */
