@@ -99,6 +99,16 @@ let LUNA_SAMPLING=true;
 // иначе каждая статья пакета платит одним и тем же неудачным запросом.
 let LUNA_SEARCH_OK=true;
 
+/* Что модель умеет, выясняется по её же отказу, и запоминается НАВСЕГДА, а не на сессию.
+   Иначе после каждой перезагрузки первая статья снова упирается в тот же 400 и снова
+   сыплет в консоль ошибку, которая выглядит как поломка, хотя это просто выяснение. */
+function modelCan(what){
+  try{ return localStorage.getItem('pgs_no_'+what+'_'+textModel())!=='1'; }catch(e){ return true; }
+}
+function modelCannot(what){
+  try{ localStorage.setItem('pgs_no_'+what+'_'+textModel(),'1'); }catch(e){}
+}
+
 /* Веб-поиск у моделей Runware есть, но только в родном API: в OpenAI-совместимом
    эндпоинте tools не передать. Формат идентификатора там тоже другой, без ':' и '@'.
    Контракт родного API я знаю не целиком, поэтому этот путь всегда с откатом:
@@ -108,7 +118,7 @@ function nativeModelId(air){
 }
 async function lunaSearchOnce(model,system,content,maxTokens){
   const settings={maxTokens:maxTokens||16000};
-  if(LUNA_SAMPLING){ settings.temperature=LUNA_TEMP; settings.topP=LUNA_TOP_P; }
+  if(LUNA_SAMPLING&&modelCan('temp')){ settings.temperature=LUNA_TEMP; settings.topP=LUNA_TOP_P; }
   const task={taskType:'textInference',taskUUID:crypto.randomUUID(),model:nativeModelId(model),
     messages:[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}],
     settings, tools:[{type:'search'}], includeCost:true, deliveryMethod:'sync'};
@@ -138,17 +148,17 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
   // max_completion_tokens, older — max_tokens. Начинаем с нового имени и переключаемся,
   // если модель попросит другое: гадать заранее нельзя, а падать из-за названия поля глупо.
   let tokenField=LAST_TOKEN_FIELD;
-  let sampling=LUNA_SAMPLING;
+  let sampling=LUNA_SAMPLING&&modelCan('temp');
   // Когда статье нужен поиск, сначала пробуем родной API с включённым поиском.
   // Не вышло — молча возвращаемся на обычный путь, статья от этого не страдает.
   // Один отказ на сессию: дальше не долбим родной эндпоинт в каждой статье пакета.
-  if(useSearch && LUNA_SEARCH_OK){
+  if(useSearch && LUNA_SEARCH_OK && modelCan('search')){
     try{
       if(onStatus) onStatus('🔎 '+model+' ищет в вебе…');
       return await lunaSearchOnce(model,system,content,maxTokens);
     }catch(e){
       if(e.message==='__ABORT__'||batchStopped) throw e;
-      LUNA_SEARCH_OK=false;
+      LUNA_SEARCH_OK=false; modelCannot('search');
       if(onStatus) onStatus('ℹ️ '+model+' пишет без веб-поиска');
     }
   }
@@ -193,7 +203,7 @@ async function callLuna(system,content,useSearch,onStatus,maxTokens){
       // «'temperature' does not support 1.05 ... Only the default (1) value is supported»
       // Модель не умеет ручки сэмплинга: убираем их и повторяем, а не роняем статью.
       if(sampling && /\b(temperature|top_p|topP)\b/i.test(m) && /does not support|not supported|unsupported|only the default/i.test(m)){
-        sampling=false; LUNA_SAMPLING=false;   // запомним на следующие вызовы
+        sampling=false; LUNA_SAMPLING=false; modelCannot('temp');   // запомним навсегда
         if(onStatus)onStatus('↻ '+model+' не принимает temperature — повторяю без неё');
         continue;
       }

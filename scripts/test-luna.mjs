@@ -23,6 +23,7 @@ const make = (responses, fields = {}) => {
     let LAST_TOKEN_FIELD = 'max_completion_tokens';
     const LUNA_TEMP = 1.05, LUNA_TOP_P = 0.95;
     let LUNA_SAMPLING = true, LUNA_SEARCH_OK = true;
+    const modelCan = () => true, modelCannot = () => {};
     // путь с веб-поиском подменяем: тест решает, отвечает он или падает
     const lunaSearchOnce = async () => {
       if (!fields.__search) throw new Error('native path unavailable');
