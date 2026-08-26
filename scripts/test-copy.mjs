@@ -108,6 +108,13 @@ console.log('\nСборка свода правил');
   check('голос стоит первым в своде', claude.rules.startsWith('VOICE: Red Cheeks Girl'));
   check('запреты вошли в свод', claude.rules.includes('BANNED SENTENCE SHAPES'));
   check('образцы вошли в свод', claude.rules.includes('WORKED EXAMPLES'));
+  // голос важнее запретов, и порядок это показывает
+  check('образцы идут раньше списка запретов',
+    claude.rules.indexOf('WORKED EXAMPLES') < claude.rules.indexOf('MACHINE TELLS'));
+  check('список запретов подан как проверочный лист, а не как стиль',
+    claude.rules.includes('This is a checklist, not a style'));
+  check('при споре побеждает голос',
+    claude.rules.includes('the voice wins'));
   check('свод одинаков для обеих моделей', claude.rules === luna.rules);
   check('Клод не считается слабой моделью', claude.weak === false);
   check('модель Runware считается слабой', luna.weak === true);

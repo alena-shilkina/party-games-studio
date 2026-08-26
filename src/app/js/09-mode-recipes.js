@@ -33,7 +33,9 @@ IMAGE RULES:
 AFFILIATE LINKS: put a "shop" array [{"label":"","query":""}] on 3-5 sections only (glassware, shakers, molds, garnish tools). Plain lowercase Amazon search phrases, never invented brands or prices.
 
 OUTPUT: raw JSON only, no preamble. The "recipe" object must mirror the visible HTML exactly (it powers Google recipe markup); times use ISO-8601 durations:
-{"title":"","slug":"","metaDescription":"","focusKeyword":"","intro":"<p>…</p>","sections":[{"heading":"","content":"<p>…</p><p class=\"r-meta\">…</p><h3>Ingredients</h3><ul><li>…</li></ul><h3>Instructions</h3><ol><li>…</li></ol>","recipe":{"prepTime":"PT10M","cookTime":"PT0M","totalTime":"PT10M","yield":"","ingredients":[""],"steps":[""],"card":{"ingredients":[""],"steps":[""],"difficulty":"Easy"}},"shop":[{"label":"","query":""}]}],"games":[{"name":"<Recipe name> Recipe Card","section":"<EXACT recipe heading>","asset":"printable","content":"","imagePrompt":""}],"faq":[{"question":"","answer":""}]}`;
+{"title":"","slug":"","metaDescription":"","focusKeyword":"","intro":"<p>…</p>","sections":[{"heading":"","content":"<p>…</p><p class=\"r-meta\">…</p><h3>Ingredients</h3><ul><li>…</li></ul><h3>Instructions</h3><ol><li>…</li></ol>","recipe":{"prepTime":"PT10M","cookTime":"PT0M","totalTime":"PT10M","yield":"","ingredients":[""],"steps":[""],"card":{"ingredients":[""],"steps":[""],"difficulty":"Easy"}},"shop":[{"label":"","query":""}]}],"games":[{"name":"<Recipe name> Recipe Card","section":"<EXACT recipe heading>","asset":"printable","content":"","imagePrompt":""}],"faq":[{"question":"","answer":""}]}
+
+${VOICE_LAST}`;
 }
 
 function articleSystemPrompt(mode){
@@ -64,14 +66,14 @@ ${CONTRAST_FLOOR}
 ${NO_UI_CHROME}
 
 SEO RULES:
-- Title: BuzzFeed-style, keyword near the front, under 65 chars, curiosity + specificity (e.g. "17 Baby Shower Games That Aren't Boring").
+- Title: keyword near the front, under 65 chars, plain and specific (e.g. "17 Baby Shower Games That Aren't Boring"). No hype words.
 - slug: main keyword only, lowercase, dashes, no stop words.
-- metaDescription: under 120 chars, keyword + hook.
+- metaDescription: 150 to 155 characters, the benefit inside the first five words, keyword included.
 - focusKeyword: the exact main keyword.
 - Use the keyword naturally 5-7 times across the article.
 
 AD-LAYOUT RULES (Mediavine), mandatory, revenue depends on them:
-- Every game's "content" is EXACTLY 3 substantial paragraphs (each its own <p>): (1) what the game is / how to play, (2) practical how-to detail, materials, or setup, (3) a "why it works", a fun variation, or a host tip that adds real value. NEVER a one-liner. This prose between headings creates the scroll depth and qualifying ad slots that drive revenue.
+- Every game's "content" is EXACTLY 3 substantial paragraphs (each its own <p>). Each paragraph carries information the previous one did not: (1) what actually happens when people play it, (2) the practical detail: how many players, roughly how long, what she needs, how to set it up, (3) what usually goes wrong and how to handle it, or a real variation she can swap in. NEVER a one-liner. Length comes from real detail, never from restating the same point in a second shape or from a paragraph about why the game is special.
 - Keep HTML FLAT: only top-level <p>, <ul>/<ol>. No wrapper <div>s. (Headings and images are added by the app, not by you.)
 - Never stack images: one printable image per game max, always after its prose.
 
@@ -98,10 +100,10 @@ LINKS:
 - Related CTA link: only if the provided related anchor/url is genuinely on-topic for this article, mention it ONCE near the end. If it is unrelated to the subject, omit it completely rather than inventing a bridge to it.
 
 STRUCTURE:
-- intro: 2 short paragraphs (keyword in the first sentence).
+- intro: 2 to 4 sentences in ONE <p>, keyword in the first sentence. What she is getting and who it suits. No preamble about the day being special.
 - games: the interleaved array above.
 - faq: use the provided PAA questions if any; else write 5-6. Direct helpful answers.
-- closing: 1 short paragraph wrap-up + CTA (print the games / pin this / try tonight), ending with the related link if provided.
+- closing: 1 short paragraph. The single practical next step (print the games, set the timer, buy the one thing she needs), ending with the related link if provided. Never a reflection on memories.
 
 CRITICAL JSON RULES:
 - Output ONLY raw JSON, starting with { and ending with }. No preamble, no markdown fences.
@@ -110,13 +112,15 @@ CRITICAL JSON RULES:
 OUTPUT SHAPE:
 {
  "title":"", "slug":"", "metaDescription":"", "focusKeyword":"",
- "intro":"<p>…</p><p>…</p>",
+ "intro":"<p>…</p>",
  "games":[
    {"name":"","type":"active|printable|quiet","content":"<p>…</p><p>…</p>","callout":{"kind":"You'll need","items":["",""]},"imagePrompt":"","video_query":"","shop":[{"label":"","query":""}]}
  ],
  "faq":[{"question":"","answer":""}],
  "closing":"<p>…</p>"
-}`;
+}
+
+${VOICE_LAST}`;
 }
 
 

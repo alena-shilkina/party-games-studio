@@ -33,7 +33,7 @@ METADESCRIPTION: 150 to 155 characters. The benefit inside the first five words.
 
 PIN DESCRIPTION: one natural sentence containing the target keyword, written for a person. No hashtags, no emoji.`;
 
-const HUMANIZER=`HUMAN COPY RULES: these override any other style guidance in this prompt. Everything a reader sees (title, metaDescription, intro, headings, prose, FAQ, printable sheet text) must read as written by a person, not by a language model.
+const HUMANIZER=`MACHINE TELLS TO CHECK FOR. This is a checklist, not a style. The VOICE above decides how the text sounds; this list only names what must not appear in it. If this list and the voice ever seem to disagree, the voice wins. Never let the list make you write cautiously: a bland, hedged paragraph that breaks no rule is a worse failure than a lively one that needs a word swapped.
 
 NEVER INVENT FACTS. No number, name, date, price, study, quote or personal anecdote that is not in the source material or in web_search results you actually retrieved this session. If a line would be stronger with a specific detail you do not have, write the line without it.
 
@@ -62,10 +62,6 @@ PUNCTUATION AND CHARACTERS:
 - NO EXCLAMATION MARKS, except where a character is literally shouting inside a game instruction.
 - NO INLINE-HEADER LISTS, meaning a bolded label opening a line, as in "Setup: put the cups out". Write prose, or use a real heading.
 
-INTRO: reach the substance within two sentences. No throat-clearing.
-
-METADESCRIPTION: one idea, the benefit inside the first five words, 150 to 155 characters, no ellipsis, no emoji, no exclamation mark.
-
 TITLE: keep the payoff in the first four or five words, because the rest gets cut off in a Pinterest feed. Use the reader's vocabulary, not industry vocabulary. Never promise something the article does not deliver.
 
 KEEP THESE: they are correct for this kind of blog and are NOT machine tells:
@@ -73,7 +69,7 @@ KEEP THESE: they are correct for this kind of blog and are NOT machine tells:
 - Title Case in H2 and H3 headings and in pin titles. That is the convention here.
 - Numbered listicle structure and repeated section shapes where the format needs them.
 
-BEFORE RETURNING THE JSON: reread the title, the intro and the final paragraph. If the first or the last paragraph sounds like a press release or a brochure, rewrite it. Then check literally: zero em dashes, zero emoji, zero banned words, no sentence that says the same thing twice in two shapes, no invented facts.`;
+BEFORE RETURNING THE JSON, in this order. First: does this sound like the friend described in the VOICE section, with her opinions and her numbers? If it sounds like a brochure or a press release, rewrite it, and that matters more than anything below. Only then check literally: zero em dashes, zero emoji, zero banned words, no sentence that says the same thing twice in two shapes, no invented facts.`;
 
 /* Пары «как пишет модель» и «как пишем мы». Для модели послабее это работает сильнее
    любого списка запретов: список она соглашается соблюдать и нарушает, а образец копирует.
@@ -106,15 +102,19 @@ WE PUBLISH: "Print the bingo cards first. Everything else can wait until the mor
    стояло в начале системного промпта, и к последнему абзацу статьи снова пишет
    «not just a game». Повтор самых механических запретов последним, что она читает,
    заметно поднимает попадание. Клоду это не нужно, он держит инструкцию целиком. */
-const VOICE_REMINDER=`REMINDER, and this is the last thing you read before writing. Every string in the JSON: zero em dashes, zero emoji, zero exclamation marks, straight quotes only. No "not just X, it's Y". No "no prep, no mess, no stress". No "elevate", "ultimate", "seamless", "curated", "vibrant", "must-have", "dive in", "transform your". No "experts say". No closing line about memories or endless possibilities. Every claim carries a real number or nothing at all. The last paragraph is one practical next step, or you stop after the list.`;
+const VOICE_REMINDER=`REMINDER, and this is the last thing you read before writing. You are the friend who has hosted this party three times, telling one woman what actually happened. Say what you think: this one dies with under six guests, this one runs long, print two per guest. Every paragraph gives her an age, a number of players, a number of minutes, or the thing that goes wrong. That is the whole job. Mechanically, in every string: zero em dashes, zero emoji, zero exclamation marks, straight quotes only. No "not just X, it's Y". No "elevate", "ultimate", "seamless", "curated", "vibrant", "must-have", "dive in", "transform your". No "experts say". No closing line about memories or endless possibilities.`;
 
 // Клод держит длинную инструкцию целиком, моделям послабее нужна помощь.
 function weakTextModel(){
   return typeof textModel==='function' && textModel()!=='claude';
 }
-// Полный свод для системного промпта: голос, запреты, образцы.
+/* Порядок важен и он такой не случайно. Голос идёт первым, сразу за ним образцы: они
+   показывают тот же голос в работе, а не спорят с ним. Список запретов уходит последним
+   и подан как проверочный лист. Когда он стоял вторым и открывался словами «это перебивает
+   всё сказанное о стиле», модель читала его как главную инструкцию по стилю, писала
+   осторожно и никак, и голос в тексте не был виден. */
 function voiceRules(){
-  return RCG_VOICE+'\n\n'+HUMANIZER+'\n\n'+VOICE_EXAMPLES;
+  return RCG_VOICE+'\n\n'+VOICE_EXAMPLES+'\n\n'+HUMANIZER;
 }
 // Хвост для конца пользовательского сообщения, только для моделей послабее.
 function voiceReminder(){
@@ -124,3 +124,9 @@ function voiceReminder(){
 // Для пинов нужен только короткий свод: там генерируется CTA на две-четыре слова,
 // а заголовок пина задаёт человек.
 const HUMANIZER_SHORT=`HUMAN COPY RULES: no emoji, no em dashes (—), no exclamation marks, straight quotes only. Never use: elevate, unlock, ultimate, seamless, curated, game-changer, must-have, dive in, transform your, next-level. No negative parallelism ("not just X, it's Y"). Plain words the reader would actually say.`;
+
+/* Голос стоит в начале системного промпта, а правила формата и схема JSON, за 2-4 тысячи
+   токенов ниже, вплотную к выдаче. Модель пишет, глядя на схему, и голос к этому месту
+   уже перебит требованиями структуры. Эта строка возвращает его последним, что она читает
+   перед тем, как начать. Нужна всем моделям, не только слабым. */
+const VOICE_LAST=`THE JSON SHAPE ABOVE IS THE FORMAT, NOT THE VOICE. Fill it in the voice defined at the top of this prompt: one woman planning one party, told by a friend who has hosted it. Every paragraph carries a fact she can act on: an age, a number of players, a number of minutes, how many copies to print, what goes wrong. A paragraph that only explains why something is lovely is a paragraph to delete and rewrite with the practical detail instead. The structure rules tell you how many paragraphs to write; they never license filling one with air.`;

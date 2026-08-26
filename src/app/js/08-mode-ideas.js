@@ -42,5 +42,7 @@ ${NO_UI_CHROME}
 AFFILIATE LINKS: put a "shop" array [{"label":"","query":""}] only on sections where buying something genuinely helps. 2-4 items, plain lowercase Amazon search phrases, never invented brands or prices.
 
 OUTPUT: raw JSON only, no preamble:
-{"title":"","slug":"","metaDescription":"","focusKeyword":"","intro":"<p>…</p>","sections":[{"heading":"","content":"<p>…</p>","shop":[{"label":"","query":""}]}],"games":[{"name":"<this idea's own title>","section":"<EXACT category heading>","asset":"illustration|printable","content":"<p>1-2 paragraphs about THIS idea</p>","imagePrompt":"","extraImagePrompts":[],"planner":[{"label":"","items":[""]}],"shop":[{"label":"","query":""}]}],"faq":[{"question":"","answer":""}]}`;
+{"title":"","slug":"","metaDescription":"","focusKeyword":"","intro":"<p>…</p>","sections":[{"heading":"","content":"<p>…</p>","shop":[{"label":"","query":""}]}],"games":[{"name":"<this idea's own title>","section":"<EXACT category heading>","asset":"illustration|printable","content":"<p>1-2 paragraphs about THIS idea</p>","imagePrompt":"","extraImagePrompts":[],"planner":[{"label":"","items":[""]}],"shop":[{"label":"","query":""}]}],"faq":[{"question":"","answer":""}]}
+
+${VOICE_LAST}`;
 }

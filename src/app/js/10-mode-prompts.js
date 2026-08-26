@@ -42,12 +42,12 @@ ${ANSWER_KEY_RULE}
 
 AD-LAYOUT RULES (Mediavine):
 - Keep HTML FLAT: only top-level <p>, <ol>/<ul>, <li>. No wrapper <div>s. (Headings and images are added by the app, not by you.)
-- The numbered prompt lists create the scroll depth and qualifying ad slots, make them substantial.
+- The numbered prompt lists carry the page, so make them substantial. Length comes from more real prompts, never from padding the prose around them.
 
 SEO RULES:
 - Title: keyword near the front WITH the total number, under 65 chars.
 - slug: main keyword only, lowercase, dashes, no stop words.
-- metaDescription: under 120 chars, keyword + hook.
+- metaDescription: 150 to 155 characters, the benefit inside the first five words, keyword included.
 - focusKeyword: the exact main keyword, used naturally a few times.
 
 LINKS:
@@ -75,7 +75,9 @@ OUTPUT SHAPE:
  ],
  "faq":[{"question":"","answer":""}],
  "closing":"<p>…</p>"
-}`;
+}
+
+${VOICE_LAST}`;
 }
 
 // Strip LLM filler/placeholder entries. When the title asks for N items and the model runs out of
