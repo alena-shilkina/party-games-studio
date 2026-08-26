@@ -55,7 +55,12 @@ console.log('Без референса работает домашний сти�
   check('домашний стиль стоит первым', out.startsWith('HOUSE ILLUSTRATION STYLE'));
   check('светлая бумага с зерном задана', /pale paper with a faint tooth/.test(out));
   check('акварель и гуашь названы', /watercolour and gouache/.test(out));
-  check('приглушённая палитра названа', /Dusty rose, sage and eucalyptus/.test(out));
+  // палитра больше не приглушённая: пигмента просили больше, не меньше
+  check('пигмент требуется густой', /LOAD THE BRUSH/.test(out));
+  check('насыщенность названа прямо', /at real saturation/.test(out));
+  check('бледное объявлено ошибкой', /Pale, dusty and greyed-down is the wrong sheet/.test(out));
+  check('синтетика по-прежнему запрещена', /No neon, no fluorescent/.test(out));
+  check('градация внутри заливки разрешена', /gradation that happens inside a wet wash/.test(out));
   check('жёлтый и кремовый фон запрещены', /NOT yellow, butter, cream, ivory/.test(out));
   check('описание листа подано как содержимое', out.includes('SHEET TO DRAW (content only'));
   check('декоративная система не требуется', !out.includes('RICHNESS'));

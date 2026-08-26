@@ -389,6 +389,14 @@ group('Домашний стиль печаток');
     js.includes(w) ? ok(`«${w}» назван в запрете`) : fail(`«${w}» из запрета пропал`));
   js.includes('pale paper with a faint tooth')
     ? ok('светлая бумага с зерном задана') : fail('бумага не описана');
+  // Палитру просили насыщеннее: приглушённая читалась как выцветшая.
+  js.includes('LOAD THE BRUSH')
+    ? ok('пигмент требуется густой') : fail('палитра снова робкая');
+  js.includes('Pale, dusty and greyed-down is the wrong sheet')
+    ? ok('бледный лист объявлен ошибкой') : fail('бледный лист снова допустим');
+  js.includes('No neon, no fluorescent')
+    ? ok('синтетика запрещена') : fail('можно уехать в неон');
+  // и это только для печаток: фотографии идут своей веткой
   js.includes('watercolour and gouache with real pigment behaviour')
     ? ok('акварель и гуашь названы') : fail('техника не названа');
   // фотографии этот стиль не касается: они уходят по ветке PHOTO_CONTRACT

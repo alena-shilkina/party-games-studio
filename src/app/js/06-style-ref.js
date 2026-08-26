@@ -64,9 +64,13 @@ MEDIUM: hand-painted watercolour and gouache with real pigment behaviour. Soft b
 
 GROUND: pale paper with a faint tooth or speckle so it reads as real uncoated stock rather than a digital fill. Neutral to barely cool. NOT clinical pure white, and NOT yellow, butter, cream, ivory, sand or tan; the paper never carries a warm dirty tint.
 
-PALETTE: colours that look mixed with water. Dusty rose, sage and eucalyptus green, soft blue-grey, terracotta, muted mustard, warm brown, off-white. Two or three carry the sheet and the others support it. NEVER neon, NEVER candy-bright, NEVER glossy. Muted is not faded: the drawing is crisp, confident and contemporary, made by an illustrator working today, and the colour stays clean rather than greyed down or dusty-dulled.
+PALETTE: LOAD THE BRUSH. This is the part to get wrong in the generous direction, not the timid one. Pigment is heavy and present: colour goes down at full strength, deep where the wash pools at an edge, and it holds its intensity instead of thinning into a tint. Think of paint straight from the pan with just enough water to move it, not a wash you can see the paper through.
 
-FINISH: completely matte, as if printed on uncoated paper. No gradients, no glow, no drop shadows, no bevels, no 3D rendering, no glossy highlights, no digital airbrush, no vector gloss.
+Pick two or three colours that genuinely SING together and let them carry the sheet at real saturation: a deep rose against a strong sage, a warm terracotta beside a proper cobalt, a saturated mustard next to a clean teal. Supporting colours may sit quieter, but the leads never do. Pale, dusty and greyed-down is the wrong sheet: if you are unsure, put more pigment on.
+
+The one thing the paint is not is synthetic. No neon, no fluorescent, no digital glow, no plastic sheen, no airbrushed gradient blends. Strong and joyful is right, and so is a bright childlike palette when the sheet is for children. What is wrong is chalky, washed out, or afraid of colour. The drawing itself stays crisp, confident and contemporary, made by an illustrator working today.
+
+FINISH: completely matte, as if printed on uncoated paper. The gradation that happens inside a wet wash is right and wanted; what is wrong is a smooth digital gradient fill. No glow, no drop shadows, no bevels, no 3D rendering, no glossy highlights, no digital airbrush, no vector gloss.
 
 COMPOSITION: generous breathing space. Elements sit as separate spot illustrations with paper visible between them, never packed edge to edge.
 
