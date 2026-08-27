@@ -427,6 +427,13 @@ group('Фотографии');
     ? ok('каталожная съёмка запрещена') : fail('запрета на каталожную съёмку нет');
 
   // Подробность промпта задаётся там, где он пишется, а не длинной припиской
+  // Клод писал по 4-8 тысяч слов, Луна и Gemini не дотягивали: одна цифра лечит обе беды
+  js.includes('LENGTH: the finished article must land between')
+    ? ok('потолок и пол длины заданы') : fail('длина статьи ничем не ограничена');
+  js.includes('cut the weakest entry rather than shortening every one')
+    ? ok('при перерасходе режется слабый пункт, а не все') : fail('модель урежет всё в обрубки');
+  js.includes('')
+    ? ok('потолок уходит в сообщение') : fail('потолок посчитан, но не отправлен');
   js.includes('WRITE EACH imagePrompt AS A REAL SCENE')
     ? ok('промпт кадра пишется сценой на 3-5 фраз') : fail('промпты снова будут общими');
   js.includes('Part of an article about')

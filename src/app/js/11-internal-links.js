@@ -52,6 +52,14 @@ async function generateArticle(){
     let target=numMatch?parseInt(numMatch[0]):0;
     if(mode==='prompts'){ if(!target||target<20||target>400) target=100+Math.floor(Math.random()*61); }   // 100–160 default
     else { if(!target||target<5||target>30) target=11+Math.floor(Math.random()*7); }
+    /* Потолок длины. Без него Клод писал по 4-8 тысяч слов: платим за каждое выходное
+       слово, а читателю столько не нужно. Луна и Gemini, наоборот, не дотягивали.
+       Одна и та же цифра лечит обе беды: одному это потолок, другому пол.
+       Считаем от числа пунктов, потому что длина статьи из них и складывается. */
+    const perItem=mode==='prompts'?12:(mode==='recipes'?170:130);
+    const wordsMin=Math.round(250+target*perItem*0.85);
+    const wordsMax=Math.round(250+target*perItem*1.15);
+    const lengthBlock=`\n\nLENGTH: the finished article must land between ${wordsMin} and ${wordsMax} words of body text, and this is a hard requirement in both directions. Under it the entries are too thin to help anyone; over it you are padding, and padding is what makes a page read as machine-written. Count the prose, not the headings or the lists of prompts. If you are running long, cut the weakest entry rather than shortening every one of them into a stub.`;
     const wantDl=ST.batchRow?!!ST.batchRow.downloadable:!!($('downloadable')&&$('downloadable').checked);
     const ideasBlock=`\n\nIDEAS ARTICLE: an editorial round-up for "${kw}" (${v('category')}, ${v('audience')}) with EXACTLY ${target} ideas. `
       + (brief?`The angle and must-include ideas: ${brief}. `:`Choose the angle and the ideas this topic actually needs. `)
@@ -84,7 +92,7 @@ async function generateArticle(){
     const BLOCKS={prompts:promptsBlock,ideas:ideasBlock,recipes:recipesBlock};
     const modeBlock=BLOCKS[mode]||gameBlock;
     const noFiller=`\n\nNO FILLER OR PLACEHOLDERS: every entry must be a real, complete, distinct item. NEVER output a placeholder, dummy, "guard", "duplicate detection", TODO or "should not appear" entry, and never pad the list with filler just to reach the number in the title. If you genuinely cannot produce that many distinct items, produce fewer REAL ones and set the number in the title to match the real count.`;
-    const msg=`Write a complete ${label} article.\n\nMain keyword: ${kw}\nCategory: ${v('category')}\nAudience: ${v('audience')}\nContext: ${brief||'(none)'}${titleBlock}${modeBlock}${csvBlock}${paaBlock}${rel}${noFiller}${voiceReminder()}\n\nReturn the JSON only.`;
+    const msg=`Write a complete ${label} article.\n\nMain keyword: ${kw}\nCategory: ${v('category')}\nAudience: ${v('audience')}\nContext: ${brief||'(none)'}${titleBlock}${modeBlock}${csvBlock}${paaBlock}${rel}${noFiller}${lengthBlock}${voiceReminder()}\n\nReturn the JSON only.`;
     const bigModes=['recipes','ideas','prompts'].includes(mode);
     const txt=await callClaude(articleSystemPrompt(mode),msg,false,m=>prog(25,m),bigModes?64000:32000);
     prog(55,'📦 Parsing…');
