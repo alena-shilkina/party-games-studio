@@ -423,8 +423,12 @@ group('Фотографии');
 
   // Подробность промпта задаётся там, где он пишется, а не длинной припиской
   // Клод писал по 4-8 тысяч слов, Луна и Gemini не дотягивали: одна цифра лечит обе беды
-  js.includes('LENGTH: the finished article must land between')
-    ? ok('потолок и пол длины заданы') : fail('длина статьи ничем не ограничена');
+  js.includes('PER ENTRY: every entry gets')
+    ? ok('норма на один пункт задана') : fail('пола на пункт нет, слабая модель напишет обрубки');
+  js.includes('WHOLE ARTICLE:')
+    ? ok('потолок на всю статью задан') : fail('потолка на статью нет');
+  js.includes('Check this as you finish each one, not at the end')
+    ? ok('норма проверяется по ходу, а не в конце') : fail('пол снова будет невыполним');
   js.includes('cut the weakest entry rather than shortening every one')
     ? ok('при перерасходе режется слабый пункт, а не все') : fail('модель урежет всё в обрубки');
   js.includes('')

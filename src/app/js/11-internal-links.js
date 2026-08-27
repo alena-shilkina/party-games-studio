@@ -59,7 +59,14 @@ async function generateArticle(){
     const perItem=mode==='prompts'?12:(mode==='recipes'?170:130);
     const wordsMin=Math.round(250+target*perItem*0.85);
     const wordsMax=Math.round(250+target*perItem*1.15);
-    const lengthBlock=`\n\nLENGTH: the finished article must land between ${wordsMin} and ${wordsMax} words of body text, and this is a hard requirement in both directions. Under it the entries are too thin to help anyone; over it you are padding, and padding is what makes a page read as machine-written. Count the prose, not the headings or the lists of prompts. If you are running long, cut the weakest entry rather than shortening every one of them into a stub.`;
+    /* Числом на всю статью удобно ограничивать сверху, но снизу оно почти не работает:
+       чтобы соблюсти общий объём, модели надо считать то, что она ещё не написала.
+       Норма на ОДИН пункт проверяется на месте, поэтому именно она поднимает того,
+       кто пишет слишком коротко. Даём обе: пункт как пол, статью как потолок. */
+    const itemMin=Math.round(perItem*0.85), itemMax=Math.round(perItem*1.15);
+    const lengthBlock=`\n\nLENGTH, and both halves of this are binding.
+PER ENTRY: every entry gets ${itemMin} to ${itemMax} words of prose of its own. Check this as you finish each one, not at the end. An entry under ${itemMin} words is a stub: it names the thing and stops, and it helps nobody. If you cannot reach ${itemMin} words on real detail, you have not said how many guests it suits, how long it runs, what she needs, or what tends to go wrong.
+WHOLE ARTICLE: ${wordsMin} to ${wordsMax} words of body text. Count the prose, not the headings or the lists. If you are running over, cut the weakest entry rather than shortening every one of them into a stub. Over the ceiling you are padding, and padding is what makes a page read as machine-written.`;
     const wantDl=ST.batchRow?!!ST.batchRow.downloadable:!!($('downloadable')&&$('downloadable').checked);
     const ideasBlock=`\n\nIDEAS ARTICLE: an editorial round-up for "${kw}" (${v('category')}, ${v('audience')}) with EXACTLY ${target} ideas. `
       + (brief?`The angle and must-include ideas: ${brief}. `:`Choose the angle and the ideas this topic actually needs. `)
