@@ -52,22 +52,15 @@ async function generateArticle(){
     let target=numMatch?parseInt(numMatch[0]):0;
     if(mode==='prompts'){ if(!target||target<20||target>400) target=100+Math.floor(Math.random()*61); }   // 100–160 default
     else { if(!target||target<5||target>30) target=11+Math.floor(Math.random()*7); }
-    /* Потолок длины. Без него Клод писал по 4-8 тысяч слов: платим за каждое выходное
-       слово, а читателю столько не нужно. Луна и Gemini, наоборот, не дотягивали.
-       Одна и та же цифра лечит обе беды: одному это потолок, другому пол.
-       Считаем от числа пунктов, потому что длина статьи из них и складывается. */
+    /* Потолок длины ставится ТОЛЬКО Клоду. Он писал по 4-8 тысяч слов на статью, и
+       платим мы за каждое выходное слово. Моделям Runware его не даём вовсе: у них
+       беда ровно обратная, текст выходит куцым, и любое ограничение сверху сделает
+       только хуже. Им нужны рассуждения и мягкое повествование, а не рамка. */
     const perItem=mode==='prompts'?12:(mode==='recipes'?170:130);
-    const wordsMin=Math.round(250+target*perItem*0.85);
     const wordsMax=Math.round(250+target*perItem*1.15);
-    /* Числом на всю статью удобно ограничивать сверху, но снизу оно почти не работает:
-       чтобы соблюсти общий объём, модели надо считать то, что она ещё не написала.
-       Норма на ОДИН пункт проверяется на месте, поэтому именно она поднимает того,
-       кто пишет слишком коротко. Даём обе: пункт как пол, статью как потолок. */
-    const itemMin=Math.round(perItem*0.85), itemMax=Math.round(perItem*1.15);
-    const lengthBlock=`\n\nLENGTH, and both halves of this are binding.
-PER ENTRY: every entry gets ${itemMin} to ${itemMax} words of prose of its own. Check this as you finish each one, not at the end. An entry under ${itemMin} words is a stub: it names the thing and stops, and it helps nobody. If you cannot reach ${itemMin} words on real detail, you have not said how many guests it suits, how long it runs, what she needs, or what tends to go wrong.
-WHOLE ARTICLE: ${wordsMin} to ${wordsMax} words of body text. Count the prose, not the headings or the lists.
-WHAT TO CUT WHEN YOU RUN OVER, in this order. First the reflection: the sentences explaining why something works, why guests enjoy it, why it suits the theme. Those read well and carry no information, and they are where a long article gets long. Then a whole weak entry. NEVER the practical detail: the guest counts, the minutes, the number of copies, the thing that goes wrong. Those stay even if everything around them goes.`;
+    const lengthBlock=(textModel()==='claude')
+      ? `\n\nLENGTH: keep the body text under about ${wordsMax} words. Not a target to hit, a ceiling not to sail past: an article of this kind does not need four or eight thousand words, and the reader is scanning it on a phone. Write everything that genuinely helps her and then stop.`
+      : '';
     const wantDl=ST.batchRow?!!ST.batchRow.downloadable:!!($('downloadable')&&$('downloadable').checked);
     const ideasBlock=`\n\nIDEAS ARTICLE: an editorial round-up for "${kw}" (${v('category')}, ${v('audience')}) with EXACTLY ${target} ideas. `
       + (brief?`The angle and must-include ideas: ${brief}. `:`Choose the angle and the ideas this topic actually needs. `)
