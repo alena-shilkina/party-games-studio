@@ -62,8 +62,8 @@ group('Правила человеческого текста');
   /const HUMANIZER=`/.test(js) ? ok('блок запретов на месте') : fail('блок HUMANIZER не найден');
   /const RCG_VOICE=`/.test(js) ? ok('голос Red Cheeks Girl на месте') : fail('блок RCG_VOICE не найден');
   /const VOICE_EXAMPLES=`/.test(js) ? ok('образцы «модель пишет / мы публикуем» на месте') : fail('образцов нет');
-  ['one woman planning one specific thing', 'GET TO THE SUBSTANCE IN TWO SENTENCES',
-   'BE SPECIFIC OR SAY NOTHING', 'NO EXCLAMATION MARKS', '150 to 155 characters']
+  ['one woman planning one specific thing', 'SPECIFIC, NOT APPROXIMATE',
+   'NO EXCLAMATION MARKS', '150 to 155 characters']
     .forEach(s => js.includes(s) ? ok(`правило «${s.slice(0, 34)}» дошло до промпта`)
                                  : fail(`правило «${s.slice(0, 34)}» потерялось`));
 
@@ -103,9 +103,19 @@ group('Правила человеческого текста');
   // Модель, написавшую текст, надо видеть в строке пакета
   js.includes('function modelShort(')&&js.includes('const who=modelShort(c.model);')
     ? ok('модель показывается в стоимости') : fail('по строке не понять, кто писал');
-  js.includes("a warm women's magazine")
-    ? ok('голос описан как тёплый журнальный') : fail('описания голоса нет');
-  js.includes('never writing from personal experience')
+  js.includes("the editor of a glossy women's magazine")
+    ? ok('голос описан как редактор глянца') : fail('описания голоса нет');
+  js.includes('BE HONEST ABOUT WHAT GOES WRONG')
+    ? ok('честность про провалы обязательна') : fail('страница снова будет из одних восторгов');
+  js.includes('TIMING IS PART OF THE ADVICE')
+    ? ok('тайминг входит в совет') : fail('модель не скажет, когда это делать');
+  js.includes('SPECIFIC, NOT APPROXIMATE')
+    ? ok('требуется точность вместо приблизительности') : fail('оттенки снова будут просто «синий»');
+  js.includes('EACH ENTRY FOLLOWS THIS SHAPE')
+    ? ok('у пункта задана форма из двух абзацев') : fail('слабой модели снова придётся выдумывать структуру');
+  js.includes('THE NEXT THREE SHOW HONESTY AND TIMING')
+    ? ok('образцы честности и тайминга добавлены') : fail('образцов честности нет');
+  js.includes('never from personal experience')
     ? ok('личный опыт и «я» запрещены') : fail('голос снова уйдёт в личные истории');
   // абзацы в статье это <p>, а не переносы строки: иначе модель ломает JSON
   !/WE PUBLISH[^\n]*\\n\\n/.test(js)
