@@ -103,15 +103,10 @@ group('Правила человеческого текста');
   // Модель, написавшую текст, надо видеть в строке пакета
   js.includes('function modelShort(')&&js.includes('const who=modelShort(c.model);')
     ? ok('модель показывается в стоимости') : fail('по строке не понять, кто писал');
-  js.includes('HOW THE SENTENCES MOVE')
-    ? ok('правила ритма на месте') : fail('правил ритма нет, голос останется описанием');
-  ['ONE THOUGHT, ONE PARAGRAPH', 'YOU ARE ALLOWED TO SAY "I"', 'ASK HER A REAL QUESTION',
-   'NAME THE WRONG WAY, THEN GIVE THE RIGHT ONE', 'DEFUSE BEFORE SHE BRISTLES'].forEach(s =>
-    js.includes(s) ? ok(`приём «${s.slice(0, 30)}» описан`) : fail(`приём «${s.slice(0, 30)}» потерялся`));
-  js.includes('never turn this into life advice')
-    ? ok('запрет на поучения о жизни на месте') : fail('голос может съехать в жизненные советы');
-  js.includes('THE NEXT FOUR PAIRS ARE ABOUT RHYTHM')
-    ? ok('образцы ритма добавлены') : fail('образцов ритма нет');
+  js.includes("a warm women's magazine")
+    ? ok('голос описан как тёплый журнальный') : fail('описания голоса нет');
+  js.includes('never writing from personal experience')
+    ? ok('личный опыт и «я» запрещены') : fail('голос снова уйдёт в личные истории');
   // абзацы в статье это <p>, а не переносы строки: иначе модель ломает JSON
   !/WE PUBLISH[^\n]*\\n\\n/.test(js)
     ? ok('в образцах абзац показан тегом, а не переносом') : fail('образцы учат ставить переносы строк');
@@ -434,8 +429,8 @@ group('Фотографии');
     ? ok('при перерасходе режется слабый пункт, а не все') : fail('модель урежет всё в обрубки');
   js.includes('')
     ? ok('потолок уходит в сообщение') : fail('потолок посчитан, но не отправлен');
-  js.includes('WRITE EACH imagePrompt AS A REAL SCENE')
-    ? ok('промпт кадра пишется сценой на 3-5 фраз') : fail('промпты снова будут общими');
+  js.includes('EACH imagePrompt IS 2 SHORT SENTENCES')
+    ? ok('промпт кадра ограничен двумя фразами') : fail('промпты кадров снова без потолка');
   js.includes('Part of an article about')
     ? ok('тема статьи названа одной фразой') : fail('привязки к теме нет');
   js.includes('SUBJECT OF THIS PHOTOGRAPH:')
