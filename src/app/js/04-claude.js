@@ -149,7 +149,12 @@ function looksComplete(t){
 
 async function callLuna(system,content,useSearch,onStatus,maxTokens){
   const model=textModel();   // идентификатор из выпадающего списка
-  let messages=[{role:'system',content:String(system||'')},{role:'user',content:String(content||'')}];
+  /* Роль system шлём одним сообщением вместе с заданием, а не отдельным.
+     Runware нигде не документирует, что делает с ролью system для каждой модели:
+     передаёт как есть, преобразует или отбрасывает. Если отбрасывает, до модели
+     не доходит НИ ОДНО наше правило, и статья выглядит так, будто промпта не было.
+     Склейка стоит ровно столько же токенов и эту возможность отказа убирает. */
+  let messages=[{role:'user',content:String(system||'')+'\n\n'+String(content||'')}];
   let overloadTries=0, netTries=0, contTries=0, acc='';
   // Потолок ответа у разных моделей называется по-разному: новые ждут
   // max_completion_tokens, older — max_tokens. Начинаем с нового имени и переключаемся,

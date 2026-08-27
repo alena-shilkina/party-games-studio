@@ -40,8 +40,12 @@ console.log('Обычный ответ');
   const out = await callLuna('SYSTEM', 'USER', false);
   check('текст извлечён', out === '{"title":"ok"}');
   check('модель по умолчанию — Luna', calls[0].model === 'openai:gpt@5.6-luna');
-  check('system ушёл отдельным сообщением', calls[0].messages[0].role === 'system' && calls[0].messages[0].content === 'SYSTEM');
-  check('user на месте', calls[0].messages[1].role === 'user' && calls[0].messages[1].content === 'USER');
+  // роли system нет намеренно: Runware не документирует, что с ней делает каждая модель,
+  // а если её отбрасывают, до модели не доходит ни одно правило
+  check('всё уходит одним сообщением', calls[0].messages.length === 1 && calls[0].messages[0].role === 'user');
+  check('правила на месте', calls[0].messages[0].content.startsWith('SYSTEM'));
+  check('задание на месте', calls[0].messages[0].content.endsWith('USER'));
+  check('роли system нет', !calls[0].messages.some(m => m.role === 'system'));
 }
 
 console.log('Обрезанный ответ продолжается');
