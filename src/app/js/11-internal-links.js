@@ -57,7 +57,9 @@ async function generateArticle(){
        беда ровно обратная, текст выходит куцым, и любое ограничение сверху сделает
        только хуже. Им нужны рассуждения и мягкое повествование, а не рамка. */
     const perItem=mode==='prompts'?12:(mode==='recipes'?170:130);
-    const wordsMax=Math.round(250+target*perItem*1.15);
+    // Потолок не ниже 3500: короткие статьи так не зажимаются, а длинные считаются
+    // от числа пунктов и получают больше, иначе тридцати идеям места не хватит.
+    const wordsMax=Math.max(3500,Math.round(250+target*perItem*1.15));
     const lengthBlock=(textModel()==='claude')
       ? `\n\nLENGTH: keep the body text under about ${wordsMax} words. Not a target to hit, a ceiling not to sail past: an article of this kind does not need four or eight thousand words, and the reader is scanning it on a phone. Write everything that genuinely helps her and then stop.`
       : '';
