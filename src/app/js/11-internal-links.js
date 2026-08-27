@@ -66,7 +66,8 @@ async function generateArticle(){
     const itemMin=Math.round(perItem*0.85), itemMax=Math.round(perItem*1.15);
     const lengthBlock=`\n\nLENGTH, and both halves of this are binding.
 PER ENTRY: every entry gets ${itemMin} to ${itemMax} words of prose of its own. Check this as you finish each one, not at the end. An entry under ${itemMin} words is a stub: it names the thing and stops, and it helps nobody. If you cannot reach ${itemMin} words on real detail, you have not said how many guests it suits, how long it runs, what she needs, or what tends to go wrong.
-WHOLE ARTICLE: ${wordsMin} to ${wordsMax} words of body text. Count the prose, not the headings or the lists. If you are running over, cut the weakest entry rather than shortening every one of them into a stub. Over the ceiling you are padding, and padding is what makes a page read as machine-written.`;
+WHOLE ARTICLE: ${wordsMin} to ${wordsMax} words of body text. Count the prose, not the headings or the lists.
+WHAT TO CUT WHEN YOU RUN OVER, in this order. First the reflection: the sentences explaining why something works, why guests enjoy it, why it suits the theme. Those read well and carry no information, and they are where a long article gets long. Then a whole weak entry. NEVER the practical detail: the guest counts, the minutes, the number of copies, the thing that goes wrong. Those stay even if everything around them goes.`;
     const wantDl=ST.batchRow?!!ST.batchRow.downloadable:!!($('downloadable')&&$('downloadable').checked);
     const ideasBlock=`\n\nIDEAS ARTICLE: an editorial round-up for "${kw}" (${v('category')}, ${v('audience')}) with EXACTLY ${target} ideas. `
       + (brief?`The angle and must-include ideas: ${brief}. `:`Choose the angle and the ideas this topic actually needs. `)

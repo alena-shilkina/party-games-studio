@@ -14,6 +14,8 @@ ${ANSWER_KEY_RULE}
 
 ${NO_PEOPLE}
 
+${AD_LAYOUT}
+
 STRUCTURE:
 - "intro": 2-3 short paragraphs that set the angle and promise. Warm, specific, no throat-clearing.
 - "sections": 4-8 CATEGORY blocks. "heading" = a searchable idea category. "content" = a SHORT lead of 1-2 sentences ONLY, introducing the category, never the write-up of the individual ideas.

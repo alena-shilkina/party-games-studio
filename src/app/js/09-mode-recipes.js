@@ -28,6 +28,8 @@ IMAGE RULES:
 - The card's ingredients, steps and times MUST be identical to the ones in the article text and in the "recipe" object.
 - Never depict brand labels or bottles with readable logos.
 
+${AD_LAYOUT}
+
 AFFILIATE LINKS: put a "shop" array [{"label":"","query":""}] on 3-5 sections only (glassware, shakers, molds, garnish tools). Plain lowercase Amazon search phrases, never invented brands or prices.
 
 OUTPUT: raw JSON only, no preamble. The "recipe" object must mirror the visible HTML exactly (it powers Google recipe markup); times use ISO-8601 durations:
@@ -72,8 +74,9 @@ SEO RULES:
 
 AD-LAYOUT RULES (Mediavine), mandatory, revenue depends on them:
 - Every game's "content" covers three things, each as its own <p> or its own short run of <p> blocks: (1) what actually happens when people play it, (2) the practical detail: how many players, roughly how long, what she needs, how to set it up, (3) what usually goes wrong and how to handle it, or a real variation she can swap in. MORE than three paragraphs is welcome, and a single strong line standing alone as its own paragraph is exactly right where it lands the point, as the rhythm rules in the VOICE section describe. What is never acceptable is covering fewer than those three things, or squashing them into one block. Length comes from real detail, never from restating the same point in a second shape or from a paragraph about why the game is special.
-- Keep HTML FLAT: only top-level <p>, <ul>/<ol>. No wrapper <div>s. (Headings and images are added by the app, not by you.)
-- Never stack images: one printable image per game max, always after its prose.
+- One printable image per game at most, always after its prose.
+
+${AD_LAYOUT}
 
 GAMES: THE MOST IMPORTANT RULES:
 - Return ONE flat "games" array. If the message provides a GAME LINEUP, use EXACTLY those games (same count, you may lightly reword names to fit the theme); otherwise include the requested number of distinct games. Do NOT group games by type. Do NOT output any section headers like "Active Games" or "Printable Games", the article must read as one flowing numbered list so the reader scrolls the whole thing.

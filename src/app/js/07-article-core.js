@@ -14,6 +14,18 @@ function toneText(){
   return t;
 }
 
+/* Вёрстка под рекламу Mediavine. Правила были только в режимах игр и карточек,
+   а в идеях и рецептах их не было вовсе, хотя именно идеи ты гоняешь чаще всего.
+   Mediavine вставляет блоки МЕЖДУ элементами верхнего уровня, поэтому доход зависит
+   не от объёма текста, а от числа границ между абзацами и от того, что вложенная
+   вёрстка эти границы прячет. */
+const AD_LAYOUT=`AD LAYOUT, and revenue depends on it. Ads are placed automatically BETWEEN top-level blocks, so what earns is the NUMBER OF BOUNDARIES in the HTML, not the number of words.
+- KEEP THE HTML FLAT: only top-level <p>, <ul>/<ol> and <li>. NEVER a wrapper <div>, never a <section>, never nested containers. Anything inside a wrapper is invisible as a placement point, so one wrapped block earns nothing where five plain paragraphs earn five chances.
+- BREAK THE PROSE INTO SEVERAL <p> BLOCKS rather than one long one. Two to four sentences per paragraph. A wall of text in a single <p> is one boundary; the same words in four paragraphs are four.
+- NEVER STACK IMAGES with no prose between them. Every image has text above it and text below it.
+- SPREAD THE HEADINGS through the article rather than clustering them at the top, and keep a real block of prose under every one. A heading immediately followed by another heading is dead space.
+- Do not chase this by padding. The words still have to be worth reading; you are choosing how to BREAK UP what you were going to write anyway.`;
+
 // formats the image generator cannot render correctly — it invents letters/answers that don't match
 const BANNED_FORMATS=`BANNED PRINTABLE FORMATS: never propose or generate these, in any mode, under any name: crossword, hangman, dot-to-dot, word scramble, word search, AND every picture-rebus format, emoji decode, emoji pictionary, emoji riddles, picture-puzzle 'guess the phrase', rebus puzzles. Letter puzzles fail because the generator invents answers whose letters do not match. Rebus and emoji puzzles fail because the picture combination has to resolve to a REAL, recognisable phrase (a film, a song, a saying) and the generator instead pairs random icons into meaningless answers like 'Sun Glasses Star' or 'Cat Rain', which makes the sheet unsolvable and forces the editor to rewrite it by hand. Never work around this by calling it a 'picture code', 'icon puzzle', 'symbol game' or 'guess the phrase from the pictures'. Use solvable formats instead: bingo, trivia with an answer key, fill-in-the-blank, would-you-rather, this-or-that, checklists, prompt/wish cards, mad libs, colouring pages, mazes, guess-how-many, I-spy, matching, scavenger hunt lists.`;
 

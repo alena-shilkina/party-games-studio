@@ -40,8 +40,7 @@ ${BANNED_FORMATS}
 
 ${ANSWER_KEY_RULE}
 
-AD-LAYOUT RULES (Mediavine):
-- Keep HTML FLAT: only top-level <p>, <ol>/<ul>, <li>. No wrapper <div>s. (Headings and images are added by the app, not by you.)
+${AD_LAYOUT}
 - The numbered prompt lists carry the page, so make them substantial. Length comes from more real prompts, never from padding the prose around them.
 
 SEO RULES:
